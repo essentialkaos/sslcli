@@ -28,7 +28,7 @@ import (
 
 const (
 	APP  = "SSL Labs Client"
-	VER  = "1.0.4"
+	VER  = "1.0.5"
 	DESC = "Command-line client for the SSL Labs API"
 )
 
@@ -446,7 +446,7 @@ func getNormGrade(grade string) string {
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 func showUsage() {
-	info := usage.NewInfo("ssllabs-client", "host...")
+	info := usage.NewInfo("", "host...")
 
 	info.AddOption(ARG_FORMAT, "Output result in different formats", "text|json|xml")
 	info.AddOption(ARG_DETAILED, "Show detailed info for each endpoint")
@@ -474,7 +474,7 @@ func showAbout() {
 		Desc:    DESC,
 		Year:    2009,
 		Owner:   "Essential Kaos",
-		License: "Essential Kaos Open Source License <http://essentialkaos.com/ekol?en>",
+		License: "Essential Kaos Open Source License <https://essentialkaos.com/ekol?en>",
 	}
 
 	about.Render()
