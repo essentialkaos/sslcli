@@ -12,6 +12,13 @@ go get github.com/essentialkaos/ssllabs_client
 
 You can download prebuilt binaries for Linux and OS X from [EK Apps Repository](https://apps.kaos.io/ssllabs-client/).
 
+#### Build Status
+
+| Repository | Status |
+|------------|--------|
+| Stable | [![Build Status](https://travis-ci.org/essentialkaos/ssllabs_client.svg?branch=master)](https://travis-ci.org/essentialkaos/ssllabs_client) |
+| Unstable | [![Build Status](https://travis-ci.org/essentialkaos/ssllabs_client.svg?branch=develop)](https://travis-ci.org/essentialkaos/ssllabs_client) |
+
 #### License
 
 [EKOL](https://essentialkaos.com/ekol)
