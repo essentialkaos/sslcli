@@ -4,7 +4,7 @@ Command-line client for [SSLLabs](https://www.ssllabs.com) public API.
 
 #### Usage example
 
-[![asciicast](https://asciinema.org/a/30736.png)](https://asciinema.org/a/30736)
+[![asciicast](https://asciinema.org/a/30736.png?r1)](https://asciinema.org/a/30736)
 
 #### Installation
 
