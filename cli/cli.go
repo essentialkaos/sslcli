@@ -28,7 +28,7 @@ import (
 
 const (
 	APP  = "SSL Labs Client"
-	VER  = "1.0.5"
+	VER  = "1.0.6"
 	DESC = "Command-line client for the SSL Labs API"
 )
 
@@ -115,6 +115,8 @@ func Init() {
 		showUsage()
 		return
 	}
+
+	runtime.GOMAXPROCS(1)
 
 	req.UserAgent = fmtc.Sprintf("%s/%s (go; %s; %s-%s)",
 		APP, VER, runtime.Version(),
