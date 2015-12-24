@@ -11,11 +11,11 @@ import (
 	"strings"
 	"time"
 
-	"github.com/essentialkaos/ek/fmtc"
-	"github.com/essentialkaos/ek/fmtutil"
-	"github.com/essentialkaos/ek/timeutil"
+	"pkg.re/essentialkaos/ek.v1/fmtc"
+	"pkg.re/essentialkaos/ek.v1/fmtutil"
+	"pkg.re/essentialkaos/ek.v1/timeutil"
 
-	"github.com/essentialkaos/ssllabs"
+	"pkg.re/essentialkaos/ssllabs.v1"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
