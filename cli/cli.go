@@ -15,20 +15,20 @@ import (
 	"strings"
 	"time"
 
-	"github.com/essentialkaos/ek/arg"
-	"github.com/essentialkaos/ek/fmtc"
-	"github.com/essentialkaos/ek/fsutil"
-	"github.com/essentialkaos/ek/req"
-	"github.com/essentialkaos/ek/usage"
+	"pkg.re/essentialkaos/ek.v1/arg"
+	"pkg.re/essentialkaos/ek.v1/fmtc"
+	"pkg.re/essentialkaos/ek.v1/fsutil"
+	"pkg.re/essentialkaos/ek.v1/req"
+	"pkg.re/essentialkaos/ek.v1/usage"
 
-	"github.com/essentialkaos/ssllabs"
+	"pkg.re/essentialkaos/ssllabs.v1"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 const (
 	APP  = "SSL Labs Client"
-	VER  = "1.0.6"
+	VER  = "1.0.7"
 	DESC = "Command-line client for the SSL Labs API"
 )
 
