@@ -28,7 +28,7 @@ import (
 
 const (
 	APP  = "SSL Labs Client"
-	VER  = "1.0.9"
+	VER  = "1.0.8"
 	DESC = "Command-line client for the SSL Labs API"
 )
 
@@ -464,7 +464,9 @@ func showUsage() {
 	info.AddOption(ARG_VER, "Show version")
 
 	info.AddExample("google.com", "Check google.com")
+	info.AddExample("-P google.com", "Check google.com and return zero exit code only if result is perfect (A+)")
 	info.AddExample("-p -c google.com", "Check google.com, don't publish results, use cache")
+	info.AddExample("hosts.txt", "Check all hosts defined in hosts.txt file")
 
 	info.Render()
 }
