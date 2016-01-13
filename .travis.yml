@@ -13,8 +13,8 @@ os:
 sudo: false
 
 before_install:
-  - go get pkg.re/essentialkaos/ek.v1
-  - go get pkg.re/essentialkaos/ssllabs.v1
+  - go get -v pkg.re/essentialkaos/ek.v1
+  - go get -v pkg.re/essentialkaos/ssllabs.v1
 
 script:
   - go build ssllabs-client.go
