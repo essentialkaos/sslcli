@@ -1,4 +1,5 @@
 language: go
+
 go:
   - 1.4.2
   - 1.5.2
@@ -7,6 +8,7 @@ go:
 os:
   - linux
   - osx
+  - freebsd
 
 sudo: false
 
