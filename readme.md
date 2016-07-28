@@ -1,22 +1,39 @@
-## SSLLabs Client
+# SSLLabs Client
 
 Command-line client for [SSLLabs](https://www.ssllabs.com) public API.
 
-### Usage demo
+* [Usage demo](#usage-demo)
+* [Installation](#installation)
+* [Prebuilt binaries](#prebuilt-binaries)
+* [Feature list](#feature-list)
+* [Usage](#usage)
+* [Build Status](#build-status)
+* [Contributing](#contributing)
+* [License](#license)
+
+## Usage demo
 
 [![asciicast](https://asciinema.org/a/30736.png?r1)](https://asciinema.org/a/30736)
 
-### Installation
+## Installation
 
-````
+To build the SSLLabs Client from scratch, make sure you have a working Go 1.5+ workspace ([instructions](https://golang.org/doc/install)), then:
+
+```
 go get github.com/essentialkaos/ssllabs_client
-````
+```
 
-### Prebuilt binaries
+If you want update SSLLabs Client to latest stable release, do:
+
+```
+go get -u github.com/essentialkaos/ssllabs_client
+```
+
+## Prebuilt binaries
 
 You can download prebuilt binaries for Linux and OS X from [EK Apps Repository](https://apps.kaos.io/ssllabs-client/).
 
-### Feature list
+## Feature list
 
 * Superb UI
 * Output very similar to SSLLabs website output
@@ -26,7 +43,7 @@ You can download prebuilt binaries for Linux and OS X from [EK Apps Repository](
 * Dev API support
 * JSON/XML/Text output for usage in third party services
 
-### Usage
+## Usage
 
 ````
 Usage: ssllabs-client {options} host...
@@ -61,7 +78,7 @@ Examples:
 
 ````
 
-### Build Status
+## Build Status
 
 | Repository | Status |
 |------------|--------|
@@ -72,6 +89,6 @@ Examples:
 
 Before contributing to this project please read our [Contributing Guidelines](https://github.com/essentialkaos/contributing-guidelines#contributing-guidelines).
 
-### License
+## License
 
 [EKOL](https://essentialkaos.com/ekol)
