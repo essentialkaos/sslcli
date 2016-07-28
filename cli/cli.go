@@ -241,7 +241,7 @@ func check(host string) string {
 			message := getStatusInProgress(info.Endpoints)
 
 			if message != "" {
-				t.Printf("{s}%s…{!}", message)
+				t.Printf("{s}%s...{!}", message)
 			}
 		}
 
@@ -444,7 +444,7 @@ func getNormGrade(grade string) string {
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 func showUsage() {
-	info := usage.NewInfo("", "host…")
+	info := usage.NewInfo("", "host...")
 
 	info.AddOption(ARG_FORMAT, "Output result in different formats", "text|json|xml")
 	info.AddOption(ARG_DETAILED, "Show detailed info for each endpoint")

@@ -6,7 +6,7 @@ Command-line client for [SSLLabs](https://www.ssllabs.com) public API.
 
 ## Usage demo
 
-[![asciicast](https://asciinema.org/a/30736.png?r1)](https://asciinema.org/a/30736)
+[![asciicast](https://essentialkaos.com/github/ssllabs-client-110.gif)](https://asciinema.org/a/81231)
 
 ## Installation
 
@@ -33,13 +33,12 @@ You can download prebuilt binaries for Linux and OS X from [EK Apps Repository](
 * Checking many hosts at once
 * Checking hosts defined in file
 * Check resumption
-* Dev API support
 * JSON/XML/Text output for usage in third party services
 
 ## Usage
 
 ````
-Usage: ssllabs-client {options} host...
+Usage: ssllabs-client {options} host…
 
 Options:
 
@@ -73,10 +72,10 @@ Examples:
 
 ## Build Status
 
-| Repository | Status |
+| Branch | Status |
 |------------|--------|
-| Stable | [![Build Status](https://travis-ci.org/essentialkaos/ssllabs_client.svg?branch=master)](https://travis-ci.org/essentialkaos/ssllabs_client) |
-| Unstable | [![Build Status](https://travis-ci.org/essentialkaos/ssllabs_client.svg?branch=develop)](https://travis-ci.org/essentialkaos/ssllabs_client) |
+| `master` | [![Build Status](https://travis-ci.org/essentialkaos/ssllabs_client.svg?branch=master)](https://travis-ci.org/essentialkaos/ssllabs_client) |
+| `develop` | [![Build Status](https://travis-ci.org/essentialkaos/ssllabs_client.svg?branch=develop)](https://travis-ci.org/essentialkaos/ssllabs_client) |
 
 ## Contributing
 
