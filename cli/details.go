@@ -83,11 +83,21 @@ func printDetailedEndpointInfo(ap *ssllabs.AnalyzeProgress, ip string) {
 
 	fmtc.NewLine()
 
-	// ////////////////////////////////////////////////////////////////////////////////// //
+	printCertificateInfo(details)
+	printCertificationPathsInfo(details)
+	printProtocolsInfo(details)
+	suiteIndex := printCipherSuitesInfo(details)
+	printHandshakeSimulationInfo(details, suiteIndex)
+	printProtocolDetailsInfo(details)
+	printMiscellaneousInfo(info)
 
 	fmtutil.Separator(true)
-	fmtc.Println(" {*b}Server Key and Certificate{!}")
-	fmtutil.Separator(true)
+	fmtc.NewLine()
+}
+
+// printCertificateInfo print basic info about server key and certificate
+func printCertificateInfo(details *ssllabs.EndpointDetails) {
+	printCategoryHeader("Server Key and Certificate")
 
 	validFromDate := time.Unix(details.Cert.NotBefore/1000, 0)
 	validUntilDate := time.Unix(details.Cert.NotAfter/1000, 0)
@@ -108,7 +118,7 @@ func printDetailedEndpointInfo(ap *ssllabs.AnalyzeProgress, ip string) {
 		fmtc.Printf("%s\n", timeutil.Format(validUntilDate, "%Y/%m/%d %H:%M:%S"))
 	}
 
-	fmtc.Printf(" %-24s {s}|{!} %s %d bits\n", "Key", info.Details.Key.Alg, details.Key.Size)
+	fmtc.Printf(" %-24s {s}|{!} %s %d bits\n", "Key", details.Key.Alg, details.Key.Size)
 	fmtc.Printf(" %-24s {s}|{!} %s\n", "Weak Key (Debian)", getBool(details.Key.DebianFlaw))
 
 	fmtc.Printf(" %-24s {s}|{!} ", "Issuer")
@@ -162,12 +172,11 @@ func printDetailedEndpointInfo(ap *ssllabs.AnalyzeProgress, ip string) {
 	} else {
 		fmtc.Printf("{r}No (%s){!}\n", getCertIssuesDesc(details.Cert.Issues))
 	}
+}
 
-	// ////////////////////////////////////////////////////////////////////////////////// //
-
-	fmtutil.Separator(true)
-	fmtc.Println(" {*b}Certification Paths{!}")
-	fmtutil.Separator(true)
+// printCertificationPathsInfo print info about certificates in chain
+func printCertificationPathsInfo(details *ssllabs.EndpointDetails) {
+	printCategoryHeader("Certification Paths")
 
 	fmtc.Printf(" %-24s {s}|{!} %d\n", "Certificates provided", len(details.Chain.Certs))
 
@@ -213,12 +222,11 @@ func printDetailedEndpointInfo(ap *ssllabs.AnalyzeProgress, ip string) {
 			}
 		}
 	}
+}
 
-	// ////////////////////////////////////////////////////////////////////////////////// //
-
-	fmtutil.Separator(true)
-	fmtc.Println(" {*b}Protocols{!}")
-	fmtutil.Separator(true)
+// printProtocolsInfo print info about supported protocols
+func printProtocolsInfo(details *ssllabs.EndpointDetails) {
+	printCategoryHeader("Protocols")
 
 	supportedProtocols := getProtocols(details.Protocols)
 
@@ -240,12 +248,11 @@ func printDetailedEndpointInfo(ap *ssllabs.AnalyzeProgress, ip string) {
 			fmtc.Printf("%s\n", getBool(supportedProtocols[protocol]))
 		}
 	}
+}
 
-	// ////////////////////////////////////////////////////////////////////////////////// //
-
-	fmtutil.Separator(true)
-	fmtc.Println(" {*b}Cipher Suites{!}")
-	fmtutil.Separator(true)
+// printCipherSuitesInfo print info about supported cipher suites
+func printCipherSuitesInfo(details *ssllabs.EndpointDetails) map[int]int {
+	printCategoryHeader("Cipher Suites")
 
 	suiteIndex := make(map[int]int)
 
@@ -280,11 +287,12 @@ func printDetailedEndpointInfo(ap *ssllabs.AnalyzeProgress, ip string) {
 		}
 	}
 
-	// ////////////////////////////////////////////////////////////////////////////////// //
+	return suiteIndex
+}
 
-	fmtutil.Separator(true)
-	fmtc.Println(" {*b}Handshake Simulation{!}")
-	fmtutil.Separator(true)
+// printHandshakeSimulationInfo print info about handshakes simulations
+func printHandshakeSimulationInfo(details *ssllabs.EndpointDetails, suiteIndex map[int]int) {
+	printCategoryHeader("Handshake Simulation")
 
 	for _, sim := range details.SIMS.Results {
 		if sim.ErrorCode != 0 {
@@ -323,12 +331,11 @@ func printDetailedEndpointInfo(ap *ssllabs.AnalyzeProgress, ip string) {
 			)
 		}
 	}
+}
 
-	// ////////////////////////////////////////////////////////////////////////////////// //
-
-	fmtutil.Separator(true)
-	fmtc.Println(" {*b}Protocol Details{!}")
-	fmtutil.Separator(true)
+// printProtocolDetailsInfo print endpoint protocol details
+func printProtocolDetailsInfo(details *ssllabs.EndpointDetails) {
+	printCategoryHeader("Protocol Details")
 
 	fmtc.Printf(" %-40s {s}|{!} ", "Secure Renegotiation")
 
@@ -529,7 +536,7 @@ func printDetailedEndpointInfo(ap *ssllabs.AnalyzeProgress, ip string) {
 			)
 
 			for _, pin := range getPinsFromPolicy(details.HPKPPolicy) {
-				fmtc.Printf(" %-40s {s}|{!} %s\n", "", pin)
+				fmtc.Printf(" %-40s {s}|{!} {s}%s{!}\n", "", pin)
 			}
 		default:
 			fmtc.Println("No")
@@ -553,14 +560,14 @@ func printDetailedEndpointInfo(ap *ssllabs.AnalyzeProgress, ip string) {
 	} else {
 		fmtc.Println("No")
 	}
+}
 
-	// ////////////////////////////////////////////////////////////////////////////////// //
+// printMiscellaneousInfo print miscellaneous info about endpoint
+func printMiscellaneousInfo(info *ssllabs.EndpointInfo) {
+	printCategoryHeader("Miscellaneous")
 
-	fmtutil.Separator(true)
-	fmtc.Println(" {*b}Miscellaneous{!}")
-	fmtutil.Separator(true)
-
-	testDate := time.Unix(details.HostStartTime/1000, 0)
+	details := info.Details
+	testDate := time.Unix(info.Details.HostStartTime/1000, 0)
 
 	fmtc.Printf(
 		" %-24s {s}|{!} %s {s}(%s ago){!}\n", "Test date",
@@ -586,14 +593,16 @@ func printDetailedEndpointInfo(ap *ssllabs.AnalyzeProgress, ip string) {
 	if info.ServerName != "" {
 		fmtc.Printf(" %-24s {s}|{!} %s\n", "Server hostname", info.ServerName)
 	}
-
-	// ////////////////////////////////////////////////////////////////////////////////// //
-
-	fmtutil.Separator(true)
-	fmtc.NewLine()
 }
 
-// Convert bool value to Yes/No
+// printCategoryHeader print category name and separators
+func printCategoryHeader(name string) {
+	fmtutil.Separator(true)
+	fmtc.Printf(" ▾ {*}%s{!}\n", strings.ToUpper(name))
+	fmtutil.Separator(true)
+}
+
+// getBool convert bool value to Yes/No
 func getBool(value bool) string {
 	switch value {
 	case true:
@@ -603,7 +612,7 @@ func getBool(value bool) string {
 	}
 }
 
-// Decode revocation info
+// getRevocationInfo decode revocation info
 func getRevocationInfo(info int) string {
 	var result []string
 
@@ -618,7 +627,7 @@ func getRevocationInfo(info int) string {
 	return strings.Join(result, " ")
 }
 
-// Get description for revocation status
+// getRevocationStatus return description for revocation status
 func getRevocationStatus(status int) string {
 	switch status {
 	case 0:
@@ -636,7 +645,7 @@ func getRevocationStatus(status int) string {
 	}
 }
 
-// Get description for cert issues
+// getCertIssuesDesc return description for cert issues
 func getCertIssuesDesc(issues int) string {
 	switch {
 	case issues&1 == 1:
@@ -662,7 +671,7 @@ func getCertIssuesDesc(issues int) string {
 	return "Unknown"
 }
 
-// Get description for chain issues
+// getChainIssuesDesc return description for chain issues
 func getChainIssuesDesc(issues int) string {
 	switch {
 	case issues&1 == 1:
@@ -682,7 +691,7 @@ func getChainIssuesDesc(issues int) string {
 	return "None"
 }
 
-// Get map with supported protocols
+// getProtocols return map with supported protocols
 func getProtocols(protocols []*ssllabs.Protocol) map[string]bool {
 	var supported = make(map[string]bool)
 
