@@ -123,7 +123,7 @@ func Init() {
 	process(args)
 }
 
-// starting processing
+// process starting request processing
 func process(args []string) {
 	var (
 		ok    bool
@@ -151,9 +151,11 @@ func process(args []string) {
 		}
 	}
 
-	var grade string
-	var checksInfo []*HostCheckInfo
-	var checkInfo *HostCheckInfo
+	var (
+		grade      string
+		checksInfo []*HostCheckInfo
+		checkInfo  *HostCheckInfo
+	)
 
 	for _, host := range hosts {
 
@@ -197,7 +199,7 @@ func process(args []string) {
 	}
 }
 
-// check some host
+// check check some host
 func check(host string) string {
 	var err error
 	var info *ssllabs.AnalyzeInfo
@@ -261,7 +263,7 @@ func check(host string) string {
 	return lowestGrade
 }
 
-// check some host without any output to console
+// quietCheck check some host without any output to console
 func quietCheck(host string) (string, *HostCheckInfo) {
 	var err error
 	var info *ssllabs.AnalyzeInfo
@@ -311,7 +313,7 @@ func quietCheck(host string) (string, *HostCheckInfo) {
 	return lowestGrade, checkInfo
 }
 
-// get grade with color tags
+// getColoredGrade return grade with color tags
 func getColoredGrade(grade string) string {
 	switch grade {
 	case "A", "A-", "A+":
@@ -325,7 +327,7 @@ func getColoredGrade(grade string) string {
 	return "{r}" + grade + "{!}"
 }
 
-// get grades with color tags for many endpoints
+// getColoredGrades return grades with color tags for many endpoints
 func getColoredGrades(endpoints []*ssllabs.EndpointInfo) string {
 	var result string
 
@@ -336,7 +338,7 @@ func getColoredGrades(endpoints []*ssllabs.EndpointInfo) string {
 	return result
 }
 
-// get lowest and highest grades
+// getGrades return lowest and highest grades
 func getGrades(endpoints []*ssllabs.EndpointInfo) (string, string) {
 	var (
 		lowest  = 8
@@ -367,7 +369,7 @@ func getGrades(endpoints []*ssllabs.EndpointInfo) (string, string) {
 	return gradesN[lowest], gradesN[highest]
 }
 
-// get status message from any in-progress endpoint
+// getStatusInProgress return status message from any in-progress endpoint
 func getStatusInProgress(endpoints []*ssllabs.EndpointInfo) string {
 	if len(endpoints) == 1 {
 		return endpoints[0].StatusDetailsMessage
@@ -386,7 +388,7 @@ func getStatusInProgress(endpoints []*ssllabs.EndpointInfo) string {
 	return ""
 }
 
-// read file with hosts
+// readHostList read file with hosts
 func readHostList(file string) ([]string, error) {
 	var result []string
 
@@ -419,7 +421,7 @@ func readHostList(file string) ([]string, error) {
 	return result, nil
 }
 
-// append endpoint check result to struct with info about all checks for host
+// appendEndpointsInfo append endpoint check result to struct with info about all checks for host
 func appendEndpointsInfo(checkInfo *HostCheckInfo, endpoints []*ssllabs.EndpointInfo) {
 	for _, endpoint := range endpoints {
 		checkInfo.Endpoints = append(checkInfo.Endpoints, &EndpointCheckInfo{
@@ -429,7 +431,7 @@ func appendEndpointsInfo(checkInfo *HostCheckInfo, endpoints []*ssllabs.Endpoint
 	}
 }
 
-// return grade or error
+// getNormGrade return grade or error
 func getNormGrade(grade string) string {
 	switch grade {
 	case "":
