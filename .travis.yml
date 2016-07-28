@@ -1,9 +1,7 @@
 language: go
 
 go:
-  - 1.4.3
-  - 1.5.3
-  - 1.6
+  - 1.6.3
   - tip
 
 os:
@@ -13,8 +11,8 @@ os:
 sudo: false
 
 before_install:
-  - go get -v pkg.re/essentialkaos/ek.v1
-  - go get -v pkg.re/essentialkaos/ssllabs.v1
+  - go get -v pkg.re/essentialkaos/ek.v3
+  - go get -v pkg.re/essentialkaos/ssllabs.v2
 
 script:
   - go build ssllabs-client.go

@@ -1,22 +1,22 @@
-### SSLLabs Client
+## SSLLabs Client
 
 Command-line client for [SSLLabs](https://www.ssllabs.com) public API.
 
-#### Usage demo
+### Usage demo
 
 [![asciicast](https://asciinema.org/a/30736.png?r1)](https://asciinema.org/a/30736)
 
-#### Installation
+### Installation
 
 ````
 go get github.com/essentialkaos/ssllabs_client
 ````
 
-#### Prebuilt binaries
+### Prebuilt binaries
 
 You can download prebuilt binaries for Linux and OS X from [EK Apps Repository](https://apps.kaos.io/ssllabs-client/).
 
-#### Feature list
+### Feature list
 
 * Superb UI
 * Output very similar to SSLLabs website output
@@ -26,32 +26,52 @@ You can download prebuilt binaries for Linux and OS X from [EK Apps Repository](
 * Dev API support
 * JSON/XML/Text output for usage in third party services
 
-#### Usage
+### Usage
 
-    Usage: ssllabs-client <options> host...
-    
-    Options:
-    
-      --format, -f text|json|xml    Output result in different formats
-      --detailed, -d                Show detailed info for each endpoint
-      --ignore-mismatch, -i         Proceed with assessments on certificate mismatch
-      --cache, -c                   Use cache if possible
-      --dev-api, -D                 Use dev API instead production
-      --private, -p                 Don't public results on ssllabs
-      --perfect, -P                 Return non-zero exit code if not A+
-      --notify, -n                  Notify when check is done
-      --quiet, -q                   Don't show any output
-      --no-color, -nc               Disable colors in output
-      --help, -h                    Show this help message
-      --version, -v                 Show version
+````
+Usage: ssllabs-client {options} host...
 
-#### Build Status
+Options:
+
+  --format, -f text|json|xml    Output result in different formats
+  --detailed, -d                Show detailed info for each endpoint
+  --ignore-mismatch, -i         Proceed with assessments on certificate mismatch
+  --cache, -c                   Use cache if possible
+  --public, -p                  Publish results on ssllabs.com
+  --perfect, -P                 Return non-zero exit code if not A+
+  --notify, -n                  Notify when check is done
+  --quiet, -q                   Don't show any output
+  --no-color, -nc               Disable colors in output
+  --help, -h                    Show this help message
+  --version, -v                 Show version
+
+Examples:
+
+  ssllabs-client google.com
+  Check google.com
+
+  ssllabs-client -P google.com
+  Check google.com and return zero exit code only if result is perfect (A+)
+
+  ssllabs-client -p -c google.com
+  Check google.com, publish results, use cache
+
+  ssllabs-client hosts.txt
+  Check all hosts defined in hosts.txt file
+
+````
+
+### Build Status
 
 | Repository | Status |
 |------------|--------|
 | Stable | [![Build Status](https://travis-ci.org/essentialkaos/ssllabs_client.svg?branch=master)](https://travis-ci.org/essentialkaos/ssllabs_client) |
 | Unstable | [![Build Status](https://travis-ci.org/essentialkaos/ssllabs_client.svg?branch=develop)](https://travis-ci.org/essentialkaos/ssllabs_client) |
 
-#### License
+## Contributing
+
+Before contributing to this project please read our [Contributing Guidelines](https://github.com/essentialkaos/contributing-guidelines#contributing-guidelines).
+
+### License
 
 [EKOL](https://essentialkaos.com/ekol)

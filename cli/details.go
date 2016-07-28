@@ -11,11 +11,11 @@ import (
 	"strings"
 	"time"
 
-	"pkg.re/essentialkaos/ek.v1/fmtc"
-	"pkg.re/essentialkaos/ek.v1/fmtutil"
-	"pkg.re/essentialkaos/ek.v1/timeutil"
+	"pkg.re/essentialkaos/ek.v3/fmtc"
+	"pkg.re/essentialkaos/ek.v3/fmtutil"
+	"pkg.re/essentialkaos/ek.v3/timeutil"
 
-	"pkg.re/essentialkaos/ssllabs.v1"
+	"pkg.re/essentialkaos/ssllabs.v2"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -27,8 +27,10 @@ type Line struct {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
+// protocolList contains list of supported protocols
 var protocolList = []string{"TLS 1.2", "TLS 1.1", "TLS 1.0", "SSL 3.0", "SSL 2.0"}
 
+// protocolIDs is map protocol id -> protocol name
 var protocolIDs = map[int]string{
 	512: "SSL 2.0",
 	768: "SSL 3.0",
@@ -37,6 +39,7 @@ var protocolIDs = map[int]string{
 	771: "TLS 1.2",
 }
 
+// weakAlgorithms is map with weak algorithms names
 var weakAlgorithms = map[string]bool{
 	"SHA1withRSA": true,
 	"MD5withRSA":  true,
@@ -45,8 +48,8 @@ var weakAlgorithms = map[string]bool{
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// Get detailed info for all endpoints
-func getDetailedInfo(ap *ssllabs.AnalyzeProgress, info *ssllabs.AnalyzeInfo) {
+// printDetailedInfo fetch and print detailed info for all endpoints
+func printDetailedInfo(ap *ssllabs.AnalyzeProgress, info *ssllabs.AnalyzeInfo) {
 	showHeaders := len(info.Endpoints) > 1
 
 	if showHeaders {
@@ -58,12 +61,12 @@ func getDetailedInfo(ap *ssllabs.AnalyzeProgress, info *ssllabs.AnalyzeInfo) {
 			fmtc.Printf("\n{c} %s #%d (%s){!}\n\n", info.Host, index+1, endpoint.IPAdress)
 		}
 
-		getDetailedEndpointInfo(ap, endpoint.IPAdress)
+		printDetailedEndpointInfo(ap, endpoint.IPAdress)
 	}
 }
 
-// Get and print detailed info for one endpoint
-func getDetailedEndpointInfo(ap *ssllabs.AnalyzeProgress, ip string) {
+// printDetailedEndpointInfo fetch and print detailed info for one endpoint
+func printDetailedEndpointInfo(ap *ssllabs.AnalyzeProgress, ip string) {
 	info, err := ap.DetailedInfo(ip)
 
 	if err != nil {
@@ -83,7 +86,7 @@ func getDetailedEndpointInfo(ap *ssllabs.AnalyzeProgress, ip string) {
 	// ////////////////////////////////////////////////////////////////////////////////// //
 
 	fmtutil.Separator(true)
-	fmtc.Println(" {*}Server Key and Certificate{!}")
+	fmtc.Println(" {*b}Server Key and Certificate{!}")
 	fmtutil.Separator(true)
 
 	validFromDate := time.Unix(details.Cert.NotBefore/1000, 0)
@@ -96,62 +99,84 @@ func getDetailedEndpointInfo(ap *ssllabs.AnalyzeProgress, ip string) {
 	}
 
 	fmtc.Printf(" %-24s {s}|{!} %s\n", "Valid from", timeutil.Format(validFromDate, "%Y/%m/%d %H:%M:%S"))
-	fmtc.Printf(" %-24s {s}|{!} %s\n", "Valid until", timeutil.Format(validUntilDate, "%Y/%m/%d %H:%M:%S"))
+
+	fmtc.Printf(" %-24s {s}|{!} ", "Valid until")
+
+	if time.Now().Unix() >= validUntilDate.Unix() {
+		fmtc.Printf("{r}%s (EXPIRED){!}\n", timeutil.Format(validUntilDate, "%Y/%m/%d %H:%M:%S"))
+	} else {
+		fmtc.Printf("%s\n", timeutil.Format(validUntilDate, "%Y/%m/%d %H:%M:%S"))
+	}
+
 	fmtc.Printf(" %-24s {s}|{!} %s %d bits\n", "Key", info.Details.Key.Alg, details.Key.Size)
 	fmtc.Printf(" %-24s {s}|{!} %s\n", "Weak Key (Debian)", getBool(details.Key.DebianFlaw))
 
+	fmtc.Printf(" %-24s {s}|{!} ", "Issuer")
+
 	if details.Cert.Issues&64 == 64 {
-		fmtc.Printf(" %-24s {s}|{!} %s {s}(Self-signed){!}\n", "Issuer", details.Cert.IssuerLabel)
+		fmtc.Printf("%s {s}(Self-signed){!}\n", details.Cert.IssuerLabel)
 	} else {
-		fmtc.Printf(" %-24s {s}|{!} %s\n", "Issuer", details.Cert.IssuerLabel)
+		fmtc.Printf("%s\n", details.Cert.IssuerLabel)
 	}
+
+	fmtc.Printf(" %-24s {s}|{!} ", "Signature algorithm")
 
 	if weakAlgorithms[details.Cert.SigAlg] {
-		fmtc.Printf(" %-24s {s}|{!} {y}%s (WEAK){!}\n", "Signature algorithm", details.Cert.SigAlg)
+		fmtc.Printf("{y}%s (WEAK){!}\n", details.Cert.SigAlg)
 	} else {
-		fmtc.Printf(" %-24s {s}|{!} %s\n", "Signature algorithm", details.Cert.SigAlg)
+		fmtc.Printf("%s\n", details.Cert.SigAlg)
 	}
+
+	fmtc.Printf(" %-24s {s}|{!} ", "Extended Validation")
 
 	if details.Cert.ValidationType == "E" {
-		fmtc.Printf(" %-24s {s}|{!} {g}Yes{!}\n", "Extended Validation")
+		fmtc.Println("{g}Yes{!}")
 	} else {
-		fmtc.Printf(" %-24s {s}|{!} No\n", "Extended Validation")
+		fmtc.Println("No")
 	}
 
+	fmtc.Printf(" %-24s {s}|{!} ", "Certificate Transparency")
+
 	if details.Cert.SCT {
-		fmtc.Printf(" %-24s {s}|{!} {g}Yes{!}\n", "Certificate Transparency")
+		fmtc.Println("{g}Yes{!}")
 	} else {
-		fmtc.Printf(" %-24s {s}|{!} No\n", "Certificate Transparency")
+		fmtc.Println("No")
 	}
 
 	if details.Cert.RevocationInfo != 0 {
 		fmtc.Printf(" %-24s {s}|{!} %s\n", "Revocation information", getRevocationInfo(details.Cert.RevocationInfo))
 	}
 
+	fmtc.Printf(" %-24s {s}|{!} ", "Revocation status")
+
 	if details.Cert.RevocationStatus&1 == 1 {
-		fmtc.Printf(" %-24s {s}|{!} {r}%s{!}\n", "Revocation status", getRevocationStatus(details.Cert.RevocationStatus))
+		fmtc.Printf("{r}%s{!}\n", getRevocationStatus(details.Cert.RevocationStatus))
 	} else {
-		fmtc.Printf(" %-24s {s}|{!} %s\n", "Revocation status", getRevocationStatus(details.Cert.RevocationStatus))
+		fmtc.Printf("%s\n", getRevocationStatus(details.Cert.RevocationStatus))
 	}
 
+	fmtc.Printf(" %-24s {s}|{!} ", "Trusted")
+
 	if details.Cert.Issues == 0 {
-		fmtc.Printf(" %-24s {s}|{!} {g}Yes{!}\n", "Trusted")
+		fmtc.Println("{g}Yes{!}")
 	} else {
-		fmtc.Printf(" %-24s {s}|{!} {r}No (%s){!}\n", "Trusted", getCertIssuesDesc(details.Cert.Issues))
+		fmtc.Printf("{r}No (%s){!}\n", getCertIssuesDesc(details.Cert.Issues))
 	}
 
 	// ////////////////////////////////////////////////////////////////////////////////// //
 
 	fmtutil.Separator(true)
-	fmtc.Println(" {*}Certification Paths{!}")
+	fmtc.Println(" {*b}Certification Paths{!}")
 	fmtutil.Separator(true)
 
 	fmtc.Printf(" %-24s {s}|{!} %d\n", "Certificates provided", len(details.Chain.Certs))
 
+	fmtc.Printf(" %-24s {s}|{!} ", "Chain issues")
+
 	if details.Chain.Issues == 0 {
-		fmtc.Printf(" %-24s {s}|{!} None\n", "Chain issues")
+		fmtc.Println("None")
 	} else {
-		fmtc.Printf(" %-24s {s}|{!} {y}%s{!}\n", "Chain issues", getChainIssuesDesc(details.Chain.Issues))
+		fmtc.Printf("{y}%s{!}\n", getChainIssuesDesc(details.Chain.Issues))
 	}
 
 	if len(details.Chain.Certs) > 1 {
@@ -165,18 +190,22 @@ func getDetailedEndpointInfo(ap *ssllabs.AnalyzeProgress, ip string) {
 			fmtc.Printf(" %-24s {s}|{!} %s\n", "Subject", cert.Label)
 			fmtc.Printf(" %-24s {s}|{!} %s\n", "Valid until", timeutil.Format(validUntilDate, "%Y/%m/%d %H:%M:%S"))
 
+			fmtc.Printf(" %-24s {s}|{!} ", "Key")
+
 			if cert.KeyAlg == "RSA" && cert.KeyStrength < 2048 {
-				fmtc.Printf(" %-24s {s}|{!} {y}%s %d bits (WEAK){!}\n", "Key", cert.KeyAlg, cert.KeySize)
+				fmtc.Printf("{y}%s %d bits (WEAK){!}\n", cert.KeyAlg, cert.KeySize)
 			} else {
-				fmtc.Printf(" %-24s {s}|{!} %s %d bits\n", "Key", cert.KeyAlg, cert.KeySize)
+				fmtc.Printf("%s %d bits\n", cert.KeyAlg, cert.KeySize)
 			}
 
 			fmtc.Printf(" %-24s {s}|{!} %s\n", "Issuer", cert.IssuerLabel)
 
+			fmtc.Printf(" %-24s {s}|{!} ", "Signature algorithm")
+
 			if weakAlgorithms[cert.SigAlg] {
-				fmtc.Printf(" %-24s {s}|{!} {y}%s (WEAK){!}\n", "Signature algorithm", cert.SigAlg)
+				fmtc.Printf("{y}%s (WEAK){!}\n", cert.SigAlg)
 			} else {
-				fmtc.Printf(" %-24s {s}|{!} %s\n", "Signature algorithm", cert.SigAlg)
+				fmtc.Printf("%s\n", cert.SigAlg)
 			}
 
 			if index < lastCertIndex {
@@ -188,32 +217,34 @@ func getDetailedEndpointInfo(ap *ssllabs.AnalyzeProgress, ip string) {
 	// ////////////////////////////////////////////////////////////////////////////////// //
 
 	fmtutil.Separator(true)
-	fmtc.Println(" {*}Protocols{!}")
+	fmtc.Println(" {*b}Protocols{!}")
 	fmtutil.Separator(true)
 
 	supportedProtocols := getProtocols(details.Protocols)
 
 	for _, protocol := range protocolList {
+		fmtc.Printf(" %-24s {s}|{!} ", protocol)
+
 		switch {
 		case protocol == "TLS 1.2":
 			if supportedProtocols[protocol] {
-				fmtc.Printf(" %-24s {s}|{!} {g}Yes{!}\n", protocol)
+				fmtc.Println("{g}Yes{!}")
 			} else {
-				fmtc.Printf(" %-24s {s}|{!} {r}No{!}\n", protocol)
+				fmtc.Println("{y}No{!}")
 			}
 		case protocol == "SSL 3.0" && supportedProtocols[protocol]:
-			fmtc.Printf(" %-24s {s}|{!} {r}%s{!}\n", protocol, getBool(supportedProtocols[protocol]))
+			fmtc.Printf("{r}%s{!}\n", getBool(supportedProtocols[protocol]))
 		case protocol == "SSL 2.0" && supportedProtocols[protocol]:
-			fmtc.Printf(" %-24s {s}|{!} {r}%s{!}\n", protocol, getBool(supportedProtocols[protocol]))
+			fmtc.Printf("{r}%s{!}\n", getBool(supportedProtocols[protocol]))
 		default:
-			fmtc.Printf(" %-24s {s}|{!} %s\n", protocol, getBool(supportedProtocols[protocol]))
+			fmtc.Printf("%s\n", getBool(supportedProtocols[protocol]))
 		}
 	}
 
 	// ////////////////////////////////////////////////////////////////////////////////// //
 
 	fmtutil.Separator(true)
-	fmtc.Println(" {*}Cipher Suites{!}")
+	fmtc.Println(" {*b}Cipher Suites{!}")
 	fmtutil.Separator(true)
 
 	suiteIndex := make(map[int]int)
@@ -222,30 +253,37 @@ func getDetailedEndpointInfo(ap *ssllabs.AnalyzeProgress, ip string) {
 		suiteIndex[suite.ID] = index
 
 		tag := ""
+		insecure := strings.Contains(suite.Name, "_RC4_")
 
 		switch {
 		case suite.Q != nil:
-			tag = "{r}(INSECURE){!}"
+			tag = "{y}(WEAK){!}"
 		case suite.DHStrength != 0 && suite.DHStrength < 2048:
 			tag = "{y}(WEAK){!}"
 		}
 
+		if insecure {
+			fmtc.Printf(" {r}%-42s{!} {s}|{!} {r}%d (INSECURE){!} ", suite.Name, suite.CipherStrength)
+		} else {
+			fmtc.Printf(" %-42s {s}|{!} %d ", suite.Name, suite.CipherStrength)
+		}
+
 		switch {
 		case suite.DHStrength != 0:
-			fmtc.Printf(" %-42s {s}|{!} %d {s}(DH %d bits){!} "+tag+"\n",
-				suite.Name, suite.CipherStrength, suite.DHStrength)
+			fmtc.Printf("{s}(DH %d bits){!} "+tag+"\n",
+				suite.DHStrength)
 		case suite.ECDHBits != 0:
-			fmtc.Printf(" %-42s {s}|{!} %d {s}(ECDH %d bits ~ %d bits RSA){!} "+tag+"\n",
-				suite.Name, suite.CipherStrength, suite.ECDHBits, suite.ECDHStrength)
+			fmtc.Printf("{s}(ECDH %d bits ~ %d bits RSA){!} "+tag+"\n",
+				suite.ECDHBits, suite.ECDHStrength)
 		default:
-			fmtc.Printf(" %-42s {s}|{!} %d "+tag+"\n", suite.Name, suite.CipherStrength)
+			fmtc.Println(tag)
 		}
 	}
 
 	// ////////////////////////////////////////////////////////////////////////////////// //
 
 	fmtutil.Separator(true)
-	fmtc.Println(" {*}Handshake Simulation{!}")
+	fmtc.Println(" {*b}Handshake Simulation{!}")
 	fmtutil.Separator(true)
 
 	for _, sim := range details.SIMS.Results {
@@ -261,22 +299,25 @@ func getDetailedEndpointInfo(ap *ssllabs.AnalyzeProgress, ip string) {
 			tag = "{g}   FS{!}"
 		}
 
+		if sim.Client.IsReference {
+			fmtc.Printf(" %-38s {s}|{!} ", sim.Client.Name+" "+sim.Client.Version+" "+fmtc.Sprintf("{g}R"))
+		} else {
+			fmtc.Printf(" %-24s {s}|{!} ", sim.Client.Name+" "+sim.Client.Version)
+		}
+
 		switch protocolIDs[sim.ProtocolID] {
 		case "TLS 1.2":
-			fmtc.Printf(" %-24s {s}|{!} {g}%-7s{!} %-42s "+tag+" %d\n",
-				sim.Client.Name+" "+sim.Client.Version,
+			fmtc.Printf("{g}%-7s{!} %-42s "+tag+" %d\n",
 				protocolIDs[sim.ProtocolID],
 				suite.Name, suite.CipherStrength,
 			)
 		case "SSL 2.0", "SSL 3.0":
-			fmtc.Printf(" %-24s {s}|{!} {r}%-7s{!} %-42s "+tag+" %d\n",
-				sim.Client.Name+" "+sim.Client.Version,
+			fmtc.Printf("{r}%-7s{!} %-42s "+tag+" %d\n",
 				protocolIDs[sim.ProtocolID],
 				suite.Name, suite.CipherStrength,
 			)
 		default:
-			fmtc.Printf(" %-24s {s}|{!} %-7s %-42s "+tag+" %d\n",
-				sim.Client.Name+" "+sim.Client.Version,
+			fmtc.Printf("%-7s %-42s "+tag+" %d\n",
 				protocolIDs[sim.ProtocolID],
 				suite.Name, suite.CipherStrength,
 			)
@@ -286,158 +327,247 @@ func getDetailedEndpointInfo(ap *ssllabs.AnalyzeProgress, ip string) {
 	// ////////////////////////////////////////////////////////////////////////////////// //
 
 	fmtutil.Separator(true)
-	fmtc.Println(" {*}Protocol Details{!}")
+	fmtc.Println(" {*b}Protocol Details{!}")
 	fmtutil.Separator(true)
 
+	fmtc.Printf(" %-40s {s}|{!} ", "Secure Renegotiation")
+
 	if details.RenegSupport&1 == 1 {
-		fmtc.Printf(" %-40s {s}|{!} {y}Not supported{!}\n", "Secure Renegotiation")
+		fmtc.Println("{y}Not supported{!}")
 	} else {
-		fmtc.Printf(" %-40s {s}|{!} {g}Supported{!}\n", "Secure Renegotiation")
+		fmtc.Println("{g}Supported{!}")
 	}
+
+	fmtc.Printf(" %-40s {s}|{!} ", "Secure Client-Initiated Renegotiation")
 
 	if details.RenegSupport&4 == 4 {
-		fmtc.Printf(" %-40s {s}|{!} {y}Supported (DoS DANGER){!}\n", "Secure Client-Initiated Renegotiation")
+		fmtc.Println("{y}Supported (DoS DANGER){!}")
 	} else {
-		fmtc.Printf(" %-40s {s}|{!} No\n", "Secure Client-Initiated Renegotiation")
+		fmtc.Println("No")
 	}
+
+	fmtc.Printf(" %-40s {s}|{!} ", "Insecure Client-Initiated Renegotiation")
 
 	if details.RenegSupport&1 == 1 {
-		fmtc.Printf(" %-40s {s}|{!} {r}Supported (INSECURE){!}\n", "Insecure Client-Initiated Renegotiation")
+		fmtc.Println("{r}Supported (INSECURE){!}")
 	} else {
-		fmtc.Printf(" %-40s {s}|{!} No\n", "Insecure Client-Initiated Renegotiation")
+		fmtc.Println("No")
 	}
 
-	// if details.VulnBeast {
-	// 	fmtc.Printf(" %-40s {s}|{!} {r}Vulnerable (INSECURE){!}\n", "BEAST attack")
-	// } else {
-	// 	fmtc.Printf(" %-40s {s}|{!} No\n", "BEAST attack")
-	// }
+	fmtc.Printf(" %-40s {s}|{!} ", "POODLE (SSLv3)")
 
 	if details.Poodle {
-		fmtc.Printf(" %-40s {s}|{!} {r}Vulnerable (INSECURE){!}\n", "POODLE (SSLv3)")
+		fmtc.Println("{r}Vulnerable (INSECURE){!}")
 	} else {
-		fmtc.Printf(" %-40s {s}|{!} No\n", "POODLE (SSLv3)")
+		fmtc.Println("No")
 	}
+
+	fmtc.Printf(" %-40s {s}|{!} ", "POODLE (TLS)")
 
 	if details.PoodleTLS == 2 {
-		fmtc.Printf(" %-40s {s}|{!} {r}Vulnerable (INSECURE){!}\n", "POODLE (TLS)")
+		fmtc.Println("{r}Vulnerable (INSECURE){!}")
 	} else {
-		fmtc.Printf(" %-40s {s}|{!} No\n", "POODLE (TLS)")
+		fmtc.Println("No")
 	}
+
+	fmtc.Printf(" %-40s {s}|{!} ", "DROWN")
+
+	if details.DrownVulnerable {
+		fmtc.Println("{r}Vulnerable{!}")
+	} else {
+		fmtc.Println("No")
+	}
+
+	if details.Logjam {
+		fmtc.Printf(" %-40s {s}|{!} {r}Vulnerable{!}\n", "Logjam")
+	}
+
+	if details.Freak {
+		fmtc.Printf(" %-40s {s}|{!} {r}Vulnerable{!}\n", "Freak")
+	}
+
+	fmtc.Printf(" %-40s {s}|{!} ", "Downgrade attack prevention")
 
 	if !details.FallbackSCSV {
-		fmtc.Printf(" %-40s {s}|{!} {y}No, TLS_FALLBACK_SCSV not supported{!}\n", "Downgrade attack prevention")
+		fmtc.Println("{y}No, TLS_FALLBACK_SCSV not supported{!}")
 	} else {
-		fmtc.Printf(" %-40s {s}|{!} {g}Yes, TLS_FALLBACK_SCSV supported{!}\n", "Downgrade attack prevention")
+		fmtc.Println("{g}Yes, TLS_FALLBACK_SCSV supported{!}")
 	}
+
+	fmtc.Printf(" %-40s {s}|{!} ", "SSL/TLS compression")
 
 	if details.CompressionMethods != 0 {
-		fmtc.Printf(" %-40s {s}|{!} {r}Yes (INSECURE){!}\n", "SSL/TLS compression")
+		fmtc.Println("{r}Vulnerable (INSECURE){!}")
 	} else {
-		fmtc.Printf(" %-40s {s}|{!} No\n", "SSL/TLS compression")
+		fmtc.Println("No")
 	}
 
+	fmtc.Printf(" %-40s {s}|{!} ", "RC4")
+
 	if details.SupportsRC4 {
-		fmtc.Printf(" %-40s {s}|{!} {y}Yes (WEAK){!}\n", "RC4")
+		fmtc.Println("{r}Yes (INSECURE){!}")
 	} else {
-		fmtc.Printf(" %-40s {s}|{!} No\n", "RC4")
+		fmtc.Println("No")
 	}
 
 	fmtc.Printf(" %-40s {s}|{!} %s\n", "Heartbeat (extension)", getBool(details.Heartbeat))
 
-	if details.Heartbleed {
-		fmtc.Printf(" %-40s {s}|{!} {r}Vulnerable (INSECURE){!}\n", "Heartbleed (vulnerability)")
-	} else {
-		fmtc.Printf(" %-40s {s}|{!} No\n", "Heartbleed (vulnerability)")
-	}
+	fmtc.Printf(" %-40s {s}|{!} ", "Heartbleed (vulnerability)")
 
 	if details.Heartbleed {
-		fmtc.Printf(" %-40s {s}|{!} {r}Vulnerable (INSECURE){!}\n", "Heartbleed (vulnerability)")
+		fmtc.Println("{r}Vulnerable (INSECURE){!}")
 	} else {
-		fmtc.Printf(" %-40s {s}|{!} No\n", "Heartbleed (vulnerability)")
+		fmtc.Println("No")
 	}
+
+	fmtc.Printf(" %-40s {s}|{!} ", "OpenSSL CCS vuln.")
 
 	switch details.OpenSslCCS {
 	case -1:
-		fmtc.Printf(" %-40s {s}|{!} Test failed\n", "OpenSSL CCS vuln. (CVE-2014-0224)")
+		fmtc.Println("{y}Test failed{!}")
 	case 0:
-		fmtc.Printf(" %-40s {s}|{!} Unknown\n", "OpenSSL CCS vuln. (CVE-2014-0224)")
+		fmtc.Println("{y}Unknown{!}")
 	case 1:
-		fmtc.Printf(" %-40s {s}|{!} No\n", "OpenSSL CCS vuln. (CVE-2014-0224)")
+		fmtc.Println("No")
 	case 2:
-		fmtc.Printf(" %-40s {s}|{!} {y}Possibly vulnerable, but not exploitable{!}\n", "OpenSSL CCS vuln. (CVE-2014-0224)")
+		fmtc.Println("{y}Possibly vulnerable, but not exploitable{!}")
 	case 3:
-		fmtc.Printf(" %-40s {s}|{!} {r}Vulnerable and exploitable{!}\n", "OpenSSL CCS vuln. (CVE-2014-0224)")
+		fmtc.Println("{r}Vulnerable and exploitable{!}")
 	}
+
+	fmtc.Printf(" %-40s {s}|{!} ", "OpenSSL Padding Oracle vuln.")
+
+	switch details.OpenSSLLuckyMinus20 {
+	case -1:
+		fmtc.Println("{y}Test failed{!}")
+	case 0:
+		fmtc.Println("{y}Unknown{!}")
+	case 1:
+		fmtc.Println("No")
+	case 2:
+		fmtc.Println("{r}Vulnerable and insecure{!}")
+	}
+
+	fmtc.Printf(" %-40s {s}|{!} ", "Forward Secrecy")
 
 	switch {
 	case details.ForwardSecrecy == 0:
-		fmtc.Printf(" %-40s {s}|{!} {y}No (WEAK){!}\n", "Forward Secrecy")
+		fmtc.Println("{y}No (WEAK){!}")
 	case details.ForwardSecrecy&1 == 1:
-		fmtc.Printf(" %-40s {s}|{!} {y}With some browsers{!}\n", "Forward Secrecy")
+		fmtc.Println("{y}With some browsers{!}")
 	case details.ForwardSecrecy&2 == 2:
-		fmtc.Printf(" %-40s {s}|{!} With modern browsers\n", "Forward Secrecy")
+		fmtc.Println("With modern browsers")
 	case details.ForwardSecrecy&4 == 4:
-		fmtc.Printf(" %-40s {s}|{!} {g}Yes (with most browsers) (ROBUST){!}\n", "Forward Secrecy")
+		fmtc.Println("{g}Yes (with most browsers) (ROBUST){!}")
 	}
 
-	if details.SupportsNPN {
-		fmtc.Printf(" %-40s {s}|{!} Yes {s}(%s){!}\n", "Next Protocol Negotiation (NPN)", details.NPNProtocols)
+	fmtc.Printf(" %-40s {s}|{!} ", "Application-Layer Protocol Negotiation")
+
+	if strings.Contains(details.NPNProtocols, "h2") {
+		fmtc.Println("Yes")
 	} else {
-		fmtc.Printf(" %-40s {s}|{!} No\n", "Next Protocol Negotiation (NPN)")
+		fmtc.Println("No")
 	}
+
+	fmtc.Printf(" %-40s {s}|{!} ", "Next Protocol Negotiation")
+
+	if details.SupportsNPN {
+		fmtc.Printf("Yes {s}(%s){!}\n", details.NPNProtocols)
+	} else {
+		fmtc.Println("No")
+	}
+
+	fmtc.Printf(" %-40s {s}|{!} ", "Session resumption (caching)")
 
 	switch details.SessionResumption {
 	case 0:
-		fmtc.Printf(" %-40s {s}|{!} {y}No (Session resumption is not enabled){!}\n", "Session resumption (caching)")
+		fmtc.Println("{y}No (Session resumption is not enabled){!}")
 	case 1:
-		fmtc.Printf(" %-40s {s}|{!} {y}No (IDs assigned but not accepted){!}\n", "Session resumption (caching)")
+		fmtc.Println("{y}No (IDs assigned but not accepted){!}")
 	case 2:
-		fmtc.Printf(" %-40s {s}|{!} Yes\n", "Session resumption (caching)")
+		fmtc.Println("Yes")
 	}
 
 	fmtc.Printf(" %-40s {s}|{!} %s\n", "Session resumption (tickets)", getBool(details.SessionTickets&1 == 1))
 
+	fmtc.Printf(" %-40s {s}|{!} ", "OCSP stapling")
+
 	if details.OCSPStapling {
-
-		fmtc.Printf(" %-40s {s}|{!} {g}Yes{!}\n", "OCSP stapling")
+		fmtc.Println("{g}Yes{!}")
 	} else {
-		fmtc.Printf(" %-40s {s}|{!} No\n", "OCSP stapling")
+		fmtc.Println("No")
 	}
 
-	if details.STSResponseHeader != "" {
-		fmtc.Printf(" %-40s {s}|{!} {g}Yes{!} {s}(%s){!}\n", "Strict Transport Security (HSTS)", details.STSResponseHeader)
+	fmtc.Printf(" %-40s {s}|{!} ", "Strict Transport Security (HSTS)")
+
+	if details.HSTSPolicy != nil && details.HSTSPolicy.Status == ssllabs.HSTS_STATUS_PRESENT {
+		fmtc.Printf("{g}Yes{!} {s}(%s){!}\n", details.HSTSPolicy.Header)
+
+		if len(details.HSTSPreloads) != 0 {
+			fmtc.Printf(" %-40s {s}|{!} ", "HSTS Preloading")
+			fmtc.Println(getHSTSPreloadingMarkers(details.HSTSPreloads))
+		}
 	} else {
-		fmtc.Printf(" %-40s {s}|{!} No\n", "Strict Transport Security (HSTS)")
+		fmtc.Println("No")
 	}
 
-	if details.PKPResponseHeader != "" {
-		fmtc.Printf(" %-40s {s}|{!} {g}Yes{!} {s}(%s){!}\n", "Public Key Pinning (HPKP)", details.PKPResponseHeader)
+	fmtc.Printf(" %-40s {s}|{!} ", "Public Key Pinning (HPKP)")
+
+	if details.HPKPPolicy != nil {
+		switch details.HPKPPolicy.Status {
+		case ssllabs.HPKP_STATUS_INVALID:
+			fmtc.Println("{r}Invalid{!}")
+		case ssllabs.HPKP_STATUS_DISABLED:
+			fmtc.Println("{y}Disabled{!}")
+		case ssllabs.HPKP_STATUS_INCOMPLETE:
+			fmtc.Println("{y}Incomplete{!}")
+		case ssllabs.HPKP_STATUS_VALID:
+			fmtc.Printf(
+				"{g}Yes{!} {s}(max-age=%d; includeSubDomains=%t){!}\n",
+				details.HPKPPolicy.MaxAge,
+				details.HPKPPolicy.IncludeSubDomains,
+			)
+
+			for _, pin := range getPinsFromPolicy(details.HPKPPolicy) {
+				fmtc.Printf(" %-40s {s}|{!} %s\n", "", pin)
+			}
+		default:
+			fmtc.Println("No")
+		}
 	} else {
-		fmtc.Printf(" %-40s {s}|{!} No\n", "Public Key Pinning (HPKP)")
+		fmtc.Println("No")
 	}
+
+	fmtc.Printf(" %-40s {s}|{!} ", "Uses common DH primes")
 
 	if details.DHUsesKnownPrimes != 0 {
-		fmtc.Printf(" %-40s {s}|{!} {y}Yes (Replace with custom DH parameters if possible){!}\n", "Uses common DH primes")
+		fmtc.Println("{y}Yes (Replace with custom DH parameters if possible){!}")
 	} else {
-		fmtc.Printf(" %-40s {s}|{!} No\n", "Uses common DH primes")
+		fmtc.Println("No")
 	}
 
+	fmtc.Printf(" %-40s {s}|{!} ", "DH public server param (Ys) reuse")
+
 	if details.DHYsReuse {
-		fmtc.Printf(" %-40s {s}|{!} {y}Yes{!}\n", "DH public server param (Ys) reuse")
+		fmtc.Println("{y}Yes{!}")
 	} else {
-		fmtc.Printf(" %-40s {s}|{!} No\n", "DH public server param (Ys) reuse")
+		fmtc.Println("No")
 	}
 
 	// ////////////////////////////////////////////////////////////////////////////////// //
 
 	fmtutil.Separator(true)
-	fmtc.Println(" {*}Miscellaneous{!}")
+	fmtc.Println(" {*b}Miscellaneous{!}")
 	fmtutil.Separator(true)
 
 	testDate := time.Unix(details.HostStartTime/1000, 0)
 
-	fmtc.Printf(" %-24s {s}|{!} %s\n", "Test date", timeutil.Format(testDate, "%Y/%m/%d %H:%M:%S"))
+	fmtc.Printf(
+		" %-24s {s}|{!} %s {s}(%s ago){!}\n", "Test date",
+		timeutil.Format(testDate, "%Y/%m/%d %H:%M:%S"),
+		timeutil.PrettyDuration(time.Since(testDate)),
+	)
+
 	fmtc.Printf(" %-24s {s}|{!} %s\n", "Test duration", timeutil.PrettyDuration(info.Duration/1000))
 	fmtc.Printf(" %-24s {s}|{!} %d\n", "HTTP status code", details.HTTPStatusCode)
 
@@ -553,7 +683,7 @@ func getChainIssuesDesc(issues int) string {
 }
 
 // Get map with supported protocols
-func getProtocols(protocols []*ssllabs.ProtocolInfo) map[string]bool {
+func getProtocols(protocols []*ssllabs.Protocol) map[string]bool {
 	var supported = make(map[string]bool)
 
 	for _, protocol := range protocols {
@@ -561,4 +691,36 @@ func getProtocols(protocols []*ssllabs.ProtocolInfo) map[string]bool {
 	}
 
 	return supported
+}
+
+// getPinsFromPolicy return slice with all pins in policy
+func getPinsFromPolicy(policy *ssllabs.HPKPPolicy) []string {
+	var pins []string
+
+	for _, pin := range strings.Split(policy.Header, ";") {
+		pin = strings.TrimSpace(pin)
+		pin = strings.Replace(pin, "\"", "", -1)
+		pin = strings.Replace(pin, "=", ": ", 1)
+
+		if strings.HasPrefix(pin, "pin-") {
+			pins = append(pins, pin)
+		}
+	}
+
+	return pins
+}
+
+// getHSTSPreloadingMarkers return slice with colored HSTS preload markers
+func getHSTSPreloadingMarkers(preloads []*ssllabs.HSTSPreload) string {
+	var result []string
+
+	for _, preload := range preloads {
+		if preload.Status == ssllabs.HSTS_STATUS_PRESENT {
+			result = append(result, "{g}"+preload.Source+"{!}")
+		} else {
+			result = append(result, "{s}"+preload.Source+"{!}")
+		}
+	}
+
+	return strings.Join(result, " ")
 }
