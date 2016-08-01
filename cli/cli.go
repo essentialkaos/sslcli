@@ -15,20 +15,20 @@ import (
 	"strings"
 	"time"
 
-	"pkg.re/essentialkaos/ek.v1/arg"
-	"pkg.re/essentialkaos/ek.v1/fmtc"
-	"pkg.re/essentialkaos/ek.v1/fsutil"
-	"pkg.re/essentialkaos/ek.v1/req"
-	"pkg.re/essentialkaos/ek.v1/usage"
+	"pkg.re/essentialkaos/ek.v3/arg"
+	"pkg.re/essentialkaos/ek.v3/fmtc"
+	"pkg.re/essentialkaos/ek.v3/fsutil"
+	"pkg.re/essentialkaos/ek.v3/req"
+	"pkg.re/essentialkaos/ek.v3/usage"
 
-	"pkg.re/essentialkaos/ssllabs.v1"
+	"pkg.re/essentialkaos/ssllabs.v2"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 const (
 	APP  = "SSL Labs Client"
-	VER  = "1.0.8"
+	VER  = "1.1.0"
 	DESC = "Command-line client for the SSL Labs API"
 )
 
@@ -37,8 +37,7 @@ const (
 	ARG_DETAILED        = "d:detailed"
 	ARG_IGNORE_MISMATCH = "i:ignore-mismatch"
 	ARG_CACHE           = "c:cache"
-	ARG_DEV_API         = "D:dev-api"
-	ARG_PRIVATE         = "p:private"
+	ARG_PUBLIC          = "p:public"
 	ARG_PERFECT         = "P:perfect"
 	ARG_QUIET           = "q:quiet"
 	ARG_NOTIFY          = "n:notify"
@@ -74,8 +73,7 @@ var argMap = arg.Map{
 	ARG_DETAILED:        &arg.V{Type: arg.BOOL},
 	ARG_IGNORE_MISMATCH: &arg.V{Type: arg.BOOL},
 	ARG_CACHE:           &arg.V{Type: arg.BOOL},
-	ARG_DEV_API:         &arg.V{Type: arg.BOOL},
-	ARG_PRIVATE:         &arg.V{Type: arg.BOOL},
+	ARG_PUBLIC:          &arg.V{Type: arg.BOOL},
 	ARG_PERFECT:         &arg.V{Type: arg.BOOL},
 	ARG_QUIET:           &arg.V{Type: arg.BOOL},
 	ARG_NOTIFY:          &arg.V{Type: arg.BOOL},
@@ -116,7 +114,7 @@ func Init() {
 		return
 	}
 
-	runtime.GOMAXPROCS(1)
+	runtime.GOMAXPROCS(2)
 
 	req.UserAgent = fmtc.Sprintf("%s/%s (go; %s; %s-%s)",
 		APP, VER, runtime.Version(),
@@ -125,7 +123,7 @@ func Init() {
 	process(args)
 }
 
-// starting processing
+// process starting request processing
 func process(args []string) {
 	var (
 		ok    bool
@@ -133,11 +131,7 @@ func process(args []string) {
 		hosts []string
 	)
 
-	if arg.GetB(ARG_DEV_API) {
-		api, err = ssllabs.NewAPI(ssllabs.API_DEVELOPMENT)
-	} else {
-		api, err = ssllabs.NewAPI(ssllabs.API_PRODUCTION)
-	}
+	api, err = ssllabs.NewAPI()
 
 	if err != nil && arg.GetB(ARG_FORMAT) {
 		fmtc.Printf("{r}%s{!}\n", err.Error())
@@ -157,9 +151,11 @@ func process(args []string) {
 		}
 	}
 
-	var grade string
-	var checksInfo []*HostCheckInfo
-	var checkInfo *HostCheckInfo
+	var (
+		grade      string
+		checksInfo []*HostCheckInfo
+		checkInfo  *HostCheckInfo
+	)
 
 	for _, host := range hosts {
 
@@ -203,13 +199,13 @@ func process(args []string) {
 	}
 }
 
-// check some host
+// check check some host
 func check(host string) string {
 	var err error
 	var info *ssllabs.AnalyzeInfo
 
-	params := &ssllabs.AnalyzeParams{
-		Private:        arg.GetB(ARG_PRIVATE),
+	params := ssllabs.AnalyzeParams{
+		Public:         arg.GetB(ARG_PUBLIC),
 		StartNew:       !arg.GetB(ARG_CACHE),
 		FromCache:      arg.GetB(ARG_CACHE),
 		IgnoreMismatch: arg.GetB(ARG_IGNORE_MISMATCH),
@@ -259,7 +255,7 @@ func check(host string) string {
 	}
 
 	if arg.GetB(ARG_DETAILED) {
-		getDetailedInfo(ap, info)
+		printDetailedInfo(ap, info)
 	}
 
 	lowestGrade, _ := getGrades(info.Endpoints)
@@ -267,20 +263,20 @@ func check(host string) string {
 	return lowestGrade
 }
 
-// check some host without any output to console
+// quietCheck check some host without any output to console
 func quietCheck(host string) (string, *HostCheckInfo) {
 	var err error
 	var info *ssllabs.AnalyzeInfo
 
-	var checkInfo *HostCheckInfo = &HostCheckInfo{
+	var checkInfo = &HostCheckInfo{
 		Host:         host,
 		LowestGrade:  "T",
 		HighestGrade: "T",
 		Endpoints:    make([]*EndpointCheckInfo, 0),
 	}
 
-	params := &ssllabs.AnalyzeParams{
-		Private:        arg.GetB(ARG_PRIVATE),
+	params := ssllabs.AnalyzeParams{
+		Public:         arg.GetB(ARG_PUBLIC),
 		StartNew:       !arg.GetB(ARG_CACHE),
 		FromCache:      arg.GetB(ARG_CACHE),
 		IgnoreMismatch: arg.GetB(ARG_IGNORE_MISMATCH),
@@ -317,7 +313,7 @@ func quietCheck(host string) (string, *HostCheckInfo) {
 	return lowestGrade, checkInfo
 }
 
-// get grade with color tags
+// getColoredGrade return grade with color tags
 func getColoredGrade(grade string) string {
 	switch grade {
 	case "A", "A-", "A+":
@@ -331,7 +327,7 @@ func getColoredGrade(grade string) string {
 	return "{r}" + grade + "{!}"
 }
 
-// get grades with color tags for many endpoints
+// getColoredGrades return grades with color tags for many endpoints
 func getColoredGrades(endpoints []*ssllabs.EndpointInfo) string {
 	var result string
 
@@ -342,7 +338,7 @@ func getColoredGrades(endpoints []*ssllabs.EndpointInfo) string {
 	return result
 }
 
-// get lowest and highest grades
+// getGrades return lowest and highest grades
 func getGrades(endpoints []*ssllabs.EndpointInfo) (string, string) {
 	var (
 		lowest  = 8
@@ -373,7 +369,7 @@ func getGrades(endpoints []*ssllabs.EndpointInfo) (string, string) {
 	return gradesN[lowest], gradesN[highest]
 }
 
-// get status message from any in-progress endpoint
+// getStatusInProgress return status message from any in-progress endpoint
 func getStatusInProgress(endpoints []*ssllabs.EndpointInfo) string {
 	if len(endpoints) == 1 {
 		return endpoints[0].StatusDetailsMessage
@@ -392,7 +388,7 @@ func getStatusInProgress(endpoints []*ssllabs.EndpointInfo) string {
 	return ""
 }
 
-// read file with hosts
+// readHostList read file with hosts
 func readHostList(file string) ([]string, error) {
 	var result []string
 
@@ -425,7 +421,7 @@ func readHostList(file string) ([]string, error) {
 	return result, nil
 }
 
-// append endpoint check result to struct with info about all checks for host
+// appendEndpointsInfo append endpoint check result to struct with info about all checks for host
 func appendEndpointsInfo(checkInfo *HostCheckInfo, endpoints []*ssllabs.EndpointInfo) {
 	for _, endpoint := range endpoints {
 		checkInfo.Endpoints = append(checkInfo.Endpoints, &EndpointCheckInfo{
@@ -435,7 +431,7 @@ func appendEndpointsInfo(checkInfo *HostCheckInfo, endpoints []*ssllabs.Endpoint
 	}
 }
 
-// return grade or error
+// getNormGrade return grade or error
 func getNormGrade(grade string) string {
 	switch grade {
 	case "":
@@ -454,8 +450,7 @@ func showUsage() {
 	info.AddOption(ARG_DETAILED, "Show detailed info for each endpoint")
 	info.AddOption(ARG_IGNORE_MISMATCH, "Proceed with assessments on certificate mismatch")
 	info.AddOption(ARG_CACHE, "Use cache if possible")
-	info.AddOption(ARG_DEV_API, "Use dev API instead production")
-	info.AddOption(ARG_PRIVATE, "Don't public results on ssllabs")
+	info.AddOption(ARG_PUBLIC, "Publish results on ssllabs.com")
 	info.AddOption(ARG_PERFECT, "Return non-zero exit code if not A+")
 	info.AddOption(ARG_NOTIFY, "Notify when check is done")
 	info.AddOption(ARG_QUIET, "Don't show any output")
@@ -465,7 +460,7 @@ func showUsage() {
 
 	info.AddExample("google.com", "Check google.com")
 	info.AddExample("-P google.com", "Check google.com and return zero exit code only if result is perfect (A+)")
-	info.AddExample("-p -c google.com", "Check google.com, don't publish results, use cache")
+	info.AddExample("-p -c google.com", "Check google.com, publish results, use cache")
 	info.AddExample("hosts.txt", "Check all hosts defined in hosts.txt file")
 
 	info.Render()
