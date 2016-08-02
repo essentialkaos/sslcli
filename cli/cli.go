@@ -463,7 +463,7 @@ func showUsage() {
 	info.AddOption(ARG_FORMAT, "Output result in different formats", "text|json|xml")
 	info.AddOption(ARG_DETAILED, "Show detailed info for each endpoint")
 	info.AddOption(ARG_IGNORE_MISMATCH, "Proceed with assessments on certificate mismatch")
-	info.AddOption(ARG_AVOID_CACHE, "Avoid cache usage")
+	info.AddOption(ARG_AVOID_CACHE, "Disable cache usage")
 	info.AddOption(ARG_PUBLIC, "Publish results on sslscan.com")
 	info.AddOption(ARG_PERFECT, "Return non-zero exit code if not A+")
 	info.AddOption(ARG_NOTIFY, "Notify when check is done")
@@ -474,7 +474,7 @@ func showUsage() {
 
 	info.AddExample("google.com", "Check google.com")
 	info.AddExample("-P google.com", "Check google.com and return zero exit code only if result is perfect (A+)")
-	info.AddExample("-p -c google.com", "Check google.com, publish results, use cache")
+	info.AddExample("-p -c google.com", "Check google.com, publish results, disable cache usage")
 	info.AddExample("hosts.txt", "Check all hosts defined in hosts.txt file")
 
 	info.Render()
