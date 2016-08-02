@@ -2,8 +2,8 @@ package cli
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                     Copyright (c) 2009-2015 Essential Kaos                         //
-//      Essential Kaos Open Source License <http://essentialkaos.com/ekol?en>         //
+//                     Copyright (c) 2009-2016 Essential Kaos                         //
+//      Apache License, Version 2.0 <http://www.apache.org/licenses/LICENSE-2.0>      //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -15,7 +15,7 @@ import (
 	"pkg.re/essentialkaos/ek.v3/fmtutil"
 	"pkg.re/essentialkaos/ek.v3/timeutil"
 
-	"pkg.re/essentialkaos/ssllabs.v2"
+	"pkg.re/essentialkaos/sslscan.v1"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -42,7 +42,7 @@ var weakAlgorithms = map[string]bool{
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // printDetailedInfo fetch and print detailed info for all endpoints
-func printDetailedInfo(ap *ssllabs.AnalyzeProgress, info *ssllabs.AnalyzeInfo) {
+func printDetailedInfo(ap *sslscan.AnalyzeProgress, info *sslscan.AnalyzeInfo) {
 	showHeaders := len(info.Endpoints) > 1
 
 	if showHeaders {
@@ -59,7 +59,7 @@ func printDetailedInfo(ap *ssllabs.AnalyzeProgress, info *ssllabs.AnalyzeInfo) {
 }
 
 // printDetailedEndpointInfo fetch and print detailed info for one endpoint
-func printDetailedEndpointInfo(ap *ssllabs.AnalyzeProgress, ip string) {
+func printDetailedEndpointInfo(ap *sslscan.AnalyzeProgress, ip string) {
 	info, err := ap.DetailedInfo(ip)
 
 	if err != nil {
@@ -89,7 +89,7 @@ func printDetailedEndpointInfo(ap *ssllabs.AnalyzeProgress, ip string) {
 }
 
 // printCertificateInfo print basic info about server key and certificate
-func printCertificateInfo(details *ssllabs.EndpointDetails) {
+func printCertificateInfo(details *sslscan.EndpointDetails) {
 	printCategoryHeader("Server Key and Certificate")
 
 	validFromDate := time.Unix(details.Cert.NotBefore/1000, 0)
@@ -98,7 +98,16 @@ func printCertificateInfo(details *ssllabs.EndpointDetails) {
 	fmtc.Printf(" %-24s {s}|{!} %s\n", "Common names", strings.Join(details.Cert.CommonNames, " "))
 
 	if len(details.Cert.AltNames) > 0 {
-		fmtc.Printf(" %-24s {s}|{!} %s\n", "Alternative names", strings.Join(details.Cert.AltNames, " "))
+		if len(details.Cert.AltNames) > 5 {
+			fmtc.Printf(
+				" %-24s {s}|{!} %s {s}(+%d more){!}\n",
+				"Alternative names",
+				strings.Join(details.Cert.AltNames[:4], " "),
+				len(details.Cert.AltNames)-4,
+			)
+		} else {
+			fmtc.Printf(" %-24s {s}|{!} %s\n", "Alternative names", strings.Join(details.Cert.AltNames, " "))
+		}
 	}
 
 	fmtc.Printf(" %-24s {s}|{!} %s\n", "Valid from", timeutil.Format(validFromDate, "%Y/%m/%d %H:%M:%S"))
@@ -168,7 +177,7 @@ func printCertificateInfo(details *ssllabs.EndpointDetails) {
 }
 
 // printCertificationPathsInfo print info about certificates in chain
-func printCertificationPathsInfo(details *ssllabs.EndpointDetails) {
+func printCertificationPathsInfo(details *sslscan.EndpointDetails) {
 	printCategoryHeader("Certification Paths")
 
 	fmtc.Printf(" %-24s {s}|{!} %d\n", "Certificates provided", len(details.Chain.Certs))
@@ -218,7 +227,7 @@ func printCertificationPathsInfo(details *ssllabs.EndpointDetails) {
 }
 
 // printProtocolsInfo print info about supported protocols
-func printProtocolsInfo(details *ssllabs.EndpointDetails) {
+func printProtocolsInfo(details *sslscan.EndpointDetails) {
 	printCategoryHeader("Protocols")
 
 	supportedProtocols := getProtocols(details.Protocols)
@@ -244,7 +253,7 @@ func printProtocolsInfo(details *ssllabs.EndpointDetails) {
 }
 
 // printCipherSuitesInfo print info about supported cipher suites
-func printCipherSuitesInfo(details *ssllabs.EndpointDetails) map[int]int {
+func printCipherSuitesInfo(details *sslscan.EndpointDetails) map[int]int {
 	printCategoryHeader("Cipher Suites")
 
 	suiteIndex := make(map[int]int)
@@ -284,7 +293,7 @@ func printCipherSuitesInfo(details *ssllabs.EndpointDetails) map[int]int {
 }
 
 // printHandshakeSimulationInfo print info about handshakes simulations
-func printHandshakeSimulationInfo(details *ssllabs.EndpointDetails, suiteIndex map[int]int) {
+func printHandshakeSimulationInfo(details *sslscan.EndpointDetails, suiteIndex map[int]int) {
 	printCategoryHeader("Handshake Simulation")
 
 	for _, sim := range details.SIMS.Results {
@@ -327,7 +336,7 @@ func printHandshakeSimulationInfo(details *ssllabs.EndpointDetails, suiteIndex m
 }
 
 // printProtocolDetailsInfo print endpoint protocol details
-func printProtocolDetailsInfo(details *ssllabs.EndpointDetails) {
+func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 	printCategoryHeader("Protocol Details")
 
 	fmtc.Printf(" %-40s {s}|{!} ", "Secure Renegotiation")
@@ -500,7 +509,7 @@ func printProtocolDetailsInfo(details *ssllabs.EndpointDetails) {
 
 	fmtc.Printf(" %-40s {s}|{!} ", "Strict Transport Security (HSTS)")
 
-	if details.HSTSPolicy != nil && details.HSTSPolicy.Status == ssllabs.HSTS_STATUS_PRESENT {
+	if details.HSTSPolicy != nil && details.HSTSPolicy.Status == sslscan.HSTS_STATUS_PRESENT {
 		fmtc.Printf("{g}Yes{!} {s}(%s){!}\n", details.HSTSPolicy.Header)
 
 		if len(details.HSTSPreloads) != 0 {
@@ -515,13 +524,13 @@ func printProtocolDetailsInfo(details *ssllabs.EndpointDetails) {
 
 	if details.HPKPPolicy != nil {
 		switch details.HPKPPolicy.Status {
-		case ssllabs.HPKP_STATUS_INVALID:
+		case sslscan.HPKP_STATUS_INVALID:
 			fmtc.Println("{r}Invalid{!}")
-		case ssllabs.HPKP_STATUS_DISABLED:
+		case sslscan.HPKP_STATUS_DISABLED:
 			fmtc.Println("{y}Disabled{!}")
-		case ssllabs.HPKP_STATUS_INCOMPLETE:
+		case sslscan.HPKP_STATUS_INCOMPLETE:
 			fmtc.Println("{y}Incomplete{!}")
-		case ssllabs.HPKP_STATUS_VALID:
+		case sslscan.HPKP_STATUS_VALID:
 			fmtc.Printf(
 				"{g}Yes{!} {s}(max-age=%d; includeSubDomains=%t){!}\n",
 				details.HPKPPolicy.MaxAge,
@@ -556,7 +565,7 @@ func printProtocolDetailsInfo(details *ssllabs.EndpointDetails) {
 }
 
 // printMiscellaneousInfo print miscellaneous info about endpoint
-func printMiscellaneousInfo(info *ssllabs.EndpointInfo) {
+func printMiscellaneousInfo(info *sslscan.EndpointInfo) {
 	printCategoryHeader("Miscellaneous")
 
 	details := info.Details
@@ -685,7 +694,7 @@ func getChainIssuesDesc(issues int) string {
 }
 
 // getProtocols return map with supported protocols
-func getProtocols(protocols []*ssllabs.Protocol) map[string]bool {
+func getProtocols(protocols []*sslscan.Protocol) map[string]bool {
 	var supported = make(map[string]bool)
 
 	for _, protocol := range protocols {
@@ -696,7 +705,7 @@ func getProtocols(protocols []*ssllabs.Protocol) map[string]bool {
 }
 
 // getPinsFromPolicy return slice with all pins in policy
-func getPinsFromPolicy(policy *ssllabs.HPKPPolicy) []string {
+func getPinsFromPolicy(policy *sslscan.HPKPPolicy) []string {
 	var pins []string
 
 	for _, pin := range strings.Split(policy.Header, ";") {
@@ -713,11 +722,11 @@ func getPinsFromPolicy(policy *ssllabs.HPKPPolicy) []string {
 }
 
 // getHSTSPreloadingMarkers return slice with colored HSTS preload markers
-func getHSTSPreloadingMarkers(preloads []*ssllabs.HSTSPreload) string {
+func getHSTSPreloadingMarkers(preloads []*sslscan.HSTSPreload) string {
 	var result []string
 
 	for _, preload := range preloads {
-		if preload.Status == ssllabs.HSTS_STATUS_PRESENT {
+		if preload.Status == sslscan.HSTS_STATUS_PRESENT {
 			result = append(result, "{g}"+preload.Source+"{!}")
 		} else {
 			result = append(result, "{s}"+preload.Source+"{!}")

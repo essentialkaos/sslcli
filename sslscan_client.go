@@ -4,13 +4,13 @@ package main
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                     Copyright (c) 2009-2015 Essential Kaos                         //
-//      Essential Kaos Open Source License <http://essentialkaos.com/ekol?en>         //
+//                     Copyright (c) 2009-2016 Essential Kaos                         //
+//      Apache License, Version 2.0 <http://www.apache.org/licenses/LICENSE-2.0>      //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 import (
-	CLI "github.com/essentialkaos/ssllabs_client/cli"
+	CLI "github.com/essentialkaos/sslcli/cli"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //

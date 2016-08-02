@@ -12,7 +12,7 @@ sudo: false
 
 before_install:
   - go get -v pkg.re/essentialkaos/ek.v3
-  - go get -v pkg.re/essentialkaos/ssllabs.v2
+  - go get -v pkg.re/essentialkaos/sslscan.v1
 
 script:
-  - go build ssllabs-client.go
+  - go build sslscan_client.go
