@@ -1,4 +1,4 @@
-<p align="center"><a href="#usage-demo">Usage demo</a> • <a href="#installation">Installation</a> • <a href="#prebuilt-binaries">Prebuilt binaries</a> • <a href="#feature-list">Feature list</a> • <a href="#usage">Usage</a> • <a href="#build-status">Build Status</a> • <a href="#contributing">Contributing</a> • <a href="#license">License</a></p>
+<p align="center"><a href="#usage-demo">Usage demo</a> • <a href="#installation">Installation</a> • <a href="#prebuilt-binaries">Prebuilt binaries</a> • <a href="#feature-list">Feature list</a> • <a href="#usage">Usage</a> • <a href="#build-status">Build Status</a> • <a href="#contributing">Contributing</a> • <a href="#terms-of-use">Terms of Use</a> • <a href="#license">License</a></p>
 
 <p align="center">Command-line client for <a href="https://www.ssllabs.com">SSLLabs</a> public API.</p>
 
@@ -75,6 +75,9 @@ Examples:
 | `master` | [![Build Status](https://travis-ci.org/essentialkaos/sslcli.svg?branch=master)](https://travis-ci.org/essentialkaos/sslcli) |
 | `develop` | [![Build Status](https://travis-ci.org/essentialkaos/sslcli.svg?branch=develop)](https://travis-ci.org/essentialkaos/sslcli) |
 
+## Contributing
+
+Before contributing to this project please read our [Contributing Guidelines](https://github.com/essentialkaos/contributing-guidelines#contributing-guidelines).
 
 ## Terms of Use
 
