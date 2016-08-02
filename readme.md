@@ -43,7 +43,7 @@ Options:
   --format, -f text|json|xml    Output result in different formats
   --detailed, -d                Show detailed info for each endpoint
   --ignore-mismatch, -i         Proceed with assessments on certificate mismatch
-  --avoid-cache, -c             Avoid cache usage
+  --avoid-cache, -c             Disable cache usage
   --public, -p                  Publish results on sslscan.com
   --perfect, -P                 Return non-zero exit code if not A+
   --notify, -n                  Notify when check is done
@@ -61,7 +61,7 @@ Examples:
   Check google.com and return zero exit code only if result is perfect (A+)
 
   sslcli -p -c google.com
-  Check google.com, publish results, use cache
+  Check google.com, publish results, disable cache usage
 
   sslcli hosts.txt
   Check all hosts defined in hosts.txt file
