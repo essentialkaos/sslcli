@@ -531,11 +531,19 @@ func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 		case sslscan.HPKP_STATUS_INCOMPLETE:
 			fmtc.Println("{y}Incomplete{!}")
 		case sslscan.HPKP_STATUS_VALID:
-			fmtc.Printf(
-				"{g}Yes{!} {s}(max-age=%d; includeSubDomains=%t){!}\n",
-				details.HPKPPolicy.MaxAge,
-				details.HPKPPolicy.IncludeSubDomains,
-			)
+			fmtc.Printf("{g}Yes{!} ")
+
+			if details.HPKPPolicy.IncludeSubDomains {
+				fmtc.Printf(
+					"{s}(max-age=%d; includeSubdomains){!}\n",
+					details.HPKPPolicy.MaxAge,
+				)
+			} else {
+				fmtc.Printf(
+					"{s}(max-age=%d){!}\n",
+					details.HPKPPolicy.MaxAge,
+				)
+			}
 
 			for _, pin := range getPinsFromPolicy(details.HPKPPolicy) {
 				fmtc.Printf(" %-40s {s}|{!} {s}%s{!}\n", "", pin)
