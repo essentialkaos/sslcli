@@ -474,7 +474,7 @@ func showUsage() {
 
 	info.AddExample("google.com", "Check google.com")
 	info.AddExample("-P google.com", "Check google.com and return zero exit code only if result is perfect (A+)")
-	info.AddExample("-p -c google.com", "Check google.com, publish results, use cache")
+	info.AddExample("-p -c google.com", "Check google.com, publish results, avoid cache usage")
 	info.AddExample("hosts.txt", "Check all hosts defined in hosts.txt file")
 
 	info.Render()
