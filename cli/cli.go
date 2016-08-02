@@ -2,8 +2,8 @@ package cli
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                     Copyright (c) 2009-2015 Essential Kaos                         //
-//      Essential Kaos Open Source License <http://essentialkaos.com/ekol?en>         //
+//                     Copyright (c) 2009-2016 Essential Kaos                         //
+//      Apache License, Version 2.0 <http://www.apache.org/licenses/LICENSE-2.0>      //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -17,18 +17,19 @@ import (
 
 	"pkg.re/essentialkaos/ek.v3/arg"
 	"pkg.re/essentialkaos/ek.v3/fmtc"
+	"pkg.re/essentialkaos/ek.v3/fmtutil"
 	"pkg.re/essentialkaos/ek.v3/fsutil"
 	"pkg.re/essentialkaos/ek.v3/req"
 	"pkg.re/essentialkaos/ek.v3/usage"
 
-	"pkg.re/essentialkaos/ssllabs.v2"
+	"pkg.re/essentialkaos/sslscan.v1"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 const (
-	APP  = "SSL Labs Client"
-	VER  = "1.1.0"
+	APP  = "SSLScan Client"
+	VER  = "1.0.0"
 	DESC = "Command-line client for the SSL Labs API"
 )
 
@@ -36,7 +37,7 @@ const (
 	ARG_FORMAT          = "f:format"
 	ARG_DETAILED        = "d:detailed"
 	ARG_IGNORE_MISMATCH = "i:ignore-mismatch"
-	ARG_CACHE           = "c:cache"
+	ARG_AVOID_CACHE     = "c:avoid-cache"
 	ARG_PUBLIC          = "p:public"
 	ARG_PERFECT         = "P:perfect"
 	ARG_QUIET           = "q:quiet"
@@ -72,7 +73,7 @@ var argMap = arg.Map{
 	ARG_FORMAT:          &arg.V{},
 	ARG_DETAILED:        &arg.V{Type: arg.BOOL},
 	ARG_IGNORE_MISMATCH: &arg.V{Type: arg.BOOL},
-	ARG_CACHE:           &arg.V{Type: arg.BOOL},
+	ARG_AVOID_CACHE:     &arg.V{Type: arg.BOOL},
 	ARG_PUBLIC:          &arg.V{Type: arg.BOOL},
 	ARG_PERFECT:         &arg.V{Type: arg.BOOL},
 	ARG_QUIET:           &arg.V{Type: arg.BOOL},
@@ -82,7 +83,7 @@ var argMap = arg.Map{
 	ARG_VER:             &arg.V{Type: arg.BOOL, Alias: "ver"},
 }
 
-var api *ssllabs.API
+var api *sslscan.API
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -131,7 +132,7 @@ func process(args []string) {
 		hosts []string
 	)
 
-	api, err = ssllabs.NewAPI()
+	api, err = sslscan.NewAPI()
 
 	if err != nil && arg.GetB(ARG_FORMAT) {
 		fmtc.Printf("{r}%s{!}\n", err.Error())
@@ -202,16 +203,18 @@ func process(args []string) {
 // check check some host
 func check(host string) string {
 	var err error
-	var info *ssllabs.AnalyzeInfo
+	var info *sslscan.AnalyzeInfo
 
-	params := ssllabs.AnalyzeParams{
+	showServerMessage()
+
+	params := sslscan.AnalyzeParams{
 		Public:         arg.GetB(ARG_PUBLIC),
-		StartNew:       !arg.GetB(ARG_CACHE),
-		FromCache:      arg.GetB(ARG_CACHE),
+		StartNew:       arg.GetB(ARG_AVOID_CACHE),
+		FromCache:      !arg.GetB(ARG_AVOID_CACHE),
 		IgnoreMismatch: arg.GetB(ARG_IGNORE_MISMATCH),
 	}
 
-	fmtc.Printf("%s → ", host)
+	fmtc.Printf("{*}%s{!} → ", host)
 
 	ap, err := api.Analyze(host, params)
 
@@ -230,10 +233,10 @@ func check(host string) string {
 			return "Err"
 		}
 
-		if info.Status == ssllabs.STATUS_ERROR {
+		if info.Status == sslscan.STATUS_ERROR {
 			t.Printf("{r}%s{!}\n", info.StatusMessage)
 			return "Err"
-		} else if info.Status == ssllabs.STATUS_READY {
+		} else if info.Status == sslscan.STATUS_READY {
 			break
 		}
 
@@ -245,7 +248,11 @@ func check(host string) string {
 			}
 		}
 
-		time.Sleep(time.Second)
+		if info.Status == sslscan.STATUS_IN_PROGRESS {
+			time.Sleep(5 * time.Second)
+		} else {
+			time.Sleep(10 * time.Second)
+		}
 	}
 
 	if len(info.Endpoints) == 1 {
@@ -263,10 +270,17 @@ func check(host string) string {
 	return lowestGrade
 }
 
+// showServerMessage show message from SSL Labs API
+func showServerMessage() {
+	serverMessage := strings.Join(api.Info.Messages, " ")
+
+	fmtc.Printf("\n{s}%s{!}\n\n", fmtutil.Wrap(serverMessage, "", 80))
+}
+
 // quietCheck check some host without any output to console
 func quietCheck(host string) (string, *HostCheckInfo) {
 	var err error
-	var info *ssllabs.AnalyzeInfo
+	var info *sslscan.AnalyzeInfo
 
 	var checkInfo = &HostCheckInfo{
 		Host:         host,
@@ -275,10 +289,10 @@ func quietCheck(host string) (string, *HostCheckInfo) {
 		Endpoints:    make([]*EndpointCheckInfo, 0),
 	}
 
-	params := ssllabs.AnalyzeParams{
+	params := sslscan.AnalyzeParams{
 		Public:         arg.GetB(ARG_PUBLIC),
-		StartNew:       !arg.GetB(ARG_CACHE),
-		FromCache:      arg.GetB(ARG_CACHE),
+		StartNew:       arg.GetB(ARG_AVOID_CACHE),
+		FromCache:      !arg.GetB(ARG_AVOID_CACHE),
 		IgnoreMismatch: arg.GetB(ARG_IGNORE_MISMATCH),
 	}
 
@@ -295,9 +309,9 @@ func quietCheck(host string) (string, *HostCheckInfo) {
 			return "Err", checkInfo
 		}
 
-		if info.Status == ssllabs.STATUS_ERROR {
+		if info.Status == sslscan.STATUS_ERROR {
 			return "Err", checkInfo
-		} else if info.Status == ssllabs.STATUS_READY {
+		} else if info.Status == sslscan.STATUS_READY {
 			break
 		}
 
@@ -328,7 +342,7 @@ func getColoredGrade(grade string) string {
 }
 
 // getColoredGrades return grades with color tags for many endpoints
-func getColoredGrades(endpoints []*ssllabs.EndpointInfo) string {
+func getColoredGrades(endpoints []*sslscan.EndpointInfo) string {
 	var result string
 
 	for _, endpoint := range endpoints {
@@ -339,7 +353,7 @@ func getColoredGrades(endpoints []*ssllabs.EndpointInfo) string {
 }
 
 // getGrades return lowest and highest grades
-func getGrades(endpoints []*ssllabs.EndpointInfo) (string, string) {
+func getGrades(endpoints []*sslscan.EndpointInfo) (string, string) {
 	var (
 		lowest  = 8
 		highest = -2
@@ -370,7 +384,7 @@ func getGrades(endpoints []*ssllabs.EndpointInfo) (string, string) {
 }
 
 // getStatusInProgress return status message from any in-progress endpoint
-func getStatusInProgress(endpoints []*ssllabs.EndpointInfo) string {
+func getStatusInProgress(endpoints []*sslscan.EndpointInfo) string {
 	if len(endpoints) == 1 {
 		return endpoints[0].StatusDetailsMessage
 	}
@@ -422,7 +436,7 @@ func readHostList(file string) ([]string, error) {
 }
 
 // appendEndpointsInfo append endpoint check result to struct with info about all checks for host
-func appendEndpointsInfo(checkInfo *HostCheckInfo, endpoints []*ssllabs.EndpointInfo) {
+func appendEndpointsInfo(checkInfo *HostCheckInfo, endpoints []*sslscan.EndpointInfo) {
 	for _, endpoint := range endpoints {
 		checkInfo.Endpoints = append(checkInfo.Endpoints, &EndpointCheckInfo{
 			IPAdress: endpoint.IPAdress,
@@ -449,8 +463,8 @@ func showUsage() {
 	info.AddOption(ARG_FORMAT, "Output result in different formats", "text|json|xml")
 	info.AddOption(ARG_DETAILED, "Show detailed info for each endpoint")
 	info.AddOption(ARG_IGNORE_MISMATCH, "Proceed with assessments on certificate mismatch")
-	info.AddOption(ARG_CACHE, "Use cache if possible")
-	info.AddOption(ARG_PUBLIC, "Publish results on ssllabs.com")
+	info.AddOption(ARG_AVOID_CACHE, "Avoid cache usage")
+	info.AddOption(ARG_PUBLIC, "Publish results on sslscan.com")
 	info.AddOption(ARG_PERFECT, "Return non-zero exit code if not A+")
 	info.AddOption(ARG_NOTIFY, "Notify when check is done")
 	info.AddOption(ARG_QUIET, "Don't show any output")
