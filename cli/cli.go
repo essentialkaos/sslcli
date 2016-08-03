@@ -29,7 +29,7 @@ import (
 
 const (
 	APP  = "SSLScan Client"
-	VER  = "1.0.0"
+	VER  = "1.0.1"
 	DESC = "Command-line client for the SSL Labs API"
 )
 
@@ -487,7 +487,7 @@ func showAbout() {
 		Desc:    DESC,
 		Year:    2009,
 		Owner:   "Essential Kaos",
-		License: "Essential Kaos Open Source License <https://essentialkaos.com/ekol?en>",
+		License: "Apache License, Version 2.0 <http://www.apache.org/licenses/LICENSE-2.0>",
 	}
 
 	about.Render()
