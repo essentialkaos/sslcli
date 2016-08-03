@@ -249,9 +249,9 @@ func check(host string) string {
 		}
 
 		if info.Status == sslscan.STATUS_IN_PROGRESS {
-			time.Sleep(5 * time.Second)
+			time.Sleep(6 * time.Second)
 		} else {
-			time.Sleep(10 * time.Second)
+			time.Sleep(2 * time.Second)
 		}
 	}
 
