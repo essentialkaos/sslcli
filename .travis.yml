@@ -26,4 +26,4 @@ before_install:
   - go get -v pkg.re/essentialkaos/sslscan.v1
 
 script:
-  - go build sslscan_client.go
+  - go build sslcli.go

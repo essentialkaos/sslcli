@@ -29,7 +29,7 @@ import (
 
 const (
 	APP  = "SSLScan Client"
-	VER  = "1.0.1"
+	VER  = "1.0.2"
 	DESC = "Command-line client for the SSL Labs API"
 )
 
@@ -274,7 +274,7 @@ func check(host string) string {
 func showServerMessage() {
 	serverMessage := strings.Join(api.Info.Messages, " ")
 
-	fmtc.Printf("\n{s}%s{!}\n\n", fmtutil.Wrap(serverMessage, "", 80))
+	fmtc.Printf("\n{s-}%s{!}\n\n", fmtutil.Wrap(serverMessage, "", 80))
 }
 
 // quietCheck check some host without any output to console
@@ -346,7 +346,7 @@ func getColoredGrades(endpoints []*sslscan.EndpointInfo) string {
 	var result string
 
 	for _, endpoint := range endpoints {
-		result += getColoredGrade(endpoint.Grade) + "{s}/" + endpoint.IPAdress + "{!} "
+		result += getColoredGrade(endpoint.Grade) + "{s-}/" + endpoint.IPAdress + "{!} "
 	}
 
 	return result
