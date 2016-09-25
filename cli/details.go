@@ -100,7 +100,7 @@ func printCertificateInfo(details *sslscan.EndpointDetails) {
 	if len(details.Cert.AltNames) > 0 {
 		if len(details.Cert.AltNames) > 5 {
 			fmtc.Printf(
-				" %-24s {s}|{!} %s {s}(+%d more){!}\n",
+				" %-24s {s}|{!} %s {s-}(+%d more){!}\n",
 				"Alternative names",
 				strings.Join(details.Cert.AltNames[:4], " "),
 				len(details.Cert.AltNames)-4,
@@ -126,7 +126,7 @@ func printCertificateInfo(details *sslscan.EndpointDetails) {
 	fmtc.Printf(" %-24s {s}|{!} ", "Issuer")
 
 	if details.Cert.Issues&64 == 64 {
-		fmtc.Printf("%s {s}(Self-signed){!}\n", details.Cert.IssuerLabel)
+		fmtc.Printf("%s {s-}(Self-signed){!}\n", details.Cert.IssuerLabel)
 	} else {
 		fmtc.Printf("%s\n", details.Cert.IssuerLabel)
 	}
@@ -279,10 +279,10 @@ func printCipherSuitesInfo(details *sslscan.EndpointDetails) map[int]int {
 
 		switch {
 		case suite.DHStrength != 0:
-			fmtc.Printf("{s}(DH %d bits){!} "+tag+"\n",
+			fmtc.Printf("{s-}(DH %d bits){!} "+tag+"\n",
 				suite.DHStrength)
 		case suite.ECDHBits != 0:
-			fmtc.Printf("{s}(ECDH %d bits ~ %d bits RSA){!} "+tag+"\n",
+			fmtc.Printf("{s-}(ECDH %d bits ~ %d bits RSA){!} "+tag+"\n",
 				suite.ECDHBits, suite.ECDHStrength)
 		default:
 			fmtc.Println(tag)
@@ -302,7 +302,7 @@ func printHandshakeSimulationInfo(details *sslscan.EndpointDetails, suiteIndex m
 			continue
 		}
 
-		tag := "{s}No FS{!}"
+		tag := "{s-}No FS{!}"
 		suite := details.Suites.List[suiteIndex[sim.SuiteID]]
 
 		if strings.Contains(suite.Name, "DHE_") {
@@ -481,7 +481,7 @@ func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 	fmtc.Printf(" %-40s {s}|{!} ", "Next Protocol Negotiation")
 
 	if details.SupportsNPN {
-		fmtc.Printf("Yes {s}(%s){!}\n", details.NPNProtocols)
+		fmtc.Printf("Yes {s-}(%s){!}\n", details.NPNProtocols)
 	} else {
 		fmtc.Println("No")
 	}
@@ -510,7 +510,7 @@ func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 	fmtc.Printf(" %-40s {s}|{!} ", "Strict Transport Security (HSTS)")
 
 	if details.HSTSPolicy != nil && details.HSTSPolicy.Status == sslscan.HSTS_STATUS_PRESENT {
-		fmtc.Printf("{g}Yes{!} {s}(%s){!}\n", details.HSTSPolicy.Header)
+		fmtc.Printf("{g}Yes{!} {s-}(%s){!}\n", details.HSTSPolicy.Header)
 
 		if len(details.HSTSPreloads) != 0 {
 			fmtc.Printf(" %-40s {s}|{!} ", "HSTS Preloading")
@@ -535,18 +535,18 @@ func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 
 			if details.HPKPPolicy.IncludeSubDomains {
 				fmtc.Printf(
-					"{s}(max-age=%d; includeSubdomains){!}\n",
+					"{s-}(max-age=%d; includeSubdomains){!}\n",
 					details.HPKPPolicy.MaxAge,
 				)
 			} else {
 				fmtc.Printf(
-					"{s}(max-age=%d){!}\n",
+					"{s-}(max-age=%d){!}\n",
 					details.HPKPPolicy.MaxAge,
 				)
 			}
 
 			for _, pin := range getPinsFromPolicy(details.HPKPPolicy) {
-				fmtc.Printf(" %-40s {s}|{!} {s}%s{!}\n", "", pin)
+				fmtc.Printf(" %-40s {s}|{!} {s-}%s{!}\n", "", pin)
 			}
 		default:
 			fmtc.Println("No")
@@ -580,7 +580,7 @@ func printMiscellaneousInfo(info *sslscan.EndpointInfo) {
 	testDate := time.Unix(info.Details.HostStartTime/1000, 0)
 
 	fmtc.Printf(
-		" %-24s {s}|{!} %s {s}(%s ago){!}\n", "Test date",
+		" %-24s {s}|{!} %s {s-}(%s ago){!}\n", "Test date",
 		timeutil.Format(testDate, "%Y/%m/%d %H:%M:%S"),
 		timeutil.PrettyDuration(time.Since(testDate)),
 	)
@@ -737,7 +737,7 @@ func getHSTSPreloadingMarkers(preloads []*sslscan.HSTSPreload) string {
 		if preload.Status == sslscan.HSTS_STATUS_PRESENT {
 			result = append(result, "{g}"+preload.Source+"{!}")
 		} else {
-			result = append(result, "{s}"+preload.Source+"{!}")
+			result = append(result, "{s-}"+preload.Source+"{!}")
 		}
 	}
 
