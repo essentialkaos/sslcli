@@ -29,7 +29,7 @@ import (
 
 const (
 	APP  = "SSLScan Client"
-	VER  = "1.1.0"
+	VER  = "1.1.1"
 	DESC = "Command-line client for the SSL Labs API"
 )
 
@@ -132,8 +132,11 @@ func process(args []string) {
 
 	api, err = sslscan.NewAPI()
 
-	if err != nil && arg.GetB(ARG_FORMAT) {
-		fmtc.Printf("{r}%s{!}\n", err.Error())
+	if err != nil {
+		if !arg.GetB(ARG_FORMAT) {
+			fmtc.Printf("{r}%s{!}\n", err.Error())
+		}
+
 		os.Exit(1)
 	}
 
