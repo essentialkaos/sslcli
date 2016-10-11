@@ -15,21 +15,21 @@ import (
 	"strings"
 	"time"
 
-	"pkg.re/essentialkaos/ek.v3/arg"
-	"pkg.re/essentialkaos/ek.v3/fmtc"
-	"pkg.re/essentialkaos/ek.v3/fmtutil"
-	"pkg.re/essentialkaos/ek.v3/fsutil"
-	"pkg.re/essentialkaos/ek.v3/req"
-	"pkg.re/essentialkaos/ek.v3/usage"
+	"pkg.re/essentialkaos/ek.v5/arg"
+	"pkg.re/essentialkaos/ek.v5/fmtc"
+	"pkg.re/essentialkaos/ek.v5/fmtutil"
+	"pkg.re/essentialkaos/ek.v5/fsutil"
+	"pkg.re/essentialkaos/ek.v5/req"
+	"pkg.re/essentialkaos/ek.v5/usage"
 
-	"pkg.re/essentialkaos/sslscan.v1"
+	"pkg.re/essentialkaos/sslscan.v2"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 const (
 	APP  = "SSLScan Client"
-	VER  = "1.0.2"
+	VER  = "1.1.0"
 	DESC = "Command-line client for the SSL Labs API"
 )
 
@@ -117,9 +117,7 @@ func Init() {
 
 	runtime.GOMAXPROCS(2)
 
-	req.UserAgent = fmtc.Sprintf("%s/%s (go; %s; %s-%s)",
-		APP, VER, runtime.Version(),
-		runtime.GOARCH, runtime.GOOS)
+	req.SetUserAgent(APP, VER)
 
 	process(args)
 }
