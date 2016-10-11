@@ -35,7 +35,7 @@ You can download prebuilt binaries for Linux and OS X from [EK Apps Repository](
 
 ## Usage
 
-````
+```
 Usage: sslcli {options} host...
 
 Options:
@@ -66,7 +66,7 @@ Examples:
   sslcli hosts.txt
   Check all hosts defined in hosts.txt file
 
-````
+```
 
 ## Build Status
 
