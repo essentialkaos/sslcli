@@ -95,7 +95,7 @@ func Init() {
 		fmtc.Println("{r}Arguments parsing errors:{!}")
 
 		for _, err := range errs {
-			fmtc.Printf("  {r}%s{!}\n", err.Error())
+			fmtc.Printf("  {r}%v{!}\n", err)
 		}
 
 		os.Exit(1)
@@ -134,7 +134,7 @@ func process(args []string) {
 
 	if err != nil {
 		if !arg.GetB(ARG_FORMAT) {
-			fmtc.Printf("{r}%s{!}\n", err.Error())
+			fmtc.Printf("{r}%v{!}\n", err)
 		}
 
 		os.Exit(1)
@@ -148,7 +148,7 @@ func process(args []string) {
 		hosts, err = readHostList(hosts[0])
 
 		if err != nil && arg.GetB(ARG_FORMAT) {
-			fmtc.Printf("{r}%s{!}\n", err.Error())
+			fmtc.Printf("{r}%v{!}\n", err)
 			os.Exit(1)
 		}
 	}
@@ -220,7 +220,7 @@ func check(host string) string {
 	ap, err := api.Analyze(host, params)
 
 	if err != nil {
-		fmtc.Printf("{r}%s{!}\n", err.Error())
+		fmtc.Printf("{r}%v{!}\n", err)
 		return "T"
 	}
 
@@ -230,7 +230,7 @@ func check(host string) string {
 		info, err = ap.Info()
 
 		if err != nil {
-			t.Printf("{r}%s{!}\n", err.Error())
+			t.Printf("{r}%v{!}\n", err)
 			return "Err"
 		}
 
