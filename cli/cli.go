@@ -49,6 +49,7 @@ const (
 
 const (
 	FORMAT_TEXT = "text"
+	FORMAT_YAML = "yaml"
 	FORMAT_JSON = "json"
 	FORMAT_XML  = "xml"
 )
@@ -204,6 +205,8 @@ func process(args []string) {
 			encodeAsJSON(checksInfo)
 		case FORMAT_XML:
 			encodeAsXML(checksInfo)
+		case FORMAT_YAML:
+			encodeAsYAML(checksInfo)
 		default:
 			os.Exit(1)
 		}
@@ -494,7 +497,7 @@ func getNormGrade(grade string) string {
 func showUsage() {
 	info := usage.NewInfo("", "host...")
 
-	info.AddOption(ARG_FORMAT, "Output result in different formats", "text|json|xml")
+	info.AddOption(ARG_FORMAT, "Output result in different formats", "text|json|yaml|xml")
 	info.AddOption(ARG_DETAILED, "Show detailed info for each endpoint")
 	info.AddOption(ARG_IGNORE_MISMATCH, "Proceed with assessments on certificate mismatch")
 	info.AddOption(ARG_AVOID_CACHE, "Disable cache usage")

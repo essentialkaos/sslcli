@@ -16,6 +16,7 @@ import (
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
+// encodeAsText print check info in simple text format
 func encodeAsText(checksInfo []*HostCheckInfo) {
 	for _, info := range checksInfo {
 		grades := []string{}
@@ -28,6 +29,7 @@ func encodeAsText(checksInfo []*HostCheckInfo) {
 	}
 }
 
+// encodeAsJSON print check info in JSON format
 func encodeAsJSON(checksInfo []*HostCheckInfo) {
 	jsonData, err := json.MarshalIndent(checksInfo, "", "  ")
 
@@ -39,6 +41,7 @@ func encodeAsJSON(checksInfo []*HostCheckInfo) {
 	fmt.Println(string(jsonData[:]))
 }
 
+// encodeAsXML print check info in XML format
 func encodeAsXML(checksInfo []*HostCheckInfo) {
 	fmt.Println("<hosts>")
 
@@ -65,4 +68,29 @@ func encodeAsXML(checksInfo []*HostCheckInfo) {
 	}
 
 	fmt.Println("</hosts>")
+}
+
+// encodeAsYAML print check info in YAML format
+func encodeAsYAML(checksInfo []*HostCheckInfo) {
+	fmt.Println("---")
+	fmt.Println("hosts:")
+
+	for _, info := range checksInfo {
+		fmt.Println("  -")
+
+		fmt.Println("    endpoints:")
+
+		for _, endpoint := range info.Endpoints {
+			fmt.Println("      -")
+			fmt.Printf("        grade: %s\n", endpoint.Grade)
+			fmt.Printf("        gradeNum: %.1f\n", endpoint.GradeNum)
+			fmt.Printf("        ipAddress: \"%s\"\n", endpoint.IPAdress)
+		}
+
+		fmt.Printf("    host: %s\n", info.Host)
+		fmt.Printf("    highestGrade: %s\n", info.HighestGrade)
+		fmt.Printf("    highestGradeNum: %.1f\n", info.HighestGradeNum)
+		fmt.Printf("    lowestGrade: %s\n", info.LowestGrade)
+		fmt.Printf("    lowestGradeNum: %.1f\n", info.LowestGradeNum)
+	}
 }
