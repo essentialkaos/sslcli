@@ -43,15 +43,19 @@ func encodeAsXML(checksInfo []*HostCheckInfo) {
 	fmt.Println("<hosts>")
 
 	for _, info := range checksInfo {
-		fmt.Printf("  <host name=\"%s\" lowest=\"%s\" highest=\"%s\">\n",
-			info.Host, info.LowestGrade, info.HighestGrade)
+		fmt.Printf(
+			"  <host name=\"%s\" lowest=\"%s\" highest=\"%s\" lowestNum=\"%.1f\" highestNum=\"%.1f\">\n",
+			info.Host, info.LowestGrade, info.HighestGrade, info.LowestGradeNum, info.HighestGradeNum,
+		)
 
 		if len(info.Endpoints) != 0 {
 			fmt.Println("    <endpoints>")
 
 			for _, endpoint := range info.Endpoints {
-				fmt.Printf("      <endpoint ip=\"%s\" grade=\"%s\" />\n",
-					endpoint.IPAdress, endpoint.Grade)
+				fmt.Printf(
+					"      <endpoint ip=\"%s\" grade=\"%s\" grade=\"%.1f\" />\n",
+					endpoint.IPAdress, endpoint.Grade, endpoint.GradeNum,
+				)
 			}
 
 			fmt.Println("    </endpoints>")

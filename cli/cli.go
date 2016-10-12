@@ -56,15 +56,18 @@ const (
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 type HostCheckInfo struct {
-	Host         string               `json:"host"`
-	LowestGrade  string               `json:"lowestGrade"`
-	HighestGrade string               `json:"highestGrade"`
-	Endpoints    []*EndpointCheckInfo `json:"endpoints"`
+	Host            string               `json:"host"`
+	LowestGrade     string               `json:"lowestGrade"`
+	HighestGrade    string               `json:"highestGrade"`
+	LowestGradeNum  float64              `json:"lowestGradeNum"`
+	HighestGradeNum float64              `json:"highestGradeNum"`
+	Endpoints       []*EndpointCheckInfo `json:"endpoints"`
 }
 
 type EndpointCheckInfo struct {
-	IPAdress string `json:"ipAddress"`
-	Grade    string `json:"grade"`
+	IPAdress string  `json:"ipAddress"`
+	Grade    string  `json:"grade"`
+	GradeNum float64 `json:"gradeNum"`
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -81,6 +84,20 @@ var argMap = arg.Map{
 	ARG_NO_COLOR:        &arg.V{Type: arg.BOOL},
 	ARG_HELP:            &arg.V{Type: arg.BOOL, Alias: "u:usage"},
 	ARG_VER:             &arg.V{Type: arg.BOOL, Alias: "ver"},
+}
+
+var gradeNumMap = map[string]float64{
+	"A+":  4.3,
+	"A":   4.0,
+	"A-":  3.7,
+	"B":   3.0,
+	"C":   2.0,
+	"D":   1.0,
+	"E":   0.5,
+	"F":   0.0,
+	"T":   0.0,
+	"M":   0.0,
+	"Err": 0.0,
 }
 
 var api *sslscan.API
@@ -292,10 +309,12 @@ func quietCheck(host string) (string, *HostCheckInfo) {
 	var info *sslscan.AnalyzeInfo
 
 	var checkInfo = &HostCheckInfo{
-		Host:         host,
-		LowestGrade:  "T",
-		HighestGrade: "T",
-		Endpoints:    make([]*EndpointCheckInfo, 0),
+		Host:            host,
+		LowestGrade:     "T",
+		HighestGrade:    "T",
+		LowestGradeNum:  0.0,
+		HighestGradeNum: 0.0,
+		Endpoints:       make([]*EndpointCheckInfo, 0),
 	}
 
 	params := sslscan.AnalyzeParams{
@@ -331,7 +350,10 @@ func quietCheck(host string) (string, *HostCheckInfo) {
 
 	lowestGrade, highestGrade := getGrades(info.Endpoints)
 
-	checkInfo.LowestGrade, checkInfo.HighestGrade = lowestGrade, highestGrade
+	checkInfo.LowestGrade = lowestGrade
+	checkInfo.HighestGrade = highestGrade
+	checkInfo.LowestGradeNum = gradeNumMap[lowestGrade]
+	checkInfo.HighestGradeNum = gradeNumMap[highestGrade]
 
 	return lowestGrade, checkInfo
 }
@@ -447,9 +469,12 @@ func readHostList(file string) ([]string, error) {
 // appendEndpointsInfo append endpoint check result to struct with info about all checks for host
 func appendEndpointsInfo(checkInfo *HostCheckInfo, endpoints []*sslscan.EndpointInfo) {
 	for _, endpoint := range endpoints {
+		grade := getNormGrade(endpoint.Grade)
+
 		checkInfo.Endpoints = append(checkInfo.Endpoints, &EndpointCheckInfo{
 			IPAdress: endpoint.IPAdress,
-			Grade:    getNormGrade(endpoint.Grade),
+			Grade:    grade,
+			GradeNum: gradeNumMap[grade],
 		})
 	}
 }
