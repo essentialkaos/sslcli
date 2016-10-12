@@ -29,7 +29,7 @@ import (
 
 const (
 	APP  = "SSLScan Client"
-	VER  = "1.1.1"
+	VER  = "1.2.0"
 	DESC = "Command-line client for the SSL Labs API"
 )
 
@@ -274,8 +274,16 @@ func check(host string) string {
 // showServerMessage show message from SSL Labs API
 func showServerMessage() {
 	serverMessage := strings.Join(api.Info.Messages, " ")
+	wrappedMessage := fmtutil.Wrap(serverMessage, "", 80)
 
-	fmtc.Printf("\n{s-}%s{!}\n\n", fmtutil.Wrap(serverMessage, "", 80))
+	var coloredMessage string
+
+	for _, line := range strings.Split(wrappedMessage, "\n") {
+		coloredMessage += "{s-}" + line + "{!}\n"
+	}
+
+	fmtc.NewLine()
+	fmtc.Println(coloredMessage)
 }
 
 // quietCheck check some host without any output to console
