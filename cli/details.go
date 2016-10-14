@@ -15,7 +15,7 @@ import (
 	"pkg.re/essentialkaos/ek.v5/fmtutil"
 	"pkg.re/essentialkaos/ek.v5/timeutil"
 
-	"pkg.re/essentialkaos/sslscan.v2"
+	"pkg.re/essentialkaos/sslscan.v3"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -95,6 +95,8 @@ func printCertificateInfo(details *sslscan.EndpointDetails) {
 	validFromDate := time.Unix(details.Cert.NotBefore/1000, 0)
 	validUntilDate := time.Unix(details.Cert.NotAfter/1000, 0)
 
+	// ---
+
 	fmtc.Printf(" %-24s {s}|{!} %s\n", "Common names", strings.Join(details.Cert.CommonNames, " "))
 
 	if len(details.Cert.AltNames) > 0 {
@@ -110,7 +112,11 @@ func printCertificateInfo(details *sslscan.EndpointDetails) {
 		}
 	}
 
+	// ---
+
 	fmtc.Printf(" %-24s {s}|{!} %s\n", "Valid from", timeutil.Format(validFromDate, "%Y/%m/%d %H:%M:%S"))
+
+	// ---
 
 	fmtc.Printf(" %-24s {s}|{!} ", "Valid until")
 
@@ -120,8 +126,12 @@ func printCertificateInfo(details *sslscan.EndpointDetails) {
 		fmtc.Printf("%s\n", timeutil.Format(validUntilDate, "%Y/%m/%d %H:%M:%S"))
 	}
 
+	// ---
+
 	fmtc.Printf(" %-24s {s}|{!} %s %d bits\n", "Key", details.Key.Alg, details.Key.Size)
 	fmtc.Printf(" %-24s {s}|{!} %s\n", "Weak Key (Debian)", getBool(details.Key.DebianFlaw))
+
+	// ---
 
 	fmtc.Printf(" %-24s {s}|{!} ", "Issuer")
 
@@ -131,6 +141,8 @@ func printCertificateInfo(details *sslscan.EndpointDetails) {
 		fmtc.Printf("%s\n", details.Cert.IssuerLabel)
 	}
 
+	// ---
+
 	fmtc.Printf(" %-24s {s}|{!} ", "Signature algorithm")
 
 	if weakAlgorithms[details.Cert.SigAlg] {
@@ -138,6 +150,8 @@ func printCertificateInfo(details *sslscan.EndpointDetails) {
 	} else {
 		fmtc.Printf("%s\n", details.Cert.SigAlg)
 	}
+
+	// ---
 
 	fmtc.Printf(" %-24s {s}|{!} ", "Extended Validation")
 
@@ -147,6 +161,8 @@ func printCertificateInfo(details *sslscan.EndpointDetails) {
 		fmtc.Println("No")
 	}
 
+	// ---
+
 	fmtc.Printf(" %-24s {s}|{!} ", "Certificate Transparency")
 
 	if details.Cert.SCT {
@@ -155,9 +171,13 @@ func printCertificateInfo(details *sslscan.EndpointDetails) {
 		fmtc.Println("No")
 	}
 
+	// ---
+
 	if details.Cert.RevocationInfo != 0 {
 		fmtc.Printf(" %-24s {s}|{!} %s\n", "Revocation information", getRevocationInfo(details.Cert.RevocationInfo))
 	}
+
+	// ---
 
 	fmtc.Printf(" %-24s {s}|{!} ", "Revocation status")
 
@@ -166,6 +186,8 @@ func printCertificateInfo(details *sslscan.EndpointDetails) {
 	} else {
 		fmtc.Printf("%s\n", getRevocationStatus(details.Cert.RevocationStatus))
 	}
+
+	// ---
 
 	fmtc.Printf(" %-24s {s}|{!} ", "Trusted")
 
@@ -339,6 +361,8 @@ func printHandshakeSimulationInfo(details *sslscan.EndpointDetails, suiteIndex m
 func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 	printCategoryHeader("Protocol Details")
 
+	// ---
+
 	fmtc.Printf(" %-40s {s}|{!} ", "Secure Renegotiation")
 
 	if details.RenegSupport&1 == 1 {
@@ -346,6 +370,8 @@ func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 	} else {
 		fmtc.Println("{g}Supported{!}")
 	}
+
+	// ---
 
 	fmtc.Printf(" %-40s {s}|{!} ", "Secure Client-Initiated Renegotiation")
 
@@ -355,6 +381,8 @@ func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 		fmtc.Println("No")
 	}
 
+	// ---
+
 	fmtc.Printf(" %-40s {s}|{!} ", "Insecure Client-Initiated Renegotiation")
 
 	if details.RenegSupport&1 == 1 {
@@ -362,6 +390,8 @@ func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 	} else {
 		fmtc.Println("No")
 	}
+
+	// ---
 
 	fmtc.Printf(" %-40s {s}|{!} ", "POODLE (SSLv3)")
 
@@ -371,6 +401,8 @@ func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 		fmtc.Println("No")
 	}
 
+	// ---
+
 	fmtc.Printf(" %-40s {s}|{!} ", "POODLE (TLS)")
 
 	if details.PoodleTLS == 2 {
@@ -378,6 +410,8 @@ func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 	} else {
 		fmtc.Println("No")
 	}
+
+	// ---
 
 	fmtc.Printf(" %-40s {s}|{!} ", "DROWN")
 
@@ -387,13 +421,19 @@ func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 		fmtc.Println("No")
 	}
 
+	// ---
+
 	if details.Logjam {
 		fmtc.Printf(" %-40s {s}|{!} {r}Vulnerable{!}\n", "Logjam")
 	}
 
+	// ---
+
 	if details.Freak {
 		fmtc.Printf(" %-40s {s}|{!} {r}Vulnerable{!}\n", "Freak")
 	}
+
+	// ---
 
 	fmtc.Printf(" %-40s {s}|{!} ", "Downgrade attack prevention")
 
@@ -403,6 +443,8 @@ func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 		fmtc.Println("{g}Yes, TLS_FALLBACK_SCSV supported{!}")
 	}
 
+	// ---
+
 	fmtc.Printf(" %-40s {s}|{!} ", "SSL/TLS compression")
 
 	if details.CompressionMethods != 0 {
@@ -410,6 +452,8 @@ func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 	} else {
 		fmtc.Println("No")
 	}
+
+	// ---
 
 	fmtc.Printf(" %-40s {s}|{!} ", "RC4")
 
@@ -419,7 +463,11 @@ func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 		fmtc.Println("No")
 	}
 
+	// ---
+
 	fmtc.Printf(" %-40s {s}|{!} %s\n", "Heartbeat (extension)", getBool(details.Heartbeat))
+
+	// ---
 
 	fmtc.Printf(" %-40s {s}|{!} ", "Heartbleed (vulnerability)")
 
@@ -428,6 +476,8 @@ func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 	} else {
 		fmtc.Println("No")
 	}
+
+	// ---
 
 	fmtc.Printf(" %-40s {s}|{!} ", "OpenSSL CCS vuln.")
 
@@ -444,6 +494,8 @@ func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 		fmtc.Println("{r}Vulnerable and exploitable{!}")
 	}
 
+	// ---
+
 	fmtc.Printf(" %-40s {s}|{!} ", "OpenSSL Padding Oracle vuln.")
 
 	switch details.OpenSSLLuckyMinus20 {
@@ -456,6 +508,8 @@ func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 	case 2:
 		fmtc.Println("{r}Vulnerable and insecure{!}")
 	}
+
+	// ---
 
 	fmtc.Printf(" %-40s {s}|{!} ", "Forward Secrecy")
 
@@ -470,6 +524,8 @@ func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 		fmtc.Println("{g}Yes (with most browsers) (ROBUST){!}")
 	}
 
+	// ---
+
 	fmtc.Printf(" %-40s {s}|{!} ", "Application-Layer Protocol Negotiation")
 
 	if strings.Contains(details.NPNProtocols, "h2") {
@@ -478,6 +534,8 @@ func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 		fmtc.Println("No")
 	}
 
+	// ---
+
 	fmtc.Printf(" %-40s {s}|{!} ", "Next Protocol Negotiation")
 
 	if details.SupportsNPN {
@@ -485,6 +543,8 @@ func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 	} else {
 		fmtc.Println("No")
 	}
+
+	// ---
 
 	fmtc.Printf(" %-40s {s}|{!} ", "Session resumption (caching)")
 
@@ -497,7 +557,11 @@ func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 		fmtc.Println("Yes")
 	}
 
+	// ---
+
 	fmtc.Printf(" %-40s {s}|{!} %s\n", "Session resumption (tickets)", getBool(details.SessionTickets&1 == 1))
+
+	// ---
 
 	fmtc.Printf(" %-40s {s}|{!} ", "OCSP stapling")
 
@@ -506,6 +570,8 @@ func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 	} else {
 		fmtc.Println("No")
 	}
+
+	// ---
 
 	fmtc.Printf(" %-40s {s}|{!} ", "Strict Transport Security (HSTS)")
 
@@ -519,6 +585,8 @@ func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 	} else {
 		fmtc.Println("No")
 	}
+
+	// ---
 
 	fmtc.Printf(" %-40s {s}|{!} ", "Public Key Pinning (HPKP)")
 
@@ -555,6 +623,40 @@ func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 		fmtc.Println("No")
 	}
 
+	// ---
+
+	fmtc.Printf(" %-40s {s}|{!} ", "Long handshake intolerance")
+
+	if details.MiscIntolerance&2 == 2 {
+		fmtc.Println("{y}Yes{!}")
+	} else if details.MiscIntolerance&4 == 4 {
+		fmtc.Println("{y}Yes{!} {s-}(workaround success){!}")
+	} else {
+		fmtc.Println("No")
+	}
+
+	// ---
+
+	fmtc.Printf(" %-40s {s}|{!} ", "TLS extension intolerance")
+
+	if details.MiscIntolerance&1 == 1 {
+		fmtc.Println("{y}Yes{!}")
+	} else {
+		fmtc.Println("No")
+	}
+
+	// ---
+
+	fmtc.Printf(" %-40s {s}|{!} ", "TLS version intolerance")
+
+	if details.ProtocolIntolerance != 0 {
+		fmtc.Printf("{y}%s{!}\n", getProtocolIntolerance(details.ProtocolIntolerance))
+	} else {
+		fmtc.Println("No")
+	}
+
+	// ---
+
 	fmtc.Printf(" %-40s {s}|{!} ", "Uses common DH primes")
 
 	if details.DHUsesKnownPrimes != 0 {
@@ -562,6 +664,8 @@ func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 	} else {
 		fmtc.Println("No")
 	}
+
+	// ---
 
 	fmtc.Printf(" %-40s {s}|{!} ", "DH public server param (Ys) reuse")
 
@@ -579,14 +683,20 @@ func printMiscellaneousInfo(info *sslscan.EndpointInfo) {
 	details := info.Details
 	testDate := time.Unix(info.Details.HostStartTime/1000, 0)
 
+	// ---
+
 	fmtc.Printf(
 		" %-24s {s}|{!} %s {s-}(%s ago){!}\n", "Test date",
 		timeutil.Format(testDate, "%Y/%m/%d %H:%M:%S"),
 		timeutil.PrettyDuration(time.Since(testDate)),
 	)
 
+	// ---
+
 	fmtc.Printf(" %-24s {s}|{!} %s\n", "Test duration", timeutil.PrettyDuration(info.Duration/1000))
 	fmtc.Printf(" %-24s {s}|{!} %d\n", "HTTP status code", details.HTTPStatusCode)
+
+	// ---
 
 	if details.HTTPForwarding != "" {
 		if strings.Contains(details.HTTPForwarding, "http://") {
@@ -596,9 +706,13 @@ func printMiscellaneousInfo(info *sslscan.EndpointInfo) {
 		}
 	}
 
+	// ---
+
 	if details.ServerSignature != "" {
 		fmtc.Printf(" %-24s {s}|{!} %s\n", "HTTP server signature", details.ServerSignature)
 	}
+
+	// ---
 
 	if info.ServerName != "" {
 		fmtc.Printf(" %-24s {s}|{!} %s\n", "Server hostname", info.ServerName)
@@ -699,6 +813,41 @@ func getChainIssuesDesc(issues int) string {
 	}
 
 	return "None"
+}
+
+// getProtocolIntolerance return protocol intolerance info
+func getProtocolIntolerance(issues int) string {
+	var versions []string
+
+	if issues&1 == 1 {
+		versions = append(versions, "TLS 1.0")
+	}
+
+	if issues&2 == 2 {
+		versions = append(versions, "TLS 1.1")
+	}
+
+	if issues&4 == 4 {
+		versions = append(versions, "TLS 1.2")
+	}
+
+	if issues&8 == 8 {
+		versions = append(versions, "TLS 1.3")
+	}
+
+	if issues&16 == 16 {
+		versions = append(versions, "TLS 1.152")
+	}
+
+	if issues&32 == 32 {
+		versions = append(versions, "TLS 2.152")
+	}
+
+	if len(versions) == 0 {
+		return "No"
+	}
+
+	return strings.Join(versions, " ")
 }
 
 // getProtocols return map with supported protocols
