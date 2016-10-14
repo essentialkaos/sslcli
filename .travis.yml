@@ -23,7 +23,7 @@ matrix:
 
 before_install:
   - go get -v pkg.re/essentialkaos/ek.v5
-  - go get -v pkg.re/essentialkaos/sslscan.v2
+  - go get -v pkg.re/essentialkaos/sslscan.v3
 
 script:
   - go build sslcli.go
