@@ -38,21 +38,21 @@ You can download prebuilt binaries for Linux and OS X from [EK Apps Repository](
 ```
 Usage: sslcli {options} host...
 
-Options:
+Options
 
-  --format, -f text|json|xml    Output result in different formats
-  --detailed, -d                Show detailed info for each endpoint
-  --ignore-mismatch, -i         Proceed with assessments on certificate mismatch
-  --avoid-cache, -c             Disable cache usage
-  --public, -p                  Publish results on sslscan.com
-  --perfect, -P                 Return non-zero exit code if not A+
-  --notify, -n                  Notify when check is done
-  --quiet, -q                   Don't show any output
-  --no-color, -nc               Disable colors in output
-  --help, -h                    Show this help message
-  --version, -v                 Show version
+  --format, -f text|json|yaml|xml    Output result in different formats
+  --detailed, -d                     Show detailed info for each endpoint
+  --ignore-mismatch, -i              Proceed with assessments on certificate mismatch
+  --avoid-cache, -c                  Disable cache usage
+  --public, -p                       Publish results on sslscan.com
+  --perfect, -P                      Return non-zero exit code if not A+
+  --notify, -n                       Notify when check is done
+  --quiet, -q                        Don't show any output
+  --no-color, -nc                    Disable colors in output
+  --help, -h                         Show this help message
+  --version, -v                      Show version
 
-Examples:
+Examples
 
   sslcli google.com
   Check google.com
