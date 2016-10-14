@@ -19,10 +19,9 @@ import (
 	"pkg.re/essentialkaos/ek.v5/fmtc"
 	"pkg.re/essentialkaos/ek.v5/fmtutil"
 	"pkg.re/essentialkaos/ek.v5/fsutil"
-	"pkg.re/essentialkaos/ek.v5/req"
 	"pkg.re/essentialkaos/ek.v5/usage"
 
-	"pkg.re/essentialkaos/sslscan.v2"
+	"pkg.re/essentialkaos/sslscan.v3"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -135,8 +134,6 @@ func Init() {
 
 	runtime.GOMAXPROCS(2)
 
-	req.SetUserAgent(APP, VER)
-
 	process(args)
 }
 
@@ -148,7 +145,7 @@ func process(args []string) {
 		hosts []string
 	)
 
-	api, err = sslscan.NewAPI()
+	api, err = sslscan.NewAPI("SSLCli", VER)
 
 	if err != nil {
 		if !arg.GetB(ARG_FORMAT) {
