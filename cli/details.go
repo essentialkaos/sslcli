@@ -15,7 +15,7 @@ import (
 	"pkg.re/essentialkaos/ek.v5/fmtutil"
 	"pkg.re/essentialkaos/ek.v5/timeutil"
 
-	"pkg.re/essentialkaos/sslscan.v3"
+	"pkg.re/essentialkaos/sslscan.v4"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //

@@ -21,14 +21,14 @@ import (
 	"pkg.re/essentialkaos/ek.v5/fsutil"
 	"pkg.re/essentialkaos/ek.v5/usage"
 
-	"pkg.re/essentialkaos/sslscan.v3"
+	"pkg.re/essentialkaos/sslscan.v4"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 const (
 	APP  = "SSLScan Client"
-	VER  = "1.2.0"
+	VER  = "1.3.0"
 	DESC = "Command-line client for the SSL Labs API"
 )
 
