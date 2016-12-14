@@ -4,7 +4,7 @@
 
 ## Usage demo
 
-[![asciicast](https://essentialkaos.com/github/sslcli-120.gif)](https://asciinema.org/a/89328)
+[![demo](https://gh.kaos.io/sslcli-120.gif)](#usage-demo)
 
 ## Installation
 
