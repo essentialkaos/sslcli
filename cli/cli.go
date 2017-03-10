@@ -2,7 +2,7 @@ package cli
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                     Copyright (c) 2009-2016 Essential Kaos                         //
+//                     Copyright (c) 2009-2017 ESSENTIAL KAOS                         //
 //      Apache License, Version 2.0 <http://www.apache.org/licenses/LICENSE-2.0>      //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -15,20 +15,21 @@ import (
 	"strings"
 	"time"
 
-	"pkg.re/essentialkaos/ek.v5/arg"
-	"pkg.re/essentialkaos/ek.v5/fmtc"
-	"pkg.re/essentialkaos/ek.v5/fmtutil"
-	"pkg.re/essentialkaos/ek.v5/fsutil"
-	"pkg.re/essentialkaos/ek.v5/usage"
+	"pkg.re/essentialkaos/ek.v7/arg"
+	"pkg.re/essentialkaos/ek.v7/fmtc"
+	"pkg.re/essentialkaos/ek.v7/fmtutil"
+	"pkg.re/essentialkaos/ek.v7/fsutil"
+	"pkg.re/essentialkaos/ek.v7/usage"
+	"pkg.re/essentialkaos/ek.v7/usage/update"
 
-	"pkg.re/essentialkaos/sslscan.v4"
+	"pkg.re/essentialkaos/sslscan.v5"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 const (
 	APP  = "SSLScan Client"
-	VER  = "1.3.0"
+	VER  = "1.4.0"
 	DESC = "Command-line client for the SSL Labs API"
 )
 
@@ -516,12 +517,13 @@ func showUsage() {
 
 func showAbout() {
 	about := &usage.About{
-		App:     APP,
-		Version: VER,
-		Desc:    DESC,
-		Year:    2009,
-		Owner:   "Essential Kaos",
-		License: "Apache License, Version 2.0 <http://www.apache.org/licenses/LICENSE-2.0>",
+		App:           APP,
+		Version:       VER,
+		Desc:          DESC,
+		Year:          2009,
+		Owner:         "Essential Kaos",
+		License:       "Apache License, Version 2.0 <http://www.apache.org/licenses/LICENSE-2.0>",
+		UpdateChecker: usage.UpdateChecker{"essentialkaos/sslcli", update.GitHubChecker},
 	}
 
 	about.Render()
