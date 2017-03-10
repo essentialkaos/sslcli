@@ -5,6 +5,7 @@ language: go
 go:
   - 1.6.x
   - 1.7.x
+  - 1.8.x
   - tip
 
 branches:
@@ -22,8 +23,7 @@ matrix:
     - go: tip
 
 before_install:
-  - go get -v pkg.re/essentialkaos/ek.v5
-  - go get -v pkg.re/essentialkaos/sslscan.v4
+  - make deps
 
 script:
-  - go build sslcli.go
+  - make all
