@@ -8,6 +8,12 @@
 
 ## Installation
 
+Before the initial install allows git to use redirects for [pkg.re](https://github.com/essentialkaos/pkgre) service (reason why you should do this described [here](https://github.com/essentialkaos/pkgre#git-support)):
+
+```
+git config --global http.https://pkg.re.followRedirects true
+```
+
 To build the SSLScan Client from scratch, make sure you have a working Go 1.5+ workspace ([instructions](https://golang.org/doc/install)), then:
 
 ```
@@ -29,7 +35,7 @@ You can download prebuilt binaries for Linux and OS X from [EK Apps Repository](
 * Superb UI
 * Output very similar to SSLLabs website output
 * Checking many hosts at once
-* Checking hosts defined in file
+* Checking hosts defined in the file
 * Check resumption
 * JSON/XML/Text output for usage in third party services
 
