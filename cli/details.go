@@ -294,15 +294,20 @@ func printCipherSuitesInfo(details *sslscan.EndpointDetails) map[int]int {
 		}
 
 		if insecure {
-			fmtc.Printf(" {r}%-42s{!} {s}|{!} {r}%d (INSECURE){!} ", suite.Name, suite.CipherStrength)
+			fmtc.Printf(" {r}%-44s{!} {s}|{!} {r}%d (INSECURE){!} ", suite.Name, suite.CipherStrength)
 		} else {
-			fmtc.Printf(" %-42s {s}|{!} %d ", suite.Name, suite.CipherStrength)
+			fmtc.Printf(" %-44s {s}|{!} %d ", suite.Name, suite.CipherStrength)
 		}
+
+		kxi := findKXInfo(suite.ID, details.SIMS.Results)
 
 		switch {
 		case suite.DHStrength != 0:
 			fmtc.Printf("{s-}(DH %d bits){!} "+tag+"\n",
 				suite.DHStrength)
+		case kxi != "":
+			fmtc.Printf("{s-}(%s ~ %d bits RSA){!} "+tag+"\n",
+				kxi, suite.ECDHStrength)
 		case suite.ECDHBits != 0:
 			fmtc.Printf("{s-}(ECDH %d bits ~ %d bits RSA){!} "+tag+"\n",
 				suite.ECDHBits, suite.ECDHStrength)
@@ -320,7 +325,7 @@ func printHandshakeSimulationInfo(details *sslscan.EndpointDetails, suiteIndex m
 
 	for _, sim := range details.SIMS.Results {
 		if sim.ErrorCode != 0 {
-			fmtc.Printf(" %-24s {s}|{!} {r}Fail{!}\n", sim.Client.Name+" "+sim.Client.Version)
+			fmtc.Printf(" %-20s {s}|{!} {r}Fail{!}\n", sim.Client.Name+" "+sim.Client.Version)
 			continue
 		}
 
@@ -332,24 +337,24 @@ func printHandshakeSimulationInfo(details *sslscan.EndpointDetails, suiteIndex m
 		}
 
 		if sim.Client.IsReference {
-			fmtc.Printf(" %-38s {s}|{!} ", sim.Client.Name+" "+sim.Client.Version+" "+fmtc.Sprintf("{g}R"))
+			fmtc.Printf(" %-34s {s}|{!} ", sim.Client.Name+" "+sim.Client.Version+" "+fmtc.Sprintf("{g}R"))
 		} else {
-			fmtc.Printf(" %-24s {s}|{!} ", sim.Client.Name+" "+sim.Client.Version)
+			fmtc.Printf(" %-20s {s}|{!} ", sim.Client.Name+" "+sim.Client.Version)
 		}
 
 		switch protocolIDs[sim.ProtocolID] {
 		case "TLS 1.2":
-			fmtc.Printf("{g}%-7s{!} %-42s "+tag+" %d\n",
+			fmtc.Printf("{g}%-7s{!} %-46s "+tag+" %d\n",
 				protocolIDs[sim.ProtocolID],
 				suite.Name, suite.CipherStrength,
 			)
 		case "SSL 2.0", "SSL 3.0":
-			fmtc.Printf("{r}%-7s{!} %-42s "+tag+" %d\n",
+			fmtc.Printf("{r}%-7s{!} %-46s "+tag+" %d\n",
 				protocolIDs[sim.ProtocolID],
 				suite.Name, suite.CipherStrength,
 			)
 		default:
-			fmtc.Printf("%-7s %-42s "+tag+" %d\n",
+			fmtc.Printf("%-7s %-46s "+tag+" %d\n",
 				protocolIDs[sim.ProtocolID],
 				suite.Name, suite.CipherStrength,
 			)
@@ -891,4 +896,15 @@ func getHSTSPreloadingMarkers(preloads []*sslscan.HSTSPreload) string {
 	}
 
 	return strings.Join(result, " ")
+}
+
+// findKXInfo try to find knInfo for given suite
+func findKXInfo(suiteID int, sims []*sslscan.SIM) string {
+	for _, sim := range sims {
+		if sim.SuiteID == suiteID {
+			return sim.KXInfo
+		}
+	}
+
+	return ""
 }
