@@ -15,21 +15,21 @@ import (
 	"strings"
 	"time"
 
-	"pkg.re/essentialkaos/ek.v7/arg"
-	"pkg.re/essentialkaos/ek.v7/fmtc"
-	"pkg.re/essentialkaos/ek.v7/fmtutil"
-	"pkg.re/essentialkaos/ek.v7/fsutil"
-	"pkg.re/essentialkaos/ek.v7/usage"
-	"pkg.re/essentialkaos/ek.v7/usage/update"
+	"pkg.re/essentialkaos/ek.v8/arg"
+	"pkg.re/essentialkaos/ek.v8/fmtc"
+	"pkg.re/essentialkaos/ek.v8/fmtutil"
+	"pkg.re/essentialkaos/ek.v8/fsutil"
+	"pkg.re/essentialkaos/ek.v8/usage"
+	"pkg.re/essentialkaos/ek.v8/usage/update"
 
-	"pkg.re/essentialkaos/sslscan.v5"
+	"pkg.re/essentialkaos/sslscan.v6"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 const (
 	APP  = "SSLScan Client"
-	VER  = "1.4.1"
+	VER  = "1.5.0"
 	DESC = "Command-line client for the SSL Labs API"
 )
 
