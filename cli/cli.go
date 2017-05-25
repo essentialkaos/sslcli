@@ -15,36 +15,36 @@ import (
 	"strings"
 	"time"
 
-	"pkg.re/essentialkaos/ek.v8/arg"
-	"pkg.re/essentialkaos/ek.v8/fmtc"
-	"pkg.re/essentialkaos/ek.v8/fmtutil"
-	"pkg.re/essentialkaos/ek.v8/fsutil"
-	"pkg.re/essentialkaos/ek.v8/usage"
-	"pkg.re/essentialkaos/ek.v8/usage/update"
+	"pkg.re/essentialkaos/ek.v9/fmtc"
+	"pkg.re/essentialkaos/ek.v9/fmtutil"
+	"pkg.re/essentialkaos/ek.v9/fsutil"
+	"pkg.re/essentialkaos/ek.v9/options"
+	"pkg.re/essentialkaos/ek.v9/usage"
+	"pkg.re/essentialkaos/ek.v9/usage/update"
 
-	"pkg.re/essentialkaos/sslscan.v6"
+	"pkg.re/essentialkaos/sslscan.v7"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 const (
 	APP  = "SSLScan Client"
-	VER  = "1.5.0"
+	VER  = "1.6.0"
 	DESC = "Command-line client for the SSL Labs API"
 )
 
 const (
-	ARG_FORMAT          = "f:format"
-	ARG_DETAILED        = "d:detailed"
-	ARG_IGNORE_MISMATCH = "i:ignore-mismatch"
-	ARG_AVOID_CACHE     = "c:avoid-cache"
-	ARG_PUBLIC          = "p:public"
-	ARG_PERFECT         = "P:perfect"
-	ARG_QUIET           = "q:quiet"
-	ARG_NOTIFY          = "n:notify"
-	ARG_NO_COLOR        = "nc:no-color"
-	ARG_HELP            = "h:help"
-	ARG_VER             = "v:version"
+	OPT_FORMAT          = "f:format"
+	OPT_DETAILED        = "d:detailed"
+	OPT_IGNORE_MISMATCH = "i:ignore-mismatch"
+	OPT_AVOID_CACHE     = "c:avoid-cache"
+	OPT_PUBLIC          = "p:public"
+	OPT_PERFECT         = "P:perfect"
+	OPT_QUIET           = "q:quiet"
+	OPT_NOTIFY          = "n:notify"
+	OPT_NO_COLOR        = "nc:no-color"
+	OPT_HELP            = "h:help"
+	OPT_VER             = "v:version"
 )
 
 const (
@@ -73,18 +73,18 @@ type EndpointCheckInfo struct {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-var argMap = arg.Map{
-	ARG_FORMAT:          &arg.V{},
-	ARG_DETAILED:        &arg.V{Type: arg.BOOL},
-	ARG_IGNORE_MISMATCH: &arg.V{Type: arg.BOOL},
-	ARG_AVOID_CACHE:     &arg.V{Type: arg.BOOL},
-	ARG_PUBLIC:          &arg.V{Type: arg.BOOL},
-	ARG_PERFECT:         &arg.V{Type: arg.BOOL},
-	ARG_QUIET:           &arg.V{Type: arg.BOOL},
-	ARG_NOTIFY:          &arg.V{Type: arg.BOOL},
-	ARG_NO_COLOR:        &arg.V{Type: arg.BOOL},
-	ARG_HELP:            &arg.V{Type: arg.BOOL, Alias: "u:usage"},
-	ARG_VER:             &arg.V{Type: arg.BOOL, Alias: "ver"},
+var optMap = options.Map{
+	OPT_FORMAT:          {},
+	OPT_DETAILED:        {Type: options.BOOL},
+	OPT_IGNORE_MISMATCH: {Type: options.BOOL},
+	OPT_AVOID_CACHE:     {Type: options.BOOL},
+	OPT_PUBLIC:          {Type: options.BOOL},
+	OPT_PERFECT:         {Type: options.BOOL},
+	OPT_QUIET:           {Type: options.BOOL},
+	OPT_NOTIFY:          {Type: options.BOOL},
+	OPT_NO_COLOR:        {Type: options.BOOL},
+	OPT_HELP:            {Type: options.BOOL, Alias: "u:usage"},
+	OPT_VER:             {Type: options.BOOL, Alias: "ver"},
 }
 
 var gradeNumMap = map[string]float64{
@@ -107,7 +107,7 @@ var api *sslscan.API
 
 // Init starts initialization rutine
 func Init() {
-	args, errs := arg.Parse(argMap)
+	args, errs := options.Parse(optMap)
 
 	if len(errs) != 0 {
 		fmtc.Println("{r}Arguments parsing errors:{!}")
@@ -119,16 +119,16 @@ func Init() {
 		os.Exit(1)
 	}
 
-	if arg.GetB(ARG_NO_COLOR) {
+	if options.GetB(OPT_NO_COLOR) {
 		fmtc.DisableColors = true
 	}
 
-	if arg.GetB(ARG_VER) {
+	if options.GetB(OPT_VER) {
 		showAbout()
 		return
 	}
 
-	if arg.GetB(ARG_HELP) || len(args) == 0 {
+	if options.GetB(OPT_HELP) || len(args) == 0 {
 		showUsage()
 		return
 	}
@@ -149,7 +149,7 @@ func process(args []string) {
 	api, err = sslscan.NewAPI("SSLCli", VER)
 
 	if err != nil {
-		if !arg.GetB(ARG_FORMAT) {
+		if !options.GetB(OPT_FORMAT) {
 			fmtc.Printf("{r}%v{!}\n", err)
 		}
 
@@ -163,7 +163,7 @@ func process(args []string) {
 	if fsutil.CheckPerms("FR", hosts[0]) {
 		hosts, err = readHostList(hosts[0])
 
-		if err != nil && arg.GetB(ARG_FORMAT) {
+		if err != nil && options.GetB(OPT_FORMAT) {
 			fmtc.Printf("{r}%v{!}\n", err)
 			os.Exit(1)
 		}
@@ -178,9 +178,9 @@ func process(args []string) {
 	for _, host := range hosts {
 
 		switch {
-		case arg.GetB(ARG_QUIET):
+		case options.GetB(OPT_QUIET):
 			grade, _ = quietCheck(host)
-		case arg.GetB(ARG_FORMAT):
+		case options.GetB(OPT_FORMAT):
 			grade, checkInfo = quietCheck(host)
 			checksInfo = append(checksInfo, checkInfo)
 		default:
@@ -188,15 +188,15 @@ func process(args []string) {
 		}
 
 		switch {
-		case arg.GetB(ARG_PERFECT) && grade != "A+":
+		case options.GetB(OPT_PERFECT) && grade != "A+":
 			ok = false
 		case grade[:1] != "A":
 			ok = false
 		}
 	}
 
-	if arg.GetB(ARG_FORMAT) {
-		switch arg.GetS(ARG_FORMAT) {
+	if options.GetB(OPT_FORMAT) {
+		switch options.GetS(OPT_FORMAT) {
 		case FORMAT_TEXT:
 			encodeAsText(checksInfo)
 		case FORMAT_JSON:
@@ -210,7 +210,7 @@ func process(args []string) {
 		}
 	}
 
-	if arg.GetB(ARG_NOTIFY) {
+	if options.GetB(OPT_NOTIFY) {
 		fmtc.Bell()
 	}
 
@@ -227,10 +227,10 @@ func check(host string) string {
 	showServerMessage()
 
 	params := sslscan.AnalyzeParams{
-		Public:         arg.GetB(ARG_PUBLIC),
-		StartNew:       arg.GetB(ARG_AVOID_CACHE),
-		FromCache:      !arg.GetB(ARG_AVOID_CACHE),
-		IgnoreMismatch: arg.GetB(ARG_IGNORE_MISMATCH),
+		Public:         options.GetB(OPT_PUBLIC),
+		StartNew:       options.GetB(OPT_AVOID_CACHE),
+		FromCache:      !options.GetB(OPT_AVOID_CACHE),
+		IgnoreMismatch: options.GetB(OPT_IGNORE_MISMATCH),
 	}
 
 	fmtc.Printf("{*}%s{!} → ", host)
@@ -280,7 +280,7 @@ func check(host string) string {
 		t.Println(getColoredGrades(info.Endpoints))
 	}
 
-	if arg.GetB(ARG_DETAILED) {
+	if options.GetB(OPT_DETAILED) {
 		printDetailedInfo(ap, info)
 	}
 
@@ -319,10 +319,10 @@ func quietCheck(host string) (string, *HostCheckInfo) {
 	}
 
 	params := sslscan.AnalyzeParams{
-		Public:         arg.GetB(ARG_PUBLIC),
-		StartNew:       arg.GetB(ARG_AVOID_CACHE),
-		FromCache:      !arg.GetB(ARG_AVOID_CACHE),
-		IgnoreMismatch: arg.GetB(ARG_IGNORE_MISMATCH),
+		Public:         options.GetB(OPT_PUBLIC),
+		StartNew:       options.GetB(OPT_AVOID_CACHE),
+		FromCache:      !options.GetB(OPT_AVOID_CACHE),
+		IgnoreMismatch: options.GetB(OPT_IGNORE_MISMATCH),
 	}
 
 	ap, err := api.Analyze(host, params)
@@ -495,17 +495,17 @@ func getNormGrade(grade string) string {
 func showUsage() {
 	info := usage.NewInfo("", "host...")
 
-	info.AddOption(ARG_FORMAT, "Output result in different formats", "text|json|yaml|xml")
-	info.AddOption(ARG_DETAILED, "Show detailed info for each endpoint")
-	info.AddOption(ARG_IGNORE_MISMATCH, "Proceed with assessments on certificate mismatch")
-	info.AddOption(ARG_AVOID_CACHE, "Disable cache usage")
-	info.AddOption(ARG_PUBLIC, "Publish results on sslscan.com")
-	info.AddOption(ARG_PERFECT, "Return non-zero exit code if not A+")
-	info.AddOption(ARG_NOTIFY, "Notify when check is done")
-	info.AddOption(ARG_QUIET, "Don't show any output")
-	info.AddOption(ARG_NO_COLOR, "Disable colors in output")
-	info.AddOption(ARG_HELP, "Show this help message")
-	info.AddOption(ARG_VER, "Show version")
+	info.AddOption(OPT_FORMAT, "Output result in different formats", "text|json|yaml|xml")
+	info.AddOption(OPT_DETAILED, "Show detailed info for each endpoint")
+	info.AddOption(OPT_IGNORE_MISMATCH, "Proceed with assessments on certificate mismatch")
+	info.AddOption(OPT_AVOID_CACHE, "Disable cache usage")
+	info.AddOption(OPT_PUBLIC, "Publish results on sslscan.com")
+	info.AddOption(OPT_PERFECT, "Return non-zero exit code if not A+")
+	info.AddOption(OPT_NOTIFY, "Notify when check is done")
+	info.AddOption(OPT_QUIET, "Don't show any output")
+	info.AddOption(OPT_NO_COLOR, "Disable colors in output")
+	info.AddOption(OPT_HELP, "Show this help message")
+	info.AddOption(OPT_VER, "Show version")
 
 	info.AddExample("google.com", "Check google.com")
 	info.AddExample("-P google.com", "Check google.com and return zero exit code only if result is perfect (A+)")
