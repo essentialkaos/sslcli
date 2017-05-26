@@ -44,7 +44,7 @@
 
 Summary:         Pretty awesome command-line client for public SSLLabs API
 Name:            sslcli
-Version:         1.5.0
+Version:         1.6.0
 Release:         0%{?dist}
 Group:           Applications/System
 License:         EKOL
@@ -54,7 +54,7 @@ Source0:         https://source.kaos.io/%{name}/%{name}-%{version}.tar.bz2
 
 BuildRoot:       %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-BuildRequires:   golang >= 1.7
+BuildRequires:   golang >= 1.8
 
 Provides:        %{name} = %{version}-%{release}
 
@@ -92,6 +92,10 @@ rm -rf %{buildroot}
 ###############################################################################
 
 %changelog
+* Thu May 25 2017 Anton Novojilov <andy@essentialkaos.com> - 1.6.0-0
+- ek package updated to v9
+- sslscan package updated to v7
+
 * Sun Apr 16 2017 Anton Novojilov <andy@essentialkaos.com> - 1.5.0-0
 - ek package updated to v8
 - sslscan package updated to v6
