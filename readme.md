@@ -1,8 +1,17 @@
-<p align="center"><a href="#usage-demo">Usage demo</a> • <a href="#installation">Installation</a> • <a href="#prebuilt-binaries">Prebuilt binaries</a> • <a href="#feature-list">Feature list</a> • <a href="#usage">Usage</a> • <a href="#build-status">Build Status</a> • <a href="#contributing">Contributing</a> • <a href="#terms-of-use">Terms of Use</a> • <a href="#license">License</a></p>
-
-## SSLCLI [![Build Status](https://travis-ci.org/essentialkaos/sslcli.svg?branch=master)](https://travis-ci.org/essentialkaos/sslcli) [![Go Report Card](https://goreportcard.com/badge/github.com/essentialkaos/sslcli)](https://goreportcard.com/report/github.com/essentialkaos/sslcli) [![codebeat badge](https://codebeat.co/badges/edc52bb1-c807-470b-8466-b86cc0cfcdbe)](https://codebeat.co/projects/github-com-essentialkaos-sslcli-master) [![License](https://gh.kaos.io/apache2.svg)](LICENSE)
+## `sslcli` [![Build Status](https://travis-ci.org/essentialkaos/sslcli.svg?branch=master)](https://travis-ci.org/essentialkaos/sslcli) [![Go Report Card](https://goreportcard.com/badge/github.com/essentialkaos/sslcli)](https://goreportcard.com/report/github.com/essentialkaos/sslcli) [![codebeat badge](https://codebeat.co/badges/edc52bb1-c807-470b-8466-b86cc0cfcdbe)](https://codebeat.co/projects/github-com-essentialkaos-sslcli-master) [![License](https://gh.kaos.io/apache2.svg)](LICENSE)
 
 `sslcli` is command-line client for <a href="https://www.ssllabs.com">SSLLabs</a> public API.
+
+* [Usage demo](#usage-demo)
+* [Installation](#installation)
+  * [From source](#from-source)
+  * [Prebuilt binaries](#prebuilt-binaries)
+* [Feature list](#feature-list)
+* [Usage](#usage)
+* [Build Status](#build-status)
+* [Contributing](#contributing)
+* [Terms of Use](#terms-of-use)
+* [License](#license)
 
 ### Usage demo
 
