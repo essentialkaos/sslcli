@@ -3,9 +3,9 @@ sudo: false
 language: go
 
 go:
-  - 1.6.x
   - 1.7.x
   - 1.8.x
+  - 1.9.x
   - tip
 
 branches:
@@ -21,6 +21,7 @@ matrix:
   fast_finish: true
   allow_failures:
     - go: tip
+    - os: osx
 
 before_install:
   - make deps
