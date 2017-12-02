@@ -29,7 +29,7 @@ import (
 
 const (
 	APP  = "SSLScan Client"
-	VER  = "1.6.0"
+	VER  = "1.6.1"
 	DESC = "Command-line client for the SSL Labs API"
 )
 
@@ -242,18 +242,16 @@ func check(host string) string {
 		return "T"
 	}
 
-	t := &fmtc.T{}
-
 	for {
 		info, err = ap.Info()
 
 		if err != nil {
-			t.Printf("{r}%v{!}\n", err)
+			fmtc.TPrintf("{r}%v{!}\n", err)
 			return "Err"
 		}
 
 		if info.Status == sslscan.STATUS_ERROR {
-			t.Printf("{r}%s{!}\n", info.StatusMessage)
+			fmtc.TPrintf("{r}%s{!}\n", info.StatusMessage)
 			return "Err"
 		} else if info.Status == sslscan.STATUS_READY {
 			break
@@ -263,7 +261,7 @@ func check(host string) string {
 			message := getStatusInProgress(info.Endpoints)
 
 			if message != "" {
-				t.Printf("{s}%s...{!}", message)
+				fmtc.TPrintf("{s}%s...{!}", message)
 			}
 		}
 
@@ -275,9 +273,9 @@ func check(host string) string {
 	}
 
 	if len(info.Endpoints) == 1 {
-		t.Println(getColoredGrade(info.Endpoints[0].Grade))
+		fmtc.TPrintln(getColoredGrade(info.Endpoints[0].Grade))
 	} else {
-		t.Println(getColoredGrades(info.Endpoints))
+		fmtc.TPrintln(getColoredGrades(info.Endpoints))
 	}
 
 	if options.GetB(OPT_DETAILED) {
