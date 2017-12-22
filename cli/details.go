@@ -531,17 +531,17 @@ func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 
 	// ---
 
-	fmtc.Printf(" %-40s {s}|{!} ", "Application-Layer Protocol Negotiation")
+	fmtc.Printf(" %-40s {s}|{!} ", "ALPN")
 
-	if strings.Contains(details.NPNProtocols, "h2") {
-		fmtc.Println("Yes")
+	if details.SupportsALPN {
+		fmtc.Printf("Yes {s-}(%s){!}\n", details.NPNProtocols)
 	} else {
 		fmtc.Println("No")
 	}
 
 	// ---
 
-	fmtc.Printf(" %-40s {s}|{!} ", "Next Protocol Negotiation")
+	fmtc.Printf(" %-40s {s}|{!} ", "NPN")
 
 	if details.SupportsNPN {
 		fmtc.Printf("Yes {s-}(%s){!}\n", details.NPNProtocols)
