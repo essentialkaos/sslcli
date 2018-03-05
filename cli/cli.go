@@ -234,7 +234,10 @@ func check(host string) string {
 	}
 
 	fmtc.Printf("{*}%s{!} → ", host)
-	fmtc.TPrintf("{s}Preparing for tests…{!}")
+
+	if !options.GetB(OPT_DETAILED) {
+		fmtc.TPrintf("{s}Preparing for tests…{!}")
+	}
 
 	ap, err := api.Analyze(host, params)
 
@@ -416,28 +419,21 @@ func getGrades(endpoints []*sslscan.EndpointInfo) (string, string) {
 
 // getStatusInProgress return status message from any in-progress endpoint
 func getStatusInProgress(endpoints []*sslscan.EndpointInfo) string {
-	var message string
-
 	if len(endpoints) == 1 {
-		message = endpoints[0].StatusDetailsMessage
-	} else {
-		for num, endpoint := range endpoints {
-			if endpoint.Grade != "" {
-				continue
-			}
+		return endpoints[0].StatusDetailsMessage
+	}
 
-			if endpoint.StatusDetailsMessage != "" {
-				message = fmtc.Sprintf("#%d: %s", num, endpoint.StatusDetailsMessage)
-				break
-			}
+	for num, endpoint := range endpoints {
+		if endpoint.Grade != "" {
+			continue
+		}
+
+		if endpoint.StatusDetailsMessage != "" {
+			return fmtc.Sprintf("#%d: %s", num, endpoint.StatusDetailsMessage)
 		}
 	}
 
-	if message == "" {
-		message = "Preparing for tests"
-	}
-
-	return message
+	return ""
 }
 
 // readHostList read file with hosts
