@@ -29,7 +29,7 @@ import (
 
 const (
 	APP  = "SSLScan Client"
-	VER  = "1.7.0"
+	VER  = "1.7.1"
 	DESC = "Command-line client for the SSL Labs API"
 )
 
@@ -234,6 +234,7 @@ func check(host string) string {
 	}
 
 	fmtc.Printf("{*}%s{!} → ", host)
+	fmtc.TPrintf("{s}Preparing for tests...{!}")
 
 	ap, err := api.Analyze(host, params)
 
@@ -415,21 +416,28 @@ func getGrades(endpoints []*sslscan.EndpointInfo) (string, string) {
 
 // getStatusInProgress return status message from any in-progress endpoint
 func getStatusInProgress(endpoints []*sslscan.EndpointInfo) string {
+	var message string
+
 	if len(endpoints) == 1 {
-		return endpoints[0].StatusDetailsMessage
+		message = endpoints[0].StatusDetailsMessage
+	} else {
+		for num, endpoint := range endpoints {
+			if endpoint.Grade != "" {
+				continue
+			}
+
+			if endpoint.StatusDetailsMessage != "" {
+				message = fmtc.Sprintf("#%d: %s", num, endpoint.StatusDetailsMessage)
+				break
+			}
+		}
 	}
 
-	for num, endpoint := range endpoints {
-		if endpoint.Grade != "" {
-			continue
-		}
-
-		if endpoint.StatusDetailsMessage != "" {
-			return fmtc.Sprintf("#%d: %s", num, endpoint.StatusDetailsMessage)
-		}
+	if message == "" {
+		message = "Preparing for tests"
 	}
 
-	return ""
+	return message
 }
 
 // readHostList read file with hosts

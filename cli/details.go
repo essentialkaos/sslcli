@@ -337,7 +337,7 @@ func printHandshakeSimulationInfo(details *sslscan.EndpointDetails, suiteIndex m
 		}
 
 		if sim.Client.IsReference {
-			fmtc.Printf(" %-34s {s}|{!} ", sim.Client.Name+" "+sim.Client.Version+" "+fmtc.Sprintf("{g}R"))
+			fmtc.Printf(" %-29s {s}|{!} ", sim.Client.Name+" "+sim.Client.Version+" "+fmtc.Sprintf("{g}R"))
 		} else {
 			fmtc.Printf(" %-20s {s}|{!} ", sim.Client.Name+" "+sim.Client.Version)
 		}
