@@ -13,17 +13,6 @@
 
 **IMPORTANT:** Currently, SSLLabs API doesn't provide same info as SSLLabs website.
 
-* [Usage demo](#usage-demo)
-* [Installation](#installation)
-  * [From source](#from-source)
-  * [Prebuilt binaries](#prebuilt-binaries)
-* [Feature list](#feature-list)
-* [Usage](#usage)
-* [Build Status](#build-status)
-* [Contributing](#contributing)
-* [Terms of Use](#terms-of-use)
-* [License](#license)
-
 ### Usage demo
 
 [![demo](https://gh.kaos.st/sslcli-120.gif)](#usage-demo)
