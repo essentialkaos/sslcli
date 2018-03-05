@@ -1,4 +1,13 @@
-## `sslcli` [![Build Status](https://travis-ci.org/essentialkaos/sslcli.svg?branch=master)](https://travis-ci.org/essentialkaos/sslcli) [![Go Report Card](https://goreportcard.com/badge/github.com/essentialkaos/sslcli)](https://goreportcard.com/report/github.com/essentialkaos/sslcli) [![codebeat badge](https://codebeat.co/badges/edc52bb1-c807-470b-8466-b86cc0cfcdbe)](https://codebeat.co/projects/github-com-essentialkaos-sslcli-master) [![License](https://gh.kaos.io/apache2.svg)](LICENSE)
+<p align="center"><a href="#readme"><img src="https://gh.kaos.st/sslcli.svg"/></a></p>
+
+<p align="center"><a href="#usage-demo">Usage demo</a> • <a href="#installation">Installation</a> • <a href="#from-source">From source</a> • <a href="#prebuilt-binaries">Prebuilt binaries</a> • <a href="#feature-list">Feature list</a> • <a href="#usage">Usage</a> • <a href="#build-status">Build Status</a> • <a href="#contributing">Contributing</a> • <a href="#terms-of-use">Terms of Use</a> • <a href="#license">License</a></p>
+
+<p align="center">
+  <a href="https://goreportcard.com/report/github.com/essentialkaos/sslcli"><img src="https://goreportcard.com/badge/github.com/essentialkaos/sslcli"></a>
+  <a href="https://codebeat.co/projects/github-com-essentialkaos-sslcli-master"><img src="https://codebeat.co/badges/edc52bb1-c807-470b-8466-b86cc0cfcdbe"></a>
+  <a href="https://travis-ci.org/essentialkaos/sslcli"><img src="https://travis-ci.org/essentialkaos/sslcli.svg"></a>
+  <a href="#license"><img src="https://gh.kaos.st/apache2.svg"></a>
+</p>
 
 `sslcli` is command-line client for <a href="https://www.ssllabs.com">SSLLabs</a> public API.
 
@@ -57,7 +66,7 @@ You can download prebuilt binaries for Linux and OS X from [EK Apps Repository](
 ### Usage
 
 ```
-Usage: sslcli {options} host...
+Usage: sslcli {options} host…
 
 Options
 
