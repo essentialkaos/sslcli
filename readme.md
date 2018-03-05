@@ -64,7 +64,7 @@ You can download prebuilt binaries for Linux and OS X from [EK Apps Repository](
 * Checking many hosts at once
 * Checking hosts defined in the file
 * Check resumption
-* JSON/XML/Text output for usage in third party services
+* JSON/XML/YAML/Text output for usage in third party scripts
 
 ### Usage
 
