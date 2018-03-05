@@ -26,13 +26,13 @@
 
 ### Usage demo
 
-[![demo](https://gh.kaos.io/sslcli-120.gif)](#usage-demo)
+[![demo](https://gh.kaos.st/sslcli-120.gif)](#usage-demo)
 
 ### Installation
 
 #### From source
 
-Before the initial install allows git to use redirects for [pkg.re](https://github.com/essentialkaos/pkgre) service (reason why you should do this described [here](https://github.com/essentialkaos/pkgre#git-support)):
+Before the initial install allows git to use redirects for [pkg.re](https://github.com/essentialkaos/pkgre) service (_reason why you should do this described [here](https://github.com/essentialkaos/pkgre#git-support)_):
 
 ```
 git config --global http.https://pkg.re.followRedirects true
@@ -50,9 +50,23 @@ If you want update SSLScan Client to latest stable release, do:
 go get -u github.com/essentialkaos/sslcli
 ```
 
+#### From ESSENTIAL KAOS Public repo for RHEL6/CentOS6
+
+```bash
+[sudo] yum install -y https://yum.kaos.st/6/release/x86_64/kaos-repo-9.1-0.el6.noarch.rpm
+[sudo] yum install sslcli
+```
+
+#### From ESSENTIAL KAOS Public repo for RHEL7/CentOS7
+
+```bash
+[sudo] yum install -y https://yum.kaos.st/7/release/x86_64/kaos-repo-9.1-0.el7.noarch.rpm
+[sudo] yum install sslcli
+```
+
 #### Prebuilt binaries
 
-You can download prebuilt binaries for Linux and OS X from [EK Apps Repository](https://apps.kaos.io/sslcli/latest).
+You can download prebuilt binaries for Linux and OS X from [EK Apps Repository](https://apps.kaos.st/sslcli/latest).
 
 ### Feature list
 
@@ -122,4 +136,4 @@ Also you should:
 
 [Apache License, Version 2.0](http://www.apache.org/licenses/LICENSE-2.0)
 
-<p align="center"><a href="https://essentialkaos.com"><img src="https://gh.kaos.io/ekgh.svg"/></a></p>
+<p align="center"><a href="https://essentialkaos.com"><img src="https://gh.kaos.st/ekgh.svg"/></a></p>
