@@ -2,7 +2,7 @@ package cli
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                     Copyright (c) 2009-2017 ESSENTIAL KAOS                         //
+//                     Copyright (c) 2009-2018 ESSENTIAL KAOS                         //
 //      Apache License, Version 2.0 <http://www.apache.org/licenses/LICENSE-2.0>      //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -22,14 +22,14 @@ import (
 	"pkg.re/essentialkaos/ek.v9/usage"
 	"pkg.re/essentialkaos/ek.v9/usage/update"
 
-	"pkg.re/essentialkaos/sslscan.v7"
+	"pkg.re/essentialkaos/sslscan.v8"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 const (
 	APP  = "SSLScan Client"
-	VER  = "1.7.0"
+	VER  = "1.8.0"
 	DESC = "Command-line client for the SSL Labs API"
 )
 
@@ -235,6 +235,10 @@ func check(host string) string {
 
 	fmtc.Printf("{*}%s{!} → ", host)
 
+	if !options.GetB(OPT_DETAILED) {
+		fmtc.TPrintf("{s}Preparing for tests…{!}")
+	}
+
 	ap, err := api.Analyze(host, params)
 
 	if err != nil {
@@ -261,7 +265,7 @@ func check(host string) string {
 			message := getStatusInProgress(info.Endpoints)
 
 			if message != "" {
-				fmtc.TPrintf("{s}%s...{!}", message)
+				fmtc.TPrintf("{s}%s…{!}", message)
 			}
 		}
 
@@ -491,7 +495,7 @@ func getNormGrade(grade string) string {
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 func showUsage() {
-	info := usage.NewInfo("", "host...")
+	info := usage.NewInfo("", "host…")
 
 	info.AddOption(OPT_FORMAT, "Output result in different formats", "text|json|yaml|xml")
 	info.AddOption(OPT_DETAILED, "Show detailed info for each endpoint")

@@ -44,13 +44,13 @@
 
 Summary:         Pretty awesome command-line client for public SSLLabs API
 Name:            sslcli
-Version:         1.7.0
+Version:         1.8.0
 Release:         0%{?dist}
 Group:           Applications/System
 License:         EKOL
 URL:             http://essentialkaos.com
 
-Source0:         https://source.kaos.io/%{name}/%{name}-%{version}.tar.bz2
+Source0:         https://source.kaos.st/%{name}/%{name}-%{version}.tar.bz2
 
 BuildRoot:       %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
@@ -92,6 +92,11 @@ rm -rf %{buildroot}
 ###############################################################################
 
 %changelog
+* Tue Mar 06 2018 Anton Novojilov <andy@essentialkaos.com> - 1.8.0-0
+- ek package updated to latest stable release
+- sslscan package updated to v8
+- UI fixes
+
 * Fri Dec 22 2017 Anton Novojilov <andy@essentialkaos.com> - 1.7.0-0
 - Updated compatibility with latest version of sslscan package
 

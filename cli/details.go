@@ -2,7 +2,7 @@ package cli
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                     Copyright (c) 2009-2017 ESSENTIAL KAOS                         //
+//                     Copyright (c) 2009-2018 ESSENTIAL KAOS                         //
 //      Apache License, Version 2.0 <http://www.apache.org/licenses/LICENSE-2.0>      //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -15,7 +15,7 @@ import (
 	"pkg.re/essentialkaos/ek.v9/fmtutil"
 	"pkg.re/essentialkaos/ek.v9/timeutil"
 
-	"pkg.re/essentialkaos/sslscan.v7"
+	"pkg.re/essentialkaos/sslscan.v8"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -285,6 +285,7 @@ func printCipherSuitesInfo(details *sslscan.EndpointDetails) map[int]int {
 
 		tag := ""
 		insecure := strings.Contains(suite.Name, "_RC4_")
+		prefered := false
 
 		switch {
 		case suite.Q != nil:
@@ -293,9 +294,16 @@ func printCipherSuitesInfo(details *sslscan.EndpointDetails) map[int]int {
 			tag = "{y}(WEAK){!}"
 		}
 
-		if insecure {
+		if strings.Contains(suite.Name, "_CHACHA20_") && details.ChaCha20Preference {
+			prefered = true
+		}
+
+		switch {
+		case insecure == true:
 			fmtc.Printf(" {r}%-44s{!} {s}|{!} {r}%d (INSECURE){!} ", suite.Name, suite.CipherStrength)
-		} else {
+		case prefered == true:
+			fmtc.Printf(" {*}%-44s{!} {s}|{!} %d ", suite.Name, suite.CipherStrength)
+		default:
 			fmtc.Printf(" %-44s {s}|{!} %d ", suite.Name, suite.CipherStrength)
 		}
 
@@ -337,7 +345,7 @@ func printHandshakeSimulationInfo(details *sslscan.EndpointDetails, suiteIndex m
 		}
 
 		if sim.Client.IsReference {
-			fmtc.Printf(" %-34s {s}|{!} ", sim.Client.Name+" "+sim.Client.Version+" "+fmtc.Sprintf("{g}R"))
+			fmtc.Printf(" %-29s {s}|{!} ", sim.Client.Name+" "+sim.Client.Version+" "+fmtc.Sprintf("{g}R"))
 		} else {
 			fmtc.Printf(" %-20s {s}|{!} ", sim.Client.Name+" "+sim.Client.Version)
 		}
@@ -560,6 +568,8 @@ func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 		fmtc.Println("{y}No (IDs assigned but not accepted){!}")
 	case 2:
 		fmtc.Println("Yes")
+	default:
+		fmtc.Println("Unknown")
 	}
 
 	// ---
@@ -884,7 +894,7 @@ func getPinsFromPolicy(policy *sslscan.HPKPPolicy) []string {
 }
 
 // getHSTSPreloadingMarkers return slice with colored HSTS preload markers
-func getHSTSPreloadingMarkers(preloads []*sslscan.HSTSPreload) string {
+func getHSTSPreloadingMarkers(preloads []sslscan.HSTSPreload) string {
 	var result []string
 
 	for _, preload := range preloads {
