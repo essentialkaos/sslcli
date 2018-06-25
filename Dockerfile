@@ -14,4 +14,4 @@ COPY --from=builder /go/src/github.com/essentialkaos/sslcli/sslcli /usr/bin/
 
 RUN apk add --no-cache ca-certificates
 
-CMD ["sslcli"]
+ENTRYPOINT ["sslcli"]
