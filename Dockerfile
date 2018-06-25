@@ -1,6 +1,6 @@
 FROM golang:alpine
 
-WORKDIR /go/src/sslcli
+WORKDIR /go/src/github.com/essentialkaos/sslcli
 COPY . .
 
 RUN apk add --no-cache make git && \
