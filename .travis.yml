@@ -1,4 +1,4 @@
-sudo: false
+sudo: required
 
 language: go
 
@@ -8,23 +8,32 @@ go:
   - 1.10.x
   - tip
 
+os:
+  - linux
+
+services:
+  - docker
+
 branches:
   only:
   - master
   - develop
 
-os:
-  - linux
-  - osx
+env:
+  global:
+    - IMAGE=essentialkaos/perfecto:centos7
 
 matrix:
   fast_finish: true
   allow_failures:
     - go: tip
-    - os: osx
 
 before_install:
+  - docker pull "$IMAGE"
+  - wget https://raw.githubusercontent.com/essentialkaos/perfecto/master/perfecto-docker
+  - chmod +x perfecto-docker
   - make deps
 
 script:
   - make all
+  - ./perfecto-docker common/sslcli.spec
