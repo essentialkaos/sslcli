@@ -11,11 +11,11 @@ import (
 	"strings"
 	"time"
 
-	"pkg.re/essentialkaos/ek.v9/fmtc"
-	"pkg.re/essentialkaos/ek.v9/fmtutil"
-	"pkg.re/essentialkaos/ek.v9/timeutil"
+	"pkg.re/essentialkaos/ek.v10/fmtc"
+	"pkg.re/essentialkaos/ek.v10/fmtutil"
+	"pkg.re/essentialkaos/ek.v10/timeutil"
 
-	"pkg.re/essentialkaos/sslscan.v8"
+	"pkg.re/essentialkaos/sslscan.v9"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
