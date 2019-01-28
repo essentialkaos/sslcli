@@ -22,14 +22,14 @@ import (
 	"pkg.re/essentialkaos/ek.v10/usage"
 	"pkg.re/essentialkaos/ek.v10/usage/update"
 
-	"pkg.re/essentialkaos/sslscan.v9"
+	"pkg.re/essentialkaos/sslscan.v10"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 const (
 	APP  = "SSLScan Client"
-	VER  = "1.9.0"
+	VER  = "2.0.0"
 	DESC = "Command-line client for the SSL Labs API"
 )
 
@@ -45,6 +45,11 @@ const (
 	OPT_NO_COLOR        = "nc:no-color"
 	OPT_HELP            = "h:help"
 	OPT_VER             = "v:version"
+)
+
+const (
+	DELAY_PRE_CHECK = 2 * time.Second
+	DELAY_PROGRESS  = 6 * time.Second
 )
 
 const (
@@ -119,9 +124,7 @@ func Init() {
 		os.Exit(1)
 	}
 
-	if options.GetB(OPT_NO_COLOR) {
-		fmtc.DisableColors = true
-	}
+	configureUI()
 
 	if options.GetB(OPT_VER) {
 		showAbout()
@@ -136,6 +139,15 @@ func Init() {
 	runtime.GOMAXPROCS(2)
 
 	process(args)
+}
+
+// configureUI configures user interface
+func configureUI() {
+	if options.GetB(OPT_NO_COLOR) {
+		fmtc.DisableColors = true
+	}
+
+	fmtutil.SeparatorSymbol = "–"
 }
 
 // process starting request processing
@@ -247,7 +259,7 @@ func check(host string) string {
 	}
 
 	for {
-		info, err = ap.Info()
+		info, err = ap.Info(false)
 
 		if err != nil {
 			fmtc.TPrintf("{r}%v{!}\n", err)
@@ -270,9 +282,9 @@ func check(host string) string {
 		}
 
 		if info.Status == sslscan.STATUS_IN_PROGRESS {
-			time.Sleep(6 * time.Second)
+			time.Sleep(DELAY_PROGRESS)
 		} else {
-			time.Sleep(2 * time.Second)
+			time.Sleep(DELAY_PRE_CHECK)
 		}
 	}
 
@@ -283,7 +295,7 @@ func check(host string) string {
 	}
 
 	if options.GetB(OPT_DETAILED) {
-		printDetailedInfo(ap, info)
+		printDetailedInfo(ap, len(info.Endpoints) > 1)
 	}
 
 	lowestGrade, _ := getGrades(info.Endpoints)
@@ -334,7 +346,7 @@ func quietCheck(host string) (string, *HostCheckInfo) {
 	}
 
 	for {
-		info, err = ap.Info()
+		info, err = ap.Info(false)
 
 		if err != nil {
 			return "Err", checkInfo

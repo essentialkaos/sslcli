@@ -13,23 +13,26 @@ import (
 
 	"pkg.re/essentialkaos/ek.v10/fmtc"
 	"pkg.re/essentialkaos/ek.v10/fmtutil"
+	"pkg.re/essentialkaos/ek.v10/pluralize"
+	"pkg.re/essentialkaos/ek.v10/strutil"
 	"pkg.re/essentialkaos/ek.v10/timeutil"
 
-	"pkg.re/essentialkaos/sslscan.v9"
+	"pkg.re/essentialkaos/sslscan.v10"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // protocolList contains list of supported protocols
-var protocolList = []string{"TLS 1.2", "TLS 1.1", "TLS 1.0", "SSL 3.0", "SSL 2.0"}
+var protocolList = []string{"TLS 1.3", "TLS 1.2", "TLS 1.1", "TLS 1.0", "SSL 3.0", "SSL 2.0"}
 
-// protocolIDs is map protocol id -> protocol name
-var protocolIDs = map[int]string{
-	512: "SSL 2.0",
-	768: "SSL 3.0",
-	769: "TLS 1.0",
-	770: "TLS 1.1",
-	771: "TLS 1.2",
+// protocolsNames is map protocol id -> protocol name
+var protocolsNames = map[int]string{
+	sslscan.PROTOCOL_SSL2:  "SSL 2.0",
+	sslscan.PROTOCOL_SSL3:  "SSL 3.0",
+	sslscan.PROTOCOL_TLS10: "TLS 1.0",
+	sslscan.PROTOCOL_TLS11: "TLS 1.1",
+	sslscan.PROTOCOL_TLS12: "TLS 1.2",
+	sslscan.PROTOCOL_TLS13: "TLS 1.3",
 }
 
 // weakAlgorithms is map with weak algorithms names
@@ -42,73 +45,66 @@ var weakAlgorithms = map[string]bool{
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // printDetailedInfo fetch and print detailed info for all endpoints
-func printDetailedInfo(ap *sslscan.AnalyzeProgress, info *sslscan.AnalyzeInfo) {
-	showHeaders := len(info.Endpoints) > 1
-
+func printDetailedInfo(ap *sslscan.AnalyzeProgress, showHeaders bool) {
 	if showHeaders {
 		fmtc.NewLine()
 	}
+
+	info, err := ap.Info(true)
+
+	if err != nil {
+		fmtc.Printf("\n{r}Can't fetch full analyze info: %v{!}\n\n", err)
+		return
+	}
+
+	if strings.ToUpper(info.Status) != "READY" {
+		fmtc.Printf("\n{r}%s{!}\n\n", info.StatusMessage)
+		return
+	}
+
+	printCertificatesInfo(info.Certs)
 
 	for index, endpoint := range info.Endpoints {
 		if showHeaders {
 			fmtc.Printf("\n{c} %s #%d (%s){!}\n\n", info.Host, index+1, endpoint.IPAdress)
 		}
 
-		printDetailedEndpointInfo(ap, endpoint.IPAdress)
+		printDetailedEndpointInfo(endpoint)
 	}
 }
 
-// printDetailedEndpointInfo fetch and print detailed info for one endpoint
-func printDetailedEndpointInfo(ap *sslscan.AnalyzeProgress, ip string) {
-	info, err := ap.DetailedInfo(ip)
-
-	if err != nil {
-		fmtc.Printf("\n{r}Can't fetch detailed info for %s{!}\n\n", ip)
-		return
-	}
-
-	if strings.ToUpper(info.StatusMessage) != "READY" {
-		fmtc.Printf("\n{r}%s{!}\n\n", info.StatusMessage)
-		return
-	}
-
-	details := info.Details
-
+// printCertificateInfo prints info about certificates
+func printCertificatesInfo(certs []*sslscan.Cert) {
 	fmtc.NewLine()
 
-	printCertificateInfo(details)
-	printCertificationPathsInfo(details)
-	printProtocolsInfo(details)
-	suiteIndex := printCipherSuitesInfo(details)
-	printHandshakeSimulationInfo(details, suiteIndex)
-	printProtocolDetailsInfo(details)
-	printMiscellaneousInfo(info)
-
-	fmtutil.Separator(true)
-	fmtc.NewLine()
-}
-
-// printCertificateInfo print basic info about server key and certificate
-func printCertificateInfo(details *sslscan.EndpointDetails) {
 	printCategoryHeader("Server Key and Certificate")
 
-	validFromDate := time.Unix(details.Cert.NotBefore/1000, 0)
-	validUntilDate := time.Unix(details.Cert.NotAfter/1000, 0)
+	serverCert := certs[0]
+
+	validFromDate := time.Unix(serverCert.NotBefore/1000, 0)
+	validUntilDate := time.Unix(serverCert.NotAfter/1000, 0)
+	validDays := ((serverCert.NotAfter / 1000) - time.Now().Unix()) / 86400
 
 	// ---
 
-	fmtc.Printf(" %-24s {s}|{!} %s\n", "Common names", strings.Join(details.Cert.CommonNames, " "))
+	fmtc.Printf(" %-24s {s}|{!} %s\n", "Subject", extractSubject(serverCert.Subject))
+	fmtc.Printf(" %-24s {s}|{!} {s-}Fingerprint: %s{!}\n", "", serverCert.SHA256Hash)
+	fmtc.Printf(" %-24s {s}|{!} {s-}Pin: %s{!}\n", "", serverCert.PINSHA256)
 
-	if len(details.Cert.AltNames) > 0 {
-		if len(details.Cert.AltNames) > 5 {
+	// ---
+
+	fmtc.Printf(" %-24s {s}|{!} %s\n", "Common names", strings.Join(serverCert.CommonNames, " "))
+
+	if len(serverCert.AltNames) > 0 {
+		if len(serverCert.AltNames) > 5 {
 			fmtc.Printf(
 				" %-24s {s}|{!} %s {s-}(+%d more){!}\n",
 				"Alternative names",
-				strings.Join(details.Cert.AltNames[:4], " "),
-				len(details.Cert.AltNames)-4,
+				strings.Join(serverCert.AltNames[:4], " "),
+				len(serverCert.AltNames)-4,
 			)
 		} else {
-			fmtc.Printf(" %-24s {s}|{!} %s\n", "Alternative names", strings.Join(details.Cert.AltNames, " "))
+			fmtc.Printf(" %-24s {s}|{!} %s\n", "Alternative names", strings.Join(serverCert.AltNames, " "))
 		}
 	}
 
@@ -123,39 +119,51 @@ func printCertificateInfo(details *sslscan.EndpointDetails) {
 	if time.Now().Unix() >= validUntilDate.Unix() {
 		fmtc.Printf("{r}%s (EXPIRED){!}\n", timeutil.Format(validUntilDate, "%Y/%m/%d %H:%M:%S"))
 	} else {
-		fmtc.Printf("%s\n", timeutil.Format(validUntilDate, "%Y/%m/%d %H:%M:%S"))
+		fmtc.Printf(
+			"%s {s-}(expires in %s){!}\n",
+			timeutil.Format(validUntilDate, "%Y/%m/%d %H:%M:%S"),
+			pluralize.Pluralize(int(validDays), "day", "days"),
+		)
 	}
 
 	// ---
 
-	fmtc.Printf(" %-24s {s}|{!} %s %d bits\n", "Key", details.Key.Alg, details.Key.Size)
-	fmtc.Printf(" %-24s {s}|{!} %s\n", "Weak Key (Debian)", getBool(details.Key.DebianFlaw))
+	fmtc.Printf(" %-24s {s}|{!} %s\n", "Serial number", serverCert.SerialNumber)
+
+	// ---
+
+	fmtc.Printf(" %-24s {s}|{!} %s %d bits\n", "Key", serverCert.KeyAlg, serverCert.KeySize)
+	fmtc.Printf(" %-24s {s}|{!} %s\n", "Weak Key (Debian)", getBool(serverCert.KeyKnownDebianInsecure))
 
 	// ---
 
 	fmtc.Printf(" %-24s {s}|{!} ", "Issuer")
 
-	if details.Cert.Issues&64 == 64 {
-		fmtc.Printf("%s {s-}(Self-signed){!}\n", details.Cert.IssuerLabel)
+	if serverCert.Issues&64 == 64 {
+		fmtc.Printf("%s {s-}(Self-signed){!}\n", extractSubject(serverCert.IssuerSubject))
 	} else {
-		fmtc.Printf("%s\n", details.Cert.IssuerLabel)
+		fmtc.Printf("%s\n", extractSubject(serverCert.IssuerSubject))
+
+		if len(serverCert.CRLURIs) != 0 {
+			fmtc.Printf(" %-24s {s}|{!} {s-}AIA: %s{!}\n", "", serverCert.CRLURIs[0])
+		}
 	}
 
 	// ---
 
 	fmtc.Printf(" %-24s {s}|{!} ", "Signature algorithm")
 
-	if weakAlgorithms[details.Cert.SigAlg] {
-		fmtc.Printf("{y}%s (WEAK){!}\n", details.Cert.SigAlg)
+	if weakAlgorithms[serverCert.SigAlg] {
+		fmtc.Printf("{y}%s (WEAK){!}\n", serverCert.SigAlg)
 	} else {
-		fmtc.Printf("%s\n", details.Cert.SigAlg)
+		fmtc.Printf("%s\n", serverCert.SigAlg)
 	}
 
 	// ---
 
 	fmtc.Printf(" %-24s {s}|{!} ", "Extended Validation")
 
-	if details.Cert.ValidationType == "E" {
+	if serverCert.ValidationType == "E" {
 		fmtc.Println("{g}Yes{!}")
 	} else {
 		fmtc.Println("No")
@@ -165,7 +173,7 @@ func printCertificateInfo(details *sslscan.EndpointDetails) {
 
 	fmtc.Printf(" %-24s {s}|{!} ", "Certificate Transparency")
 
-	if details.Cert.SCT {
+	if serverCert.SCT {
 		fmtc.Println("{g}Yes{!}")
 	} else {
 		fmtc.Println("No")
@@ -173,79 +181,72 @@ func printCertificateInfo(details *sslscan.EndpointDetails) {
 
 	// ---
 
-	if details.Cert.RevocationInfo != 0 {
-		fmtc.Printf(" %-24s {s}|{!} %s\n", "Revocation information", getRevocationInfo(details.Cert.RevocationInfo))
+	if serverCert.RevocationInfo != 0 {
+		fmtc.Printf(" %-24s {s}|{!} %s\n", "Revocation information", getRevocationInfo(serverCert.RevocationInfo))
+
+		if len(serverCert.CRLURIs) != 0 {
+			fmtc.Printf(" %-24s {s}|{!} {s-}CRL: %s{!}\n", "", serverCert.CRLURIs[0])
+		}
+
+		if len(serverCert.OCSPURIs) != 0 {
+			fmtc.Printf(" %-24s {s}|{!} {s-}OCSP: %s{!}\n", "", serverCert.OCSPURIs[0])
+		}
 	}
 
 	// ---
 
 	fmtc.Printf(" %-24s {s}|{!} ", "Revocation status")
 
-	if details.Cert.RevocationStatus&1 == 1 {
-		fmtc.Printf("{r}%s{!}\n", getRevocationStatus(details.Cert.RevocationStatus))
+	if serverCert.RevocationStatus&1 == 1 {
+		fmtc.Printf("{r}%s{!}\n", getRevocationStatus(serverCert.RevocationStatus))
 	} else {
-		fmtc.Printf("%s\n", getRevocationStatus(details.Cert.RevocationStatus))
+		fmtc.Printf("%s\n", getRevocationStatus(serverCert.RevocationStatus))
+	}
+
+	// ---
+
+	fmtc.Printf(" %-24s {s}|{!} ", "DNS CAA")
+
+	if serverCert.DNSCAA {
+		fmtc.Println("{g}Yes{!}")
+		if serverCert.CAAPolicy != nil {
+			fmtc.Printf(" %-24s {s}|{!} {s-}policy host: %s{!}\n", "", serverCert.CAAPolicy.PolicyHostname)
+			for _, rec := range serverCert.CAAPolicy.CAARecords {
+				fmtc.Printf(
+					" %-24s {s}|{!} {s-}%s: %s flags: %d{!}\n", "",
+					rec.Tag, rec.Value, rec.Flags,
+				)
+			}
+		}
+	} else {
+		fmtc.Println("No")
 	}
 
 	// ---
 
 	fmtc.Printf(" %-24s {s}|{!} ", "Trusted")
 
-	if details.Cert.Issues == 0 {
+	if serverCert.Issues == 0 {
 		fmtc.Println("{g}Yes{!}")
 	} else {
-		fmtc.Printf("{r}No (%s){!}\n", getCertIssuesDesc(details.Cert.Issues))
+		fmtc.Printf("{r}No (%s){!}\n", getCertIssuesDesc(serverCert.Issues))
 	}
+
+	fmtutil.Separator(true)
 }
 
-// printCertificationPathsInfo print info about certificates in chain
-func printCertificationPathsInfo(details *sslscan.EndpointDetails) {
-	printCategoryHeader("Certification Paths")
+// printDetailedEndpointInfo fetch and print detailed info for one endpoint
+func printDetailedEndpointInfo(info *sslscan.EndpointInfo) {
+	fmtc.NewLine()
 
-	fmtc.Printf(" %-24s {s}|{!} %d\n", "Certificates provided", len(details.Chain.Certs))
+	printProtocolsInfo(info.Details)
+	printCipherSuitesInfo(info.Details)
+	printHandshakeSimulationInfo(info.Details)
+	printProtocolDetailsInfo(info.Details)
+	printMiscellaneousInfo(info)
 
-	fmtc.Printf(" %-24s {s}|{!} ", "Chain issues")
-
-	if details.Chain.Issues == 0 {
-		fmtc.Println("None")
-	} else {
-		fmtc.Printf("{y}%s{!}\n", getChainIssuesDesc(details.Chain.Issues))
-	}
-
-	if len(details.Chain.Certs) > 1 {
-		fmtutil.Separator(true)
-
-		lastCertIndex := len(details.Chain.Certs) - 2
-
-		for index, cert := range details.Chain.Certs[1:] {
-			validUntilDate := time.Unix(cert.NotAfter/1000, 0)
-
-			fmtc.Printf(" %-24s {s}|{!} %s\n", "Subject", cert.Label)
-			fmtc.Printf(" %-24s {s}|{!} %s\n", "Valid until", timeutil.Format(validUntilDate, "%Y/%m/%d %H:%M:%S"))
-
-			fmtc.Printf(" %-24s {s}|{!} ", "Key")
-
-			if cert.KeyAlg == "RSA" && cert.KeyStrength < 2048 {
-				fmtc.Printf("{y}%s %d bits (WEAK){!}\n", cert.KeyAlg, cert.KeySize)
-			} else {
-				fmtc.Printf("%s %d bits\n", cert.KeyAlg, cert.KeySize)
-			}
-
-			fmtc.Printf(" %-24s {s}|{!} %s\n", "Issuer", cert.IssuerLabel)
-
-			fmtc.Printf(" %-24s {s}|{!} ", "Signature algorithm")
-
-			if weakAlgorithms[cert.SigAlg] {
-				fmtc.Printf("{y}%s (WEAK){!}\n", cert.SigAlg)
-			} else {
-				fmtc.Printf("%s\n", cert.SigAlg)
-			}
-
-			if index < lastCertIndex {
-				fmtutil.Separator(true)
-			}
-		}
-	}
+	fmtutil.Separator(true)
+	fmtc.NewLine()
 }
 
 // printProtocolsInfo print info about supported protocols
@@ -258,12 +259,16 @@ func printProtocolsInfo(details *sslscan.EndpointDetails) {
 		fmtc.Printf(" %-24s {s}|{!} ", protocol)
 
 		switch {
+		case protocol == "TLS 1.3" && supportedProtocols[protocol]:
+			fmtc.Println("{g}Yes{!}")
 		case protocol == "TLS 1.2":
 			if supportedProtocols[protocol] {
 				fmtc.Println("{g}Yes{!}")
 			} else {
 				fmtc.Println("{y}No{!}")
 			}
+		case protocol == "TLS 1.0", protocol == "TLS 1.1":
+			fmtc.Printf("{y}%s{!}\n", getBool(supportedProtocols[protocol]))
 		case protocol == "SSL 3.0" && supportedProtocols[protocol]:
 			fmtc.Printf("{r}%s{!}\n", getBool(supportedProtocols[protocol]))
 		case protocol == "SSL 2.0" && supportedProtocols[protocol]:
@@ -275,60 +280,79 @@ func printProtocolsInfo(details *sslscan.EndpointDetails) {
 }
 
 // printCipherSuitesInfo print info about supported cipher suites
-func printCipherSuitesInfo(details *sslscan.EndpointDetails) map[int]int {
+func printCipherSuitesInfo(details *sslscan.EndpointDetails) {
 	printCategoryHeader("Cipher Suites")
 
-	suiteIndex := make(map[int]int)
+	var allSuites []*sslscan.ProtocolSuites
 
-	for index, suite := range details.Suites.List {
-		suiteIndex[suite.ID] = index
-
-		tag := ""
-		insecure := strings.Contains(suite.Name, "_RC4_")
-		prefered := false
-
-		switch {
-		case suite.Q != nil:
-			tag = "{y}(WEAK){!}"
-		case suite.DHStrength != 0 && suite.DHStrength < 2048:
-			tag = "{y}(WEAK){!}"
-		}
-
-		if strings.Contains(suite.Name, "_CHACHA20_") && details.ChaCha20Preference {
-			prefered = true
-		}
-
-		switch {
-		case insecure == true:
-			fmtc.Printf(" {r}%-44s{!} {s}|{!} {r}%d (INSECURE){!} ", suite.Name, suite.CipherStrength)
-		case prefered == true:
-			fmtc.Printf(" {*}%-44s{!} {s}|{!} %d ", suite.Name, suite.CipherStrength)
-		default:
-			fmtc.Printf(" %-44s {s}|{!} %d ", suite.Name, suite.CipherStrength)
-		}
-
-		kxi := findKXInfo(suite.ID, details.SIMS.Results)
-
-		switch {
-		case suite.DHStrength != 0:
-			fmtc.Printf("{s-}(DH %d bits){!} "+tag+"\n",
-				suite.DHStrength)
-		case kxi != "":
-			fmtc.Printf("{s-}(%s ~ %d bits RSA){!} "+tag+"\n",
-				kxi, suite.ECDHStrength)
-		case suite.ECDHBits != 0:
-			fmtc.Printf("{s-}(ECDH %d bits ~ %d bits RSA){!} "+tag+"\n",
-				suite.ECDHBits, suite.ECDHStrength)
-		default:
-			fmtc.Println(tag)
-		}
+	if details.NoSNISuites != nil {
+		allSuites = append([]*sslscan.ProtocolSuites{details.NoSNISuites}, details.Suites...)
+	} else {
+		allSuites = details.Suites
 	}
 
-	return suiteIndex
+	for i := len(allSuites) - 1; i > 0; i-- {
+		suites := allSuites[i]
+		header := " " + protocolsNames[suites.Protocol]
+
+		if details.NoSNISuites != nil && suites.Protocol == details.NoSNISuites.Protocol {
+			header += " {s}No SNI{!}"
+		}
+
+		if suites.Preference {
+			header += " {s-}(suites in server-preferred order){!}"
+		} else {
+			header += " {s-}(server has no preference){!}"
+		}
+
+		fmtc.Println(header)
+		fmtutil.Separator(true)
+
+		for _, suite := range suites.List {
+			tag := ""
+			insecure := strings.Contains(suite.Name, "_RC4_")
+			preferred := false
+
+			switch {
+			case suite.Q != nil:
+				tag = "{y}(WEAK){!}"
+			case suite.KxType == "DH" && suite.KxStrength < 2048:
+				tag = "{y}(WEAK){!}"
+			}
+
+			if strings.Contains(suite.Name, "_CHACHA20_") && details.ChaCha20Preference {
+				preferred = true
+			}
+
+			switch {
+			case insecure == true:
+				fmtc.Printf(" {r}%-44s{!} {s}|{!} {r}%d (INSECURE){!} ", suite.Name, suite.CipherStrength)
+			case preferred == true:
+				fmtc.Printf(" {*}%-44s{!} {s}|{!} %d ", suite.Name, suite.CipherStrength)
+			default:
+				fmtc.Printf(" %-44s {s}|{!} %d ", suite.Name, suite.CipherStrength)
+			}
+
+			switch {
+			case suite.KxType == "DH":
+				fmtc.Printf("{s-}(DH %d bits){!} "+tag+"\n",
+					suite.KxStrength)
+			case suite.NamedGroupName != "":
+				fmtc.Printf("{s-}(%s %s ~ %d bits RSA){!} "+tag+"\n",
+					suite.KxType, suite.NamedGroupName, suite.KxStrength)
+			default:
+				fmtc.Println(tag)
+			}
+		}
+
+		if i != 1 {
+			fmtutil.Separator(true)
+		}
+	}
 }
 
 // printHandshakeSimulationInfo print info about handshakes simulations
-func printHandshakeSimulationInfo(details *sslscan.EndpointDetails, suiteIndex map[int]int) {
+func printHandshakeSimulationInfo(details *sslscan.EndpointDetails) {
 	printCategoryHeader("Handshake Simulation")
 
 	for _, sim := range details.SIMS.Results {
@@ -338,7 +362,11 @@ func printHandshakeSimulationInfo(details *sslscan.EndpointDetails, suiteIndex m
 		}
 
 		tag := "{s-}No FS{!}"
-		suite := details.Suites.List[suiteIndex[sim.SuiteID]]
+		suite := findSuite(details.Suites, sim.ProtocolID, sim.SuiteID)
+
+		if suite == nil {
+			continue
+		}
 
 		if strings.Contains(suite.Name, "DHE_") {
 			tag = "{g}   FS{!}"
@@ -350,20 +378,25 @@ func printHandshakeSimulationInfo(details *sslscan.EndpointDetails, suiteIndex m
 			fmtc.Printf(" %-20s {s}|{!} ", sim.Client.Name+" "+sim.Client.Version)
 		}
 
-		switch protocolIDs[sim.ProtocolID] {
-		case "TLS 1.2":
+		switch protocolsNames[sim.ProtocolID] {
+		case "TLS 1.2", "TLS 1.3":
 			fmtc.Printf("{g}%-7s{!} %-46s "+tag+" %d\n",
-				protocolIDs[sim.ProtocolID],
+				protocolsNames[sim.ProtocolID],
+				suite.Name, suite.CipherStrength,
+			)
+		case "TLS 1.1", "TLS 1.0":
+			fmtc.Printf("{y}%-7s{!} %-46s "+tag+" %d\n",
+				protocolsNames[sim.ProtocolID],
 				suite.Name, suite.CipherStrength,
 			)
 		case "SSL 2.0", "SSL 3.0":
 			fmtc.Printf("{r}%-7s{!} %-46s "+tag+" %d\n",
-				protocolIDs[sim.ProtocolID],
+				protocolsNames[sim.ProtocolID],
 				suite.Name, suite.CipherStrength,
 			)
 		default:
 			fmtc.Printf("%-7s %-46s "+tag+" %d\n",
-				protocolIDs[sim.ProtocolID],
+				protocolsNames[sim.ProtocolID],
 				suite.Name, suite.CipherStrength,
 			)
 		}
@@ -492,18 +525,33 @@ func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 
 	// ---
 
+	fmtc.Printf(" %-40s {s}|{!} ", "Ticketbleed (vulnerability)")
+
+	switch details.Ticketbleed {
+	case sslscan.TICKETBLEED_STATUS_FAILED:
+		fmtc.Println("{y}Test failed{!}")
+	case sslscan.TICKETBLEED_STATUS_UNKNOWN:
+		fmtc.Println("{y}Unknown{!}")
+	case sslscan.TICKETBLEED_STATUS_NOT_VULNERABLE:
+		fmtc.Println("No")
+	case sslscan.TICKETBLEED_STATUS_VULNERABLE:
+		fmtc.Println("{r}Vulnerable and insecure{!}")
+	}
+
+	// ---
+
 	fmtc.Printf(" %-40s {s}|{!} ", "OpenSSL CCS vuln.")
 
-	switch details.OpenSslCCS {
-	case -1:
+	switch details.OpenSSLCCS {
+	case sslscan.SSLCSC_STATUS_FAILED:
 		fmtc.Println("{y}Test failed{!}")
-	case 0:
+	case sslscan.SSLCSC_STATUS_UNKNOWN:
 		fmtc.Println("{y}Unknown{!}")
-	case 1:
+	case sslscan.SSLCSC_STATUS_NOT_VULNERABLE:
 		fmtc.Println("No")
-	case 2:
+	case sslscan.SSLCSC_STATUS_POSSIBLE_VULNERABLE:
 		fmtc.Println("{y}Possibly vulnerable, but not exploitable{!}")
-	case 3:
+	case sslscan.SSLCSC_STATUS_VULNERABLE:
 		fmtc.Println("{r}Vulnerable and exploitable{!}")
 	}
 
@@ -512,14 +560,33 @@ func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 	fmtc.Printf(" %-40s {s}|{!} ", "OpenSSL Padding Oracle vuln.")
 
 	switch details.OpenSSLLuckyMinus20 {
-	case -1:
+	case sslscan.LUCKY_MINUS_STATUS_FAILED:
 		fmtc.Println("{y}Test failed{!}")
-	case 0:
+	case sslscan.LUCKY_MINUS_STATUS_UNKNOWN:
 		fmtc.Println("{y}Unknown{!}")
-	case 1:
+	case sslscan.LUCKY_MINUS_STATUS_NOT_VULNERABLE:
 		fmtc.Println("No")
-	case 2:
+	case sslscan.LUCKY_MINUS_STATUS_VULNERABLE:
 		fmtc.Println("{r}Vulnerable and insecure{!}")
+	}
+
+	// ---
+
+	fmtc.Printf(" %-40s {s}|{!} ", "ROBOT (vulnerability)")
+
+	switch details.Bleichenbacher {
+	case sslscan.BLEICHENBACHER_STATUS_FAILED:
+		fmtc.Println("{y}Test failed{!}")
+	case sslscan.BLEICHENBACHER_STATUS_UNKNOWN:
+		fmtc.Println("{y}Unknown{!}")
+	case sslscan.BLEICHENBACHER_STATUS_NOT_VULNERABLE:
+		fmtc.Println("No")
+	case sslscan.BLEICHENBACHER_STATUS_VULNERABLE_WEAK:
+		fmtc.Println("{r}Vulnerable (weak oracle){!}")
+	case sslscan.BLEICHENBACHER_STATUS_VULNERABLE_STRONG:
+		fmtc.Println("{r}Vulnerable (strong oracle){!}")
+	case sslscan.BLEICHENBACHER_STATUS_INCONSISTENT_RESULTS:
+		fmtc.Println("{y}Inconsistent results{!}")
 	}
 
 	// ---
@@ -553,6 +620,16 @@ func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 
 	if details.SupportsNPN {
 		fmtc.Printf("Yes {s-}(%s){!}\n", details.NPNProtocols)
+	} else {
+		fmtc.Println("No")
+	}
+
+	// ---
+
+	fmtc.Printf(" %-40s {s}|{!} ", "SNI Required")
+
+	if details.SNIRequired {
+		fmtc.Println("Yes")
 	} else {
 		fmtc.Println("No")
 	}
@@ -605,38 +682,13 @@ func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 
 	fmtc.Printf(" %-40s {s}|{!} ", "Public Key Pinning (HPKP)")
 
-	if details.HPKPPolicy != nil {
-		switch details.HPKPPolicy.Status {
-		case sslscan.HPKP_STATUS_INVALID:
-			fmtc.Println("{r}Invalid{!}")
-		case sslscan.HPKP_STATUS_DISABLED:
-			fmtc.Println("{y}Disabled{!}")
-		case sslscan.HPKP_STATUS_INCOMPLETE:
-			fmtc.Println("{y}Incomplete{!}")
-		case sslscan.HPKP_STATUS_VALID:
-			fmtc.Printf("{g}Yes{!} ")
+	printPolicyInfo(details.HPKPPolicy)
 
-			if details.HPKPPolicy.IncludeSubDomains {
-				fmtc.Printf(
-					"{s-}(max-age=%d; includeSubdomains){!}\n",
-					details.HPKPPolicy.MaxAge,
-				)
-			} else {
-				fmtc.Printf(
-					"{s-}(max-age=%d){!}\n",
-					details.HPKPPolicy.MaxAge,
-				)
-			}
+	// ---
 
-			for _, pin := range getPinsFromPolicy(details.HPKPPolicy) {
-				fmtc.Printf(" %-40s {s}|{!} {s-}%s{!}\n", "", pin)
-			}
-		default:
-			fmtc.Println("No")
-		}
-	} else {
-		fmtc.Println("No")
-	}
+	fmtc.Printf(" %-40s {s}|{!} ", "Public Key Pinning Report-Only")
+
+	printPolicyInfo(details.HPKPRoPolicy)
 
 	// ---
 
@@ -688,6 +740,26 @@ func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 		fmtc.Println("{y}Yes{!}")
 	} else {
 		fmtc.Println("No")
+	}
+
+	// ---
+
+	fmtc.Printf(" %-40s {s}|{!} ", "ECDH public server param reuse")
+
+	if details.ECDHParameterReuse {
+		fmtc.Println("{y}Yes{!}")
+	} else {
+		fmtc.Println("No")
+	}
+
+	// ---
+
+	fmtc.Printf(" %-40s {s}|{!} ", "Supported Named Groups")
+
+	if details.NamedGroups != nil && details.NamedGroups.Preference {
+		fmtc.Printf("%s {s-}(server preferred order){!}\n", getNamedGroups(details.NamedGroups))
+	} else {
+		fmtc.Printf("%s\n", getNamedGroups(details.NamedGroups))
 	}
 }
 
@@ -876,7 +948,54 @@ func getProtocols(protocols []*sslscan.Protocol) map[string]bool {
 	return supported
 }
 
-// getPinsFromPolicy return slice with all pins in policy
+// getNamedGroups returns slice with named groups
+func getNamedGroups(groups *sslscan.NamedGroups) string {
+	var result []string
+
+	for _, group := range groups.List {
+		result = append(result, group.Name)
+	}
+
+	return strings.Join(result, ", ")
+}
+
+// printPolicyInfo prints info about HPKP policy
+func printPolicyInfo(policy *sslscan.HPKPPolicy) {
+	if policy != nil {
+		switch policy.Status {
+		case sslscan.HPKP_STATUS_INVALID:
+			fmtc.Println("{r}Invalid{!}")
+		case sslscan.HPKP_STATUS_DISABLED:
+			fmtc.Println("{y}Disabled{!}")
+		case sslscan.HPKP_STATUS_INCOMPLETE:
+			fmtc.Println("{y}Incomplete{!}")
+		case sslscan.HPKP_STATUS_VALID:
+			fmtc.Printf("{g}Yes{!} ")
+
+			if policy.IncludeSubDomains {
+				fmtc.Printf(
+					"{s-}(max-age=%d; includeSubdomains){!}\n",
+					policy.MaxAge,
+				)
+			} else {
+				fmtc.Printf(
+					"{s-}(max-age=%d){!}\n",
+					policy.MaxAge,
+				)
+			}
+
+			for _, pin := range getPinsFromPolicy(policy) {
+				fmtc.Printf(" %-40s {s}|{!} {s-}%s{!}\n", "", pin)
+			}
+		default:
+			fmtc.Println("No")
+		}
+	} else {
+		fmtc.Println("No")
+	}
+}
+
+// getPinsFromPolicy returns slice with all pins in policy
 func getPinsFromPolicy(policy *sslscan.HPKPPolicy) []string {
 	var pins []string
 
@@ -908,13 +1027,27 @@ func getHSTSPreloadingMarkers(preloads []sslscan.HSTSPreload) string {
 	return strings.Join(result, " ")
 }
 
-// findKXInfo try to find knInfo for given suite
-func findKXInfo(suiteID int, sims []*sslscan.SIM) string {
-	for _, sim := range sims {
-		if sim.SuiteID == suiteID {
-			return sim.KXInfo
+// findSuite searches suite by protocol ID and suite ID
+func findSuite(suites []*sslscan.ProtocolSuites, protocolID, suiteID int) *sslscan.Suite {
+	for _, protocolSuites := range suites {
+		if protocolSuites.Protocol != protocolID {
+			continue
+		}
+
+		for _, suite := range protocolSuites.List {
+			if suite.ID == suiteID {
+				return suite
+			}
 		}
 	}
 
-	return ""
+	return nil
+}
+
+// extractSubject extracts subject name from certificate subject
+func extractSubject(data string) string {
+	subject := strutil.ReadField(data, 0, false, ",")
+	subject = strings.Replace(subject, "CN=", "", -1)
+
+	return subject
 }
