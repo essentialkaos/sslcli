@@ -14,6 +14,7 @@ import (
 	"pkg.re/essentialkaos/ek.v10/fmtc"
 	"pkg.re/essentialkaos/ek.v10/fmtutil"
 	"pkg.re/essentialkaos/ek.v10/pluralize"
+	"pkg.re/essentialkaos/ek.v10/sliceutil"
 	"pkg.re/essentialkaos/ek.v10/strutil"
 	"pkg.re/essentialkaos/ek.v10/timeutil"
 
@@ -44,6 +45,11 @@ var weakAlgorithms = map[string]bool{
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
+// isInsecureForwardSecrecy if flag for insecure forward secrecy
+var isInsecureForwardSecrecy bool
+
+// ////////////////////////////////////////////////////////////////////////////////// //
+
 // printDetailedInfo fetch and print detailed info for all endpoints
 func printDetailedInfo(ap *sslscan.AnalyzeProgress) {
 	info, err := ap.Info(true)
@@ -58,7 +64,7 @@ func printDetailedInfo(ap *sslscan.AnalyzeProgress) {
 		return
 	}
 
-	printCertificateInfo(info.Certs)
+	printCertificateInfo(info.Certs, info.Endpoints)
 
 	for index, endpoint := range info.Endpoints {
 		fmtc.Printf("\n{c*} %s {!*}#%d (%s){!}\n", info.Host, index+1, endpoint.IPAdress)
@@ -69,7 +75,7 @@ func printDetailedInfo(ap *sslscan.AnalyzeProgress) {
 }
 
 // printCertificateInfo prints info about server certificate
-func printCertificateInfo(certs []*sslscan.Cert) {
+func printCertificateInfo(certs []*sslscan.Cert, endpoints []*sslscan.EndpointInfo) {
 	fmtc.NewLine()
 
 	printCategoryHeader("Server Key and Certificate")
@@ -192,7 +198,7 @@ func printCertificateInfo(certs []*sslscan.Cert) {
 
 	fmtc.Printf(" %-24s {s}|{!} ", "Revocation status")
 
-	if serverCert.RevocationStatus&1 == 1 {
+	if serverCert.RevocationStatus == 1 {
 		fmtc.Printf("{r}%s{!}\n", getRevocationStatus(serverCert.RevocationStatus))
 	} else {
 		fmtc.Printf("%s\n", getRevocationStatus(serverCert.RevocationStatus))
@@ -221,11 +227,19 @@ func printCertificateInfo(certs []*sslscan.Cert) {
 
 	fmtc.Printf(" %-24s {s}|{!} ", "Trusted")
 
-	if serverCert.Issues == 0 {
-		fmtc.Println("{g}Yes{!}")
+	trustInfo, isTrusted := getTrustInfo(serverCert.ID, endpoints)
+
+	if !isTrusted {
+		fmtc.Println("{r}No (NOT TRUSTED){!}")
 	} else {
-		fmtc.Printf("{r}No (%s){!}\n", getCertIssuesDesc(serverCert.Issues))
+		if serverCert.Issues == 0 {
+			fmtc.Println("{g}Yes{!}")
+		} else {
+			fmtc.Printf("{r}No (%s){!}\n", getCertIssuesDesc(serverCert.Issues))
+		}
 	}
+
+	printTrustInfo(trustInfo)
 
 	fmtutil.Separator(true)
 }
@@ -233,6 +247,8 @@ func printCertificateInfo(certs []*sslscan.Cert) {
 // printDetailedEndpointInfo fetch and print detailed info for one endpoint
 func printDetailedEndpointInfo(info *sslscan.EndpointInfo, certs []*sslscan.Cert) {
 	fmtc.NewLine()
+
+	isInsecureForwardSecrecy = false
 
 	printChainInfo(info, certs)
 	printProtocolsInfo(info.Details)
@@ -338,6 +354,10 @@ func printProtocolsInfo(details *sslscan.EndpointDetails) {
 
 // printCipherSuitesInfo print info about supported cipher suites
 func printCipherSuitesInfo(details *sslscan.EndpointDetails) {
+	if details.Suites == nil && details.NoSNISuites == nil {
+		return
+	}
+
 	printCategoryHeader("Cipher Suites")
 
 	var allSuites []*sslscan.ProtocolSuites
@@ -412,6 +432,10 @@ func printCipherSuitesInfo(details *sslscan.EndpointDetails) {
 
 // printHandshakeSimulationInfo print info about handshakes simulations
 func printHandshakeSimulationInfo(details *sslscan.EndpointDetails) {
+	if details.SIMS == nil {
+		return
+	}
+
 	printCategoryHeader("Handshake Simulation")
 
 	for _, sim := range details.SIMS.Results {
@@ -429,6 +453,11 @@ func printHandshakeSimulationInfo(details *sslscan.EndpointDetails) {
 
 		if strings.Contains(suite.Name, "DHE_") {
 			tag = "{g}   FS{!}"
+		}
+
+		if strings.Contains(suite.Name, "_RC4_") {
+			isInsecureForwardSecrecy = true
+			tag = "{r}  RC4{!}"
 		}
 
 		if sim.Client.IsReference {
@@ -652,15 +681,19 @@ func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 
 	fmtc.Printf(" %-40s {s}|{!} ", "Forward Secrecy")
 
-	switch {
-	case details.ForwardSecrecy == 0:
-		fmtc.Println("{y}No (WEAK){!}")
-	case details.ForwardSecrecy&1 == 1:
-		fmtc.Println("{y}With some browsers{!}")
-	case details.ForwardSecrecy&2 == 2:
-		fmtc.Println("With modern browsers")
-	case details.ForwardSecrecy&4 == 4:
-		fmtc.Println("{g}Yes (with most browsers) (ROBUST){!}")
+	if isInsecureForwardSecrecy {
+		fmtc.Println("{r}Insecure key exchange{!}")
+	} else {
+		switch {
+		case details.ForwardSecrecy == 0:
+			fmtc.Println("{y}No (WEAK){!}")
+		case details.ForwardSecrecy&1 == 1:
+			fmtc.Println("{y}With some browsers{!}")
+		case details.ForwardSecrecy&2 == 2:
+			fmtc.Println("With modern browsers")
+		case details.ForwardSecrecy&4 == 4:
+			fmtc.Println("{g}Yes (with most browsers) (ROBUST){!}")
+		}
 	}
 
 	// ---
@@ -868,6 +901,8 @@ func printCategoryHeader(name string) {
 
 // printNamedGroups prints list with named groups
 func printNamedGroups(namedGroups *sslscan.NamedGroups) {
+	fmtc.Printf(" %-40s {s}|{!} ", "Supported Named Groups")
+
 	if namedGroups == nil || len(namedGroups.List) == 0 {
 		fmtc.Println("—")
 		return
@@ -878,7 +913,7 @@ func printNamedGroups(namedGroups *sslscan.NamedGroups) {
 	for i := 0; i < len(groups); i++ {
 		switch i {
 		case 0:
-			fmtc.Printf(" %-40s {s}|{!} ", "Supported Named Groups")
+			// skip
 		default:
 			fmtc.NewLine()
 			fmtc.Printf(" %-40s {s}|{!} ", "")
@@ -892,6 +927,22 @@ func printNamedGroups(namedGroups *sslscan.NamedGroups) {
 	} else {
 		fmtc.Printf("\n")
 	}
+}
+
+// printTrustInfo prints trust info
+func printTrustInfo(trustInfo map[string]bool) {
+	fmtc.Printf(" %-24s {s}|{!} ", "")
+
+	for rootStore, isTrusted := range trustInfo {
+		switch isTrusted {
+		case true:
+			fmtc.Printf("{g}%s{!} ", rootStore)
+		default:
+			fmtc.Printf("{r}%s{!} ", rootStore)
+		}
+	}
+
+	fmtc.NewLine()
 }
 
 // getBool convert bool value to Yes/No
@@ -1153,4 +1204,39 @@ func extractSubject(data string) string {
 	subject = strings.Replace(subject, "OU=", "", -1)
 
 	return subject
+}
+
+// getTrustInfo returns info about certificate chain trust
+func getTrustInfo(certID string, endpoints []*sslscan.EndpointInfo) (map[string]bool, bool) {
+	var result = map[string]bool{
+		"Mozilla": false,
+		"Apple":   false,
+		"Android": false,
+		"Java":    false,
+		"Windows": false,
+	}
+
+	for _, endpoint := range endpoints {
+		for _, chain := range endpoint.Details.CertChains {
+			for _, path := range chain.TrustPaths {
+				if !sliceutil.Contains(path.CertIDs, certID) {
+					continue
+				}
+
+				for _, store := range path.Trust {
+					if store.IsTrusted && result[store.RootStore] == false {
+						result[store.RootStore] = true
+					}
+				}
+			}
+		}
+	}
+
+	for _, isTrusted := range result {
+		if !isTrusted {
+			return result, false
+		}
+	}
+
+	return result, true
 }

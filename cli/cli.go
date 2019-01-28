@@ -318,7 +318,7 @@ func showServerMessage() {
 	fmtc.Println(coloredMessage)
 	fmtc.Printf(
 		"{s-}Assessments: %d/%d (CoolOff: %d)\n",
-		api.Info.CurrentAssessments,
+		api.Info.CurrentAssessments+1,
 		api.Info.MaxAssessments,
 		api.Info.NewAssessmentCoolOff,
 	)
