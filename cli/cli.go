@@ -2,7 +2,7 @@ package cli
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                     Copyright (c) 2009-2018 ESSENTIAL KAOS                         //
+//                     Copyright (c) 2009-2019 ESSENTIAL KAOS                         //
 //      Apache License, Version 2.0 <http://www.apache.org/licenses/LICENSE-2.0>      //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -295,7 +295,7 @@ func check(host string) string {
 	}
 
 	if options.GetB(OPT_DETAILED) {
-		printDetailedInfo(ap, len(info.Endpoints) > 1)
+		printDetailedInfo(ap)
 	}
 
 	lowestGrade, _ := getGrades(info.Endpoints)
@@ -316,6 +316,13 @@ func showServerMessage() {
 
 	fmtc.NewLine()
 	fmtc.Println(coloredMessage)
+	fmtc.Printf(
+		"{s-}Assessments: %d/%d (CoolOff: %d)\n",
+		api.Info.CurrentAssessments,
+		api.Info.MaxAssessments,
+		api.Info.NewAssessmentCoolOff,
+	)
+	fmtc.NewLine()
 }
 
 // quietCheck check some host without any output to console

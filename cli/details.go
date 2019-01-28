@@ -45,11 +45,7 @@ var weakAlgorithms = map[string]bool{
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // printDetailedInfo fetch and print detailed info for all endpoints
-func printDetailedInfo(ap *sslscan.AnalyzeProgress, showHeaders bool) {
-	if showHeaders {
-		fmtc.NewLine()
-	}
-
+func printDetailedInfo(ap *sslscan.AnalyzeProgress) {
 	info, err := ap.Info(true)
 
 	if err != nil {
@@ -62,19 +58,18 @@ func printDetailedInfo(ap *sslscan.AnalyzeProgress, showHeaders bool) {
 		return
 	}
 
-	printCertificatesInfo(info.Certs)
+	printCertificateInfo(info.Certs)
 
 	for index, endpoint := range info.Endpoints {
-		if showHeaders {
-			fmtc.Printf("\n{c} %s #%d (%s){!}\n\n", info.Host, index+1, endpoint.IPAdress)
-		}
-
-		printDetailedEndpointInfo(endpoint)
+		fmtc.Printf("\n{c*} %s {!*}#%d (%s){!}\n", info.Host, index+1, endpoint.IPAdress)
+		printDetailedEndpointInfo(endpoint, info.Certs)
 	}
+
+	fmtc.NewLine()
 }
 
-// printCertificateInfo prints info about certificates
-func printCertificatesInfo(certs []*sslscan.Cert) {
+// printCertificateInfo prints info about server certificate
+func printCertificateInfo(certs []*sslscan.Cert) {
 	fmtc.NewLine()
 
 	printCategoryHeader("Server Key and Certificate")
@@ -83,7 +78,7 @@ func printCertificatesInfo(certs []*sslscan.Cert) {
 
 	validFromDate := time.Unix(serverCert.NotBefore/1000, 0)
 	validUntilDate := time.Unix(serverCert.NotAfter/1000, 0)
-	validDays := ((serverCert.NotAfter / 1000) - time.Now().Unix()) / 86400
+	validDays := (validUntilDate.Unix() - time.Now().Unix()) / 86400
 
 	// ---
 
@@ -176,7 +171,7 @@ func printCertificatesInfo(certs []*sslscan.Cert) {
 	if serverCert.SCT {
 		fmtc.Println("{g}Yes{!}")
 	} else {
-		fmtc.Println("No")
+		fmtc.Println("{y}No{!}")
 	}
 
 	// ---
@@ -219,7 +214,7 @@ func printCertificatesInfo(certs []*sslscan.Cert) {
 			}
 		}
 	} else {
-		fmtc.Println("No")
+		fmtc.Println("{y}No{!}")
 	}
 
 	// ---
@@ -236,9 +231,10 @@ func printCertificatesInfo(certs []*sslscan.Cert) {
 }
 
 // printDetailedEndpointInfo fetch and print detailed info for one endpoint
-func printDetailedEndpointInfo(info *sslscan.EndpointInfo) {
+func printDetailedEndpointInfo(info *sslscan.EndpointInfo, certs []*sslscan.Cert) {
 	fmtc.NewLine()
 
+	printChainInfo(info, certs)
 	printProtocolsInfo(info.Details)
 	printCipherSuitesInfo(info.Details)
 	printHandshakeSimulationInfo(info.Details)
@@ -246,7 +242,68 @@ func printDetailedEndpointInfo(info *sslscan.EndpointInfo) {
 	printMiscellaneousInfo(info)
 
 	fmtutil.Separator(true)
-	fmtc.NewLine()
+}
+
+// printChainInfo prints info about certificates in chain
+func printChainInfo(info *sslscan.EndpointInfo, certs []*sslscan.Cert) {
+	printCategoryHeader("Certification Paths")
+
+	chain := info.Details.CertChains[0]
+
+	fmtc.Printf(" %-24s {s}|{!} %d\n", "Certificates provided", len(chain.CertIDs))
+
+	fmtc.Printf(" %-24s {s}|{!} ", "Chain issues")
+
+	if chain.Issues == 0 {
+		fmtc.Println("None")
+	} else {
+		fmtc.Printf("{y}%s{!}\n", getChainIssuesDesc(chain.Issues))
+	}
+
+	if len(chain.CertIDs) > 1 {
+		for i := 1; i < len(chain.CertIDs); i++ {
+			fmtutil.Separator(true)
+
+			certID := chain.CertIDs[i]
+			cert := findCertByID(certs, certID)
+
+			if cert == nil {
+				continue
+			}
+
+			validUntilDate := time.Unix(cert.NotAfter/1000, 0)
+			validDays := (validUntilDate.Unix() - time.Now().Unix()) / 86400
+
+			fmtc.Printf(" %-24s {s}|{!} %s\n", "Subject", extractSubject(cert.Subject))
+
+			fmtc.Printf(" %-24s {s}|{!} {s-}Fingerprint: %s{!}\n", "", cert.SHA256Hash)
+			fmtc.Printf(" %-24s {s}|{!} {s-}Pin: %s{!}\n", "", cert.PINSHA256)
+
+			fmtc.Printf(
+				" %-24s {s}|{!} %s {s-}(expires in %s){!}\n", "Valid until",
+				timeutil.Format(validUntilDate, "%Y/%m/%d %H:%M:%S"),
+				pluralize.Pluralize(int(validDays), "day", "days"),
+			)
+
+			fmtc.Printf(" %-24s {s}|{!} ", "Key")
+
+			if cert.KeyAlg == "RSA" && cert.KeyStrength < 2048 {
+				fmtc.Printf("{y}%s %d bits (WEAK){!}\n", cert.KeyAlg, cert.KeySize)
+			} else {
+				fmtc.Printf("%s %d bits\n", cert.KeyAlg, cert.KeySize)
+			}
+
+			fmtc.Printf(" %-24s {s}|{!} %s\n", "Issuer", extractSubject(cert.IssuerSubject))
+
+			fmtc.Printf(" %-24s {s}|{!} ", "Signature algorithm")
+
+			if weakAlgorithms[cert.SigAlg] {
+				fmtc.Printf("{y}%s (WEAK){!}\n", cert.SigAlg)
+			} else {
+				fmtc.Printf("%s\n", cert.SigAlg)
+			}
+		}
+	}
 }
 
 // printProtocolsInfo print info about supported protocols
@@ -270,9 +327,9 @@ func printProtocolsInfo(details *sslscan.EndpointDetails) {
 		case protocol == "TLS 1.0", protocol == "TLS 1.1":
 			fmtc.Printf("{y}%s{!}\n", getBool(supportedProtocols[protocol]))
 		case protocol == "SSL 3.0" && supportedProtocols[protocol]:
-			fmtc.Printf("{r}%s{!}\n", getBool(supportedProtocols[protocol]))
+			fmtc.Printf("{r}%s (INSECURE){!}\n", getBool(supportedProtocols[protocol]))
 		case protocol == "SSL 2.0" && supportedProtocols[protocol]:
-			fmtc.Printf("{r}%s{!}\n", getBool(supportedProtocols[protocol]))
+			fmtc.Printf("{r}%s (INSECURE){!}\n", getBool(supportedProtocols[protocol]))
 		default:
 			fmtc.Printf("%s\n", getBool(supportedProtocols[protocol]))
 		}
@@ -291,7 +348,7 @@ func printCipherSuitesInfo(details *sslscan.EndpointDetails) {
 		allSuites = details.Suites
 	}
 
-	for i := len(allSuites) - 1; i > 0; i-- {
+	for i := len(allSuites) - 1; i >= 0; i-- {
 		suites := allSuites[i]
 		header := " " + protocolsNames[suites.Protocol]
 
@@ -309,15 +366,15 @@ func printCipherSuitesInfo(details *sslscan.EndpointDetails) {
 		fmtutil.Separator(true)
 
 		for _, suite := range suites.List {
-			tag := ""
-			insecure := strings.Contains(suite.Name, "_RC4_")
-			preferred := false
+			insecure := strings.Contains(suite.Name, "_RC4_") || suite.CipherStrength < 112
+			weak, preferred := false, false
 
 			switch {
-			case suite.Q != nil:
-				tag = "{y}(WEAK){!}"
-			case suite.KxType == "DH" && suite.KxStrength < 2048:
-				tag = "{y}(WEAK){!}"
+			case suite.Q != nil,
+				suite.KxType == "DH" && suite.KxStrength < 2048,
+				strings.Contains(suite.Name, "TLS_RSA") && suite.CipherStrength <= 256,
+				strings.Contains(suite.Name, "_3DES_"):
+				weak = true
 			}
 
 			if strings.Contains(suite.Name, "_CHACHA20_") && details.ChaCha20Preference {
@@ -327,6 +384,8 @@ func printCipherSuitesInfo(details *sslscan.EndpointDetails) {
 			switch {
 			case insecure == true:
 				fmtc.Printf(" {r}%-44s{!} {s}|{!} {r}%d (INSECURE){!} ", suite.Name, suite.CipherStrength)
+			case weak == true:
+				fmtc.Printf(" {y}%-44s{!} {s}|{!} {y}%d (WEAK){!} ", suite.Name, suite.CipherStrength)
 			case preferred == true:
 				fmtc.Printf(" {*}%-44s{!} {s}|{!} %d ", suite.Name, suite.CipherStrength)
 			default:
@@ -335,17 +394,17 @@ func printCipherSuitesInfo(details *sslscan.EndpointDetails) {
 
 			switch {
 			case suite.KxType == "DH":
-				fmtc.Printf("{s-}(DH %d bits){!} "+tag+"\n",
+				fmtc.Printf("{s-}(DH %d bits){!}\n",
 					suite.KxStrength)
 			case suite.NamedGroupName != "":
-				fmtc.Printf("{s-}(%s %s ~ %d bits RSA){!} "+tag+"\n",
+				fmtc.Printf("{s-}(%s %s ~ %d bits RSA){!}\n",
 					suite.KxType, suite.NamedGroupName, suite.KxStrength)
 			default:
-				fmtc.Println(tag)
+				fmtc.NewLine()
 			}
 		}
 
-		if i != 1 {
+		if i != 0 {
 			fmtutil.Separator(true)
 		}
 	}
@@ -609,7 +668,7 @@ func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 	fmtc.Printf(" %-40s {s}|{!} ", "ALPN")
 
 	if details.SupportsALPN {
-		fmtc.Printf("Yes {s-}(%s){!}\n", details.NPNProtocols)
+		fmtc.Printf("Yes {s-}(%s){!}\n", details.ALPNProtocols)
 	} else {
 		fmtc.Println("No")
 	}
@@ -754,13 +813,7 @@ func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 
 	// ---
 
-	fmtc.Printf(" %-40s {s}|{!} ", "Supported Named Groups")
-
-	if details.NamedGroups != nil && details.NamedGroups.Preference {
-		fmtc.Printf("%s {s-}(server preferred order){!}\n", getNamedGroups(details.NamedGroups))
-	} else {
-		fmtc.Printf("%s\n", getNamedGroups(details.NamedGroups))
-	}
+	printNamedGroups(details.NamedGroups)
 }
 
 // printMiscellaneousInfo print miscellaneous info about endpoint
@@ -806,11 +859,39 @@ func printMiscellaneousInfo(info *sslscan.EndpointInfo) {
 	}
 }
 
-// printCategoryHeader print category name and separators
+// printCategoryHeader prints category name and separators
 func printCategoryHeader(name string) {
 	fmtutil.Separator(true)
 	fmtc.Printf(" ▾ {*}%s{!}\n", strings.ToUpper(name))
 	fmtutil.Separator(true)
+}
+
+// printNamedGroups prints list with named groups
+func printNamedGroups(namedGroups *sslscan.NamedGroups) {
+	if namedGroups == nil || len(namedGroups.List) == 0 {
+		fmtc.Println("—")
+		return
+	}
+
+	groups := getNamedGroups(namedGroups)
+
+	for i := 0; i < len(groups); i++ {
+		switch i {
+		case 0:
+			fmtc.Printf(" %-40s {s}|{!} ", "Supported Named Groups")
+		default:
+			fmtc.NewLine()
+			fmtc.Printf(" %-40s {s}|{!} ", "")
+		}
+
+		fmtc.Printf(strings.Join(groups[i], ", "))
+	}
+
+	if namedGroups.Preference {
+		fmtc.Printf(" {s-}(server preferred order){!}\n")
+	} else {
+		fmtc.Printf("\n")
+	}
 }
 
 // getBool convert bool value to Yes/No
@@ -948,15 +1029,25 @@ func getProtocols(protocols []*sslscan.Protocol) map[string]bool {
 	return supported
 }
 
-// getNamedGroups returns slice with named groups
-func getNamedGroups(groups *sslscan.NamedGroups) string {
-	var result []string
+// getNamedGroups returns slice of slices with named groups
+func getNamedGroups(groups *sslscan.NamedGroups) [][]string {
+	var result [][]string
+	var buf []string
 
 	for _, group := range groups.List {
-		result = append(result, group.Name)
+		buf = append(buf, group.Name)
+
+		if len(buf) == 3 {
+			result = append(result, buf)
+			buf = nil
+		}
 	}
 
-	return strings.Join(result, ", ")
+	if buf != nil {
+		result = append(result, buf)
+	}
+
+	return result
 }
 
 // printPolicyInfo prints info about HPKP policy
@@ -1044,10 +1135,22 @@ func findSuite(suites []*sslscan.ProtocolSuites, protocolID, suiteID int) *sslsc
 	return nil
 }
 
+// findCertByID searches certificate by ID
+func findCertByID(certs []*sslscan.Cert, certID string) *sslscan.Cert {
+	for _, cert := range certs {
+		if cert.ID == certID {
+			return cert
+		}
+	}
+
+	return nil
+}
+
 // extractSubject extracts subject name from certificate subject
 func extractSubject(data string) string {
 	subject := strutil.ReadField(data, 0, false, ",")
 	subject = strings.Replace(subject, "CN=", "", -1)
+	subject = strings.Replace(subject, "OU=", "", -1)
 
 	return subject
 }
