@@ -57,6 +57,15 @@ go get -u github.com/essentialkaos/sslcli
 
 You can download prebuilt binaries for Linux and OS X from [EK Apps Repository](https://apps.kaos.st/sslcli/latest).
 
+#### Docker Image
+
+The latest version of `sslcli` also avialable as [Docker image](https://hub.docker.com/r/essentialkaos/sslcli).
+
+```bash
+docker pull essentialkaos/sslcli
+docker run --rm -it essentialkaos/sslcli:latest host…
+```
+
 ### Feature list
 
 * Superb UI
