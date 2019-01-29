@@ -26,6 +26,9 @@ import (
 // protocolList contains list of supported protocols
 var protocolList = []string{"TLS 1.3", "TLS 1.2", "TLS 1.1", "TLS 1.0", "SSL 3.0", "SSL 2.0"}
 
+// rootStores contains list of root stores
+var rootStores = []string{"Mozilla", "Apple", "Android", "Java", "Windows"}
+
 // protocolsNames is map protocol id -> protocol name
 var protocolsNames = map[int]string{
 	sslscan.PROTOCOL_SSL2:  "SSL 2.0",
@@ -45,8 +48,11 @@ var weakAlgorithms = map[string]bool{
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// isInsecureForwardSecrecy if flag for insecure forward secrecy
+// isInsecureForwardSecrecy is flag for insecure forward secrecy
 var isInsecureForwardSecrecy bool
+
+// isWeakForwardSecrecy is flag for weak forward secrecy
+var isWeakForwardSecrecy bool
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -99,13 +105,19 @@ func printCertificateInfo(certs []*sslscan.Cert, endpoints []*sslscan.EndpointIn
 	if len(serverCert.AltNames) > 0 {
 		if len(serverCert.AltNames) > 5 {
 			fmtc.Printf(
-				" %-24s {s}|{!} %s {s-}(+%d more){!}\n",
+				" %-24s {s}|{!} %s {s-}(+%d more){!}",
 				"Alternative names",
 				strings.Join(serverCert.AltNames[:4], " "),
 				len(serverCert.AltNames)-4,
 			)
 		} else {
-			fmtc.Printf(" %-24s {s}|{!} %s\n", "Alternative names", strings.Join(serverCert.AltNames, " "))
+			fmtc.Printf(" %-24s {s}|{!} %s", "Alternative names", strings.Join(serverCert.AltNames, " "))
+		}
+
+		if serverCert.Issues&8 == 8 {
+			fmtc.Println(" {r}MISMATCH{!}")
+		} else {
+			fmtc.NewLine()
 		}
 	}
 
@@ -198,7 +210,7 @@ func printCertificateInfo(certs []*sslscan.Cert, endpoints []*sslscan.EndpointIn
 
 	fmtc.Printf(" %-24s {s}|{!} ", "Revocation status")
 
-	if serverCert.RevocationStatus == 1 {
+	if serverCert.RevocationStatus&1 == 1 {
 		fmtc.Printf("{r}%s{!}\n", getRevocationStatus(serverCert.RevocationStatus))
 	} else {
 		fmtc.Printf("%s\n", getRevocationStatus(serverCert.RevocationStatus))
@@ -249,12 +261,14 @@ func printDetailedEndpointInfo(info *sslscan.EndpointInfo, certs []*sslscan.Cert
 	fmtc.NewLine()
 
 	isInsecureForwardSecrecy = false
+	isWeakForwardSecrecy = false
 
 	printChainInfo(info, certs)
 	printProtocolsInfo(info.Details)
 	printCipherSuitesInfo(info.Details)
 	printHandshakeSimulationInfo(info.Details)
 	printProtocolDetailsInfo(info.Details)
+	printTransactionsInfo(info.Details)
 	printMiscellaneousInfo(info)
 
 	fmtutil.Separator(true)
@@ -262,6 +276,10 @@ func printDetailedEndpointInfo(info *sslscan.EndpointInfo, certs []*sslscan.Cert
 
 // printChainInfo prints info about certificates in chain
 func printChainInfo(info *sslscan.EndpointInfo, certs []*sslscan.Cert) {
+	if len(info.Details.CertChains) == 0 {
+		return
+	}
+
 	printCategoryHeader("Certification Paths")
 
 	chain := info.Details.CertChains[0]
@@ -324,6 +342,10 @@ func printChainInfo(info *sslscan.EndpointInfo, certs []*sslscan.Cert) {
 
 // printProtocolsInfo print info about supported protocols
 func printProtocolsInfo(details *sslscan.EndpointDetails) {
+	if len(details.Protocols) == 0 {
+		return
+	}
+
 	printCategoryHeader("Protocols")
 
 	supportedProtocols := getProtocols(details.Protocols)
@@ -387,15 +409,9 @@ func printCipherSuitesInfo(details *sslscan.EndpointDetails) {
 
 		for _, suite := range suites.List {
 			insecure := strings.Contains(suite.Name, "_RC4_") || suite.CipherStrength < 112
-			weak, preferred := false, false
+			preferred := false
 
-			switch {
-			case suite.Q != nil,
-				suite.KxType == "DH" && suite.KxStrength < 2048,
-				strings.Contains(suite.Name, "TLS_RSA") && suite.CipherStrength <= 256,
-				strings.Contains(suite.Name, "_3DES_"):
-				weak = true
-			}
+			weak := isWeakSuite(suite)
 
 			if strings.Contains(suite.Name, "_CHACHA20_") && details.ChaCha20Preference {
 				preferred = true
@@ -453,10 +469,17 @@ func printHandshakeSimulationInfo(details *sslscan.EndpointDetails) {
 
 		if strings.Contains(suite.Name, "DHE_") {
 			tag = "{g}   FS{!}"
+
+			if isWeakSuite(suite) {
+				isWeakForwardSecrecy = true
+			}
 		}
 
 		if strings.Contains(suite.Name, "_RC4_") {
-			isInsecureForwardSecrecy = true
+			if strings.Contains(suite.Name, "DHE_") {
+				isInsecureForwardSecrecy = true
+			}
+
 			tag = "{r}  RC4{!}"
 		}
 
@@ -681,19 +704,19 @@ func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 
 	fmtc.Printf(" %-40s {s}|{!} ", "Forward Secrecy")
 
-	if isInsecureForwardSecrecy {
+	switch {
+	case isInsecureForwardSecrecy:
 		fmtc.Println("{r}Insecure key exchange{!}")
-	} else {
-		switch {
-		case details.ForwardSecrecy == 0:
-			fmtc.Println("{y}No (WEAK){!}")
-		case details.ForwardSecrecy&1 == 1:
-			fmtc.Println("{y}With some browsers{!}")
-		case details.ForwardSecrecy&2 == 2:
-			fmtc.Println("With modern browsers")
-		case details.ForwardSecrecy&4 == 4:
-			fmtc.Println("{g}Yes (with most browsers) (ROBUST){!}")
-		}
+	case isWeakForwardSecrecy:
+		fmtc.Println("{y}Weak key exchange{!}")
+	case details.ForwardSecrecy == 0:
+		fmtc.Println("{y}No (WEAK){!}")
+	case details.ForwardSecrecy&1 == 1:
+		fmtc.Println("{y}With some browsers{!}")
+	case details.ForwardSecrecy&2 == 2:
+		fmtc.Println("With modern browsers")
+	case details.ForwardSecrecy&4 == 4:
+		fmtc.Println("{g}Yes (with most browsers) (ROBUST){!}")
 	}
 
 	// ---
@@ -849,7 +872,23 @@ func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 	printNamedGroups(details.NamedGroups)
 }
 
-// printMiscellaneousInfo print miscellaneous info about endpoint
+// printTransactionsInfo prints info about HTTP transactions
+func printTransactionsInfo(details *sslscan.EndpointDetails) {
+	if len(details.HTTPTransactions) == 0 {
+		return
+	}
+
+	printCategoryHeader("HTTP Requests")
+
+	for index, transaction := range details.HTTPTransactions {
+		fmtc.Printf(
+			" {s-}%d{!} %s {s}(%s){!}\n",
+			index+1, transaction.RequestURL, transaction.ResponseLine,
+		)
+	}
+}
+
+// printMiscellaneousInfo prints miscellaneous info about endpoint
 func printMiscellaneousInfo(info *sslscan.EndpointInfo) {
 	printCategoryHeader("Miscellaneous")
 
@@ -867,7 +906,12 @@ func printMiscellaneousInfo(info *sslscan.EndpointInfo) {
 	// ---
 
 	fmtc.Printf(" %-24s {s}|{!} %s\n", "Test duration", timeutil.PrettyDuration(info.Duration/1000))
-	fmtc.Printf(" %-24s {s}|{!} %d\n", "HTTP status code", details.HTTPStatusCode)
+
+	if details.HTTPStatusCode == 0 {
+		fmtc.Printf(" %-24s {s}|{!} {y}Request failed{!}\n", "HTTP status code")
+	} else {
+		fmtc.Printf(" %-24s {s}|{!} %d\n", "HTTP status code", details.HTTPStatusCode)
+	}
 
 	// ---
 
@@ -883,6 +927,8 @@ func printMiscellaneousInfo(info *sslscan.EndpointInfo) {
 
 	if details.ServerSignature != "" {
 		fmtc.Printf(" %-24s {s}|{!} %s\n", "HTTP server signature", details.ServerSignature)
+	} else {
+		fmtc.Printf(" %-24s {s}|{!} Unknown\n", "HTTP server signature")
 	}
 
 	// ---
@@ -920,6 +966,10 @@ func printNamedGroups(namedGroups *sslscan.NamedGroups) {
 		}
 
 		fmtc.Printf(strings.Join(groups[i], ", "))
+
+		if i != len(groups)-1 {
+			fmtc.Printf(",")
+		}
 	}
 
 	if namedGroups.Preference {
@@ -933,10 +983,10 @@ func printNamedGroups(namedGroups *sslscan.NamedGroups) {
 func printTrustInfo(trustInfo map[string]bool) {
 	fmtc.Printf(" %-24s {s}|{!} ", "")
 
-	for rootStore, isTrusted := range trustInfo {
-		switch isTrusted {
+	for _, rootStore := range rootStores {
+		switch trustInfo[rootStore] {
 		case true:
-			fmtc.Printf("{g}%s{!} ", rootStore)
+			fmtc.Printf("{s-}%s{!} ", rootStore)
 		default:
 			fmtc.Printf("{r}%s{!} ", rootStore)
 		}
@@ -1197,6 +1247,23 @@ func findCertByID(certs []*sslscan.Cert, certID string) *sslscan.Cert {
 	return nil
 }
 
+// isWeakSuite returns true if suite is weak
+func isWeakSuite(suite *sslscan.Suite) bool {
+	if suite.KxType == "DH" && suite.KxStrength < 2048 {
+		return true
+	}
+
+	if strings.Contains(suite.Name, "TLS_RSA") && suite.CipherStrength <= 256 {
+		return true
+	}
+
+	if strings.Contains(suite.Name, "_3DES_") {
+		return true
+	}
+
+	return false
+}
+
 // extractSubject extracts subject name from certificate subject
 func extractSubject(data string) string {
 	subject := strutil.ReadField(data, 0, false, ",")
@@ -1232,8 +1299,8 @@ func getTrustInfo(certID string, endpoints []*sslscan.EndpointInfo) (map[string]
 		}
 	}
 
-	for _, isTrusted := range result {
-		if !isTrusted {
+	for rootStore, isTrusted := range result {
+		if !isTrusted && rootStore != "Java" {
 			return result, false
 		}
 	}
