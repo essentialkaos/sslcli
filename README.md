@@ -59,7 +59,7 @@ You can download prebuilt binaries for Linux and OS X from [EK Apps Repository](
 
 #### Docker Image
 
-The latest version of `sslcli` also avialable as [Docker image](https://hub.docker.com/r/essentialkaos/sslcli).
+The latest version of `sslcli` also available as [Docker image](https://hub.docker.com/r/essentialkaos/sslcli).
 
 ```bash
 docker pull essentialkaos/sslcli
