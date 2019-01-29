@@ -44,7 +44,7 @@
 
 Summary:         Pretty awesome command-line client for public SSLLabs API
 Name:            sslcli
-Version:         1.9.0
+Version:         2.0.0
 Release:         0%{?dist}
 Group:           Applications/System
 License:         EKOL
@@ -92,6 +92,20 @@ rm -rf %{buildroot}
 ################################################################################
 
 %changelog
+* Tue Jan 29 2019 Anton Novojilov <andy@essentialkaos.com> - 2.0.0-0
+- Improved UI
+- Info about HTTP transactions
+- Info about TLS 1.3 cipher suites
+- Info about Bleichenbacher vulnerability
+- Info about Ticketbleed vulnerability
+- Info about root trust stores
+- Info about Static Public Key Pinning
+- Info about ECDH public server param reuse
+- Info about required SNI
+- Info about supported named groups
+- Migrated to sslscan.v10
+- Minor improvements
+
 * Sun Nov 18 2018 Anton Novojilov <andy@essentialkaos.com> - 1.9.0-0
 - ek package updated to v10
 - sslscan package updated to v9

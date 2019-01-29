@@ -24,7 +24,7 @@ uninstall: ## Uninstall binaries
 deps: ## Download dependencies
 	git config --global http.https://pkg.re.followRedirects true
 	go get -d -v pkg.re/essentialkaos/ek.v10
-	go get -d -v pkg.re/essentialkaos/sslscan.v9
+	go get -d -v pkg.re/essentialkaos/sslscan.v10
 
 fmt: ## Format source code with gofmt
 	find . -name "*.go" -exec gofmt -s -w {} \;
