@@ -15,7 +15,7 @@
 
 ### Usage demo
 
-[![demo](https://gh.kaos.st/sslcli-180.svg)](#usage-demo)
+[![demo](https://gh.kaos.st/sslcli-200.gif)](#usage-demo)
 
 ### Installation
 
@@ -27,7 +27,7 @@ Before the initial install allows git to use redirects for [pkg.re](https://gith
 git config --global http.https://pkg.re.followRedirects true
 ```
 
-To build the SSLScan Client from scratch, make sure you have a working Go 1.5+ workspace ([instructions](https://golang.org/doc/install)), then:
+To build the SSLScan Client from scratch, make sure you have a working Go 1.9+ workspace ([instructions](https://golang.org/doc/install)), then:
 
 ```
 go get github.com/essentialkaos/sslcli
@@ -56,6 +56,15 @@ go get -u github.com/essentialkaos/sslcli
 #### Prebuilt binaries
 
 You can download prebuilt binaries for Linux and OS X from [EK Apps Repository](https://apps.kaos.st/sslcli/latest).
+
+#### Docker Image
+
+The latest version of `sslcli` also available as [Docker image](https://hub.docker.com/r/essentialkaos/sslcli).
+
+```bash
+docker pull essentialkaos/sslcli
+docker run --rm -it essentialkaos/sslcli:latest host…
+```
 
 ### Feature list
 
