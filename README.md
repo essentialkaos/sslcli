@@ -25,18 +25,21 @@ Before the initial install allows git to use redirects for [pkg.re](https://gith
 
 ```
 git config --global http.https://pkg.re.followRedirects true
+
 ```
 
 To build the SSLScan Client from scratch, make sure you have a working Go 1.9+ workspace ([instructions](https://golang.org/doc/install)), then:
 
 ```
 go get github.com/essentialkaos/sslcli
+
 ```
 
 If you want update SSLScan Client to latest stable release, do:
 
 ```
 go get -u github.com/essentialkaos/sslcli
+
 ```
 
 #### From ESSENTIAL KAOS Public repo for RHEL6/CentOS6
@@ -44,6 +47,7 @@ go get -u github.com/essentialkaos/sslcli
 ```bash
 [sudo] yum install -y https://yum.kaos.st/6/release/x86_64/kaos-repo-9.1-0.el6.noarch.rpm
 [sudo] yum install sslcli
+
 ```
 
 #### From ESSENTIAL KAOS Public repo for RHEL7/CentOS7
@@ -51,11 +55,17 @@ go get -u github.com/essentialkaos/sslcli
 ```bash
 [sudo] yum install -y https://yum.kaos.st/7/release/x86_64/kaos-repo-9.1-0.el7.noarch.rpm
 [sudo] yum install sslcli
+
 ```
 
 #### Prebuilt binaries
 
-You can download prebuilt binaries for Linux and OS X from [EK Apps Repository](https://apps.kaos.st/sslcli/latest).
+You can download prebuilt binaries for Linux and OS X from [EK Apps Repository](https://apps.kaos.st/sslcli/latest):
+
+```bash
+bash <(curl -fsSL https://apps.kaos.st/get) sslcli
+
+```
 
 #### Docker Image
 
@@ -64,6 +74,7 @@ The latest version of `sslcli` also available as [Docker image](https://hub.dock
 ```bash
 docker pull essentialkaos/sslcli
 docker run --rm -it essentialkaos/sslcli:latest host…
+
 ```
 
 ### Feature list
