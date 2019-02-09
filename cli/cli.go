@@ -29,7 +29,7 @@ import (
 
 const (
 	APP  = "SSLScan Client"
-	VER  = "2.0.0"
+	VER  = "2.0.1"
 	DESC = "Command-line client for the SSL Labs API"
 )
 
@@ -245,10 +245,8 @@ func check(host string) string {
 		IgnoreMismatch: options.GetB(OPT_IGNORE_MISMATCH),
 	}
 
-	fmtc.Printf("{*}%s{!} → ", host)
-
 	if !options.GetB(OPT_DETAILED) {
-		fmtc.TPrintf("{s}Preparing for tests…{!}")
+		fmtc.TPrintf("{*}%s{!} → {s}Preparing for tests…{!}", host)
 	}
 
 	ap, err := api.Analyze(host, params)
@@ -262,12 +260,12 @@ func check(host string) string {
 		info, err = ap.Info(false)
 
 		if err != nil {
-			fmtc.TPrintf("{r}%v{!}\n", err)
+			fmtc.Printf("{*}%s{!} → {r}%v{!}\n", host, err)
 			return "Err"
 		}
 
 		if info.Status == sslscan.STATUS_ERROR {
-			fmtc.TPrintf("{r}%s{!}\n", info.StatusMessage)
+			fmtc.Printf("{*}%s{!} → {r}%s{!}\n", host, info.StatusMessage)
 			return "Err"
 		} else if info.Status == sslscan.STATUS_READY {
 			break
@@ -277,7 +275,7 @@ func check(host string) string {
 			message := getStatusInProgress(info.Endpoints)
 
 			if message != "" {
-				fmtc.TPrintf("{s}%s…{!}", message)
+				fmtc.TPrintf("{*}%s{!} → {s}%s…{!}", host, message)
 			}
 		}
 
@@ -289,9 +287,9 @@ func check(host string) string {
 	}
 
 	if len(info.Endpoints) == 1 {
-		fmtc.TPrintln(getColoredGrade(info.Endpoints[0].Grade))
+		fmtc.TPrintf("{*}%s{!} → "+getColoredGrade(info.Endpoints[0].Grade)+"\n", host)
 	} else {
-		fmtc.TPrintln(getColoredGrades(info.Endpoints))
+		fmtc.TPrintf("{*}%s{!} → "+getColoredGrades(info.Endpoints)+"\n", host)
 	}
 
 	if options.GetB(OPT_DETAILED) {

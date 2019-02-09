@@ -44,7 +44,7 @@
 
 Summary:         Pretty awesome command-line client for public SSLLabs API
 Name:            sslcli
-Version:         2.0.0
+Version:         2.0.1
 Release:         0%{?dist}
 Group:           Applications/System
 License:         EKOL
@@ -92,6 +92,9 @@ rm -rf %{buildroot}
 ################################################################################
 
 %changelog
+* Sat Feb 09 2019 Anton Novojilov <andy@essentialkaos.com> - 2.0.1-0
+- Fixed compatibility with the latest version of ek package
+
 * Tue Jan 29 2019 Anton Novojilov <andy@essentialkaos.com> - 2.0.0-0
 - Improved UI
 - Info about HTTP transactions
