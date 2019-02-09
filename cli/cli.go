@@ -197,6 +197,7 @@ func process(args []string) {
 			checksInfo = append(checksInfo, checkInfo)
 		default:
 			grade = check(host)
+			fmtc.NewLine()
 		}
 
 		switch {
@@ -245,14 +246,12 @@ func check(host string) string {
 		IgnoreMismatch: options.GetB(OPT_IGNORE_MISMATCH),
 	}
 
-	if !options.GetB(OPT_DETAILED) {
-		fmtc.TPrintf("{*}%s{!} → {s}Preparing for tests…{!}", host)
-	}
+	fmtc.TPrintf("{*}%s{!} → {s}Preparing for tests…{!}", host)
 
 	ap, err := api.Analyze(host, params)
 
 	if err != nil {
-		fmtc.Printf("{r}%v{!}\n", err)
+		fmtc.TPrintf("{*}%s{!} → {r}%v{!}\n", host, err)
 		return "T"
 	}
 
@@ -260,12 +259,12 @@ func check(host string) string {
 		info, err = ap.Info(false)
 
 		if err != nil {
-			fmtc.Printf("{*}%s{!} → {r}%v{!}\n", host, err)
+			fmtc.TPrintf("{*}%s{!} → {r}%v{!}\n", host, err)
 			return "Err"
 		}
 
 		if info.Status == sslscan.STATUS_ERROR {
-			fmtc.Printf("{*}%s{!} → {r}%s{!}\n", host, info.StatusMessage)
+			fmtc.TPrintf("{*}%s{!} → {r}%s{!}\n", host, info.StatusMessage)
 			return "Err"
 		} else if info.Status == sslscan.STATUS_READY {
 			break
