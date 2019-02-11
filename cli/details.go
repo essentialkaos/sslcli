@@ -705,9 +705,12 @@ func printEndpointPoodleStatus(details *sslscan.EndpointDetails) {
 func printEndpointDrownStatus(details *sslscan.EndpointDetails) {
 	fmtc.Printf(" %-40s {s}|{!} ", "DROWN")
 
-	if details.DrownVulnerable {
+	switch {
+	case details.DrownErrors:
+		fmtc.Println("{y}Unable to perform this test due to an internal error{!}")
+	case details.DrownVulnerable:
 		fmtc.Println("{r}Vulnerable{!}")
-	} else {
+	default:
 		fmtc.Println("No")
 	}
 }
