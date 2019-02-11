@@ -76,8 +76,6 @@ func printDetailedInfo(ap *sslscan.AnalyzeProgress) {
 		fmtc.Printf("\n{c*} %s {!*}#%d (%s){!}\n", info.Host, index+1, endpoint.IPAdress)
 		printDetailedEndpointInfo(endpoint, info.Certs)
 	}
-
-	fmtc.NewLine()
 }
 
 // printCertificateInfo prints info about server certificate
