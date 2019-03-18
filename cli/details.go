@@ -252,6 +252,7 @@ func printProtocolDetailsInfo(details *sslscan.EndpointDetails) {
 	printEndpointDHPrimesInfo(details)
 	printEndpointECDHInfo(details)
 	printEndpointNamedGroups(details.NamedGroups)
+	print0RTTStatus(details.ZeroRTTEnabled)
 }
 
 // printTransactionsInfo prints info about HTTP transactions
@@ -659,7 +660,7 @@ func printSimulationInfo(sim *sslscan.SIM, suites []*sslscan.ProtocolSuites) {
 func printEndpointRenegotiationInfo(details *sslscan.EndpointDetails) {
 	fmtc.Printf(" %-40s {s}|{!} ", "Secure Renegotiation")
 
-	if details.RenegSupport&1 == 1 {
+	if details.RenegSupport == 0 {
 		fmtc.Println("{y}Not supported{!}")
 	} else {
 		fmtc.Println("{g}Supported{!}")
@@ -668,7 +669,7 @@ func printEndpointRenegotiationInfo(details *sslscan.EndpointDetails) {
 	fmtc.Printf(" %-40s {s}|{!} ", "Secure Client-Initiated Renegotiation")
 
 	if details.RenegSupport&4 == 4 {
-		fmtc.Println("{y}Supported (DoS DANGER){!}")
+		fmtc.Println("Yes")
 	} else {
 		fmtc.Println("No")
 	}
@@ -1058,6 +1059,24 @@ func printEndpointNamedGroups(namedGroups *sslscan.NamedGroups) {
 		fmtc.Printf(" {s-}(server preferred order){!}\n")
 	} else {
 		fmtc.Printf("\n")
+	}
+}
+
+// print0RTTStatus prints 0-RTT support status
+func print0RTTStatus(status int) {
+	if status == -1 {
+		return
+	}
+
+	fmtc.Printf(" %-40s {s}|{!} ", "0-RTT")
+
+	switch status {
+	case -2:
+		fmtc.Println("Test failed")
+	case 0:
+		fmtc.Println("No")
+	case 1:
+		fmtc.Println("{g}Yes{!}")
 	}
 }
 
