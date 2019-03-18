@@ -44,7 +44,7 @@
 
 Summary:         Pretty awesome command-line client for public SSLLabs API
 Name:            sslcli
-Version:         2.1.0
+Version:         2.2.0
 Release:         0%{?dist}
 Group:           Applications/System
 License:         EKOL
@@ -92,6 +92,10 @@ rm -rf %{buildroot}
 ################################################################################
 
 %changelog
+* Tue Mar 19 2019 Anton Novojilov <andy@essentialkaos.com> - 2.2.0-0
+- Added info about 0-RTT support
+- Minor UI fixes
+
 * Mon Feb 11 2019 Anton Novojilov <andy@essentialkaos.com> - 2.1.0-0
 - Improved DROWN check status output
 
