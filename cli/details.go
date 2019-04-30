@@ -700,6 +700,38 @@ func printEndpointPoodleStatus(details *sslscan.EndpointDetails) {
 	} else {
 		fmtc.Println("No")
 	}
+
+	fmtc.Printf(" %-40s {s}|{!} ", "Zombie POODLE")
+
+	if details.ZombiePoodle == 2 {
+		fmtc.Println("{r}Vulnerable{!}")
+	} else {
+		fmtc.Println("No")
+	}
+
+	fmtc.Printf(" %-40s {s}|{!} ", "GOLDENDOODLE")
+
+	if details.GoldenDoodle == 2 {
+		fmtc.Println("{r}Vulnerable{!}")
+	} else {
+		fmtc.Println("No")
+	}
+
+	fmtc.Printf(" %-40s {s}|{!} ", "OpenSSL 0-Length")
+
+	if details.ZeroLengthPaddingOracle == 2 {
+		fmtc.Println("{r}Vulnerable{!}")
+	} else {
+		fmtc.Println("No")
+	}
+
+	fmtc.Printf(" %-40s {s}|{!} ", "Sleeping POODLE")
+
+	if details.SleepingPoodle == 2 {
+		fmtc.Println("{r}Vulnerable{!}")
+	} else {
+		fmtc.Println("No")
+	}
 }
 
 // printEndpointDrownStatus prints status of DROWN vulnerability
