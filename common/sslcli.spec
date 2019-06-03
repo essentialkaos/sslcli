@@ -44,7 +44,7 @@
 
 Summary:         Pretty awesome command-line client for public SSLLabs API
 Name:            sslcli
-Version:         2.3.0
+Version:         2.3.1
 Release:         0%{?dist}
 Group:           Applications/System
 License:         EKOL
@@ -92,6 +92,9 @@ rm -rf %{buildroot}
 ################################################################################
 
 %changelog
+* Mon Jun 03 2019 Anton Novojilov <andy@essentialkaos.com> - 2.3.1-0
+- Updated for compatibility with the latest version of SSLLabs API
+
 * Tue Apr 30 2019 Anton Novojilov <andy@essentialkaos.com> - 2.3.0-0
 - Added Zombie Poodle vulnerability info
 - Added Golden Doodle vulnerability info
