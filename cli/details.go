@@ -578,6 +578,15 @@ func printProtocolSuiteInfo(suite *sslscan.Suite, chaCha20Preference bool) {
 		preferred = true
 	}
 
+	if suite.Q != nil {
+		switch *suite.Q {
+		case 0:
+			insecure = true
+		case 1:
+			weak = true
+		}
+	}
+
 	switch {
 	case insecure == true:
 		fmtc.Printf(" {r}%-46s{!} {s}|{!} {r}%d (INSECURE){!} ", suite.Name, suite.CipherStrength)
