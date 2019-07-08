@@ -44,7 +44,7 @@
 
 Summary:         Pretty awesome command-line client for public SSLLabs API
 Name:            sslcli
-Version:         2.3.1
+Version:         2.4.0
 Release:         0%{?dist}
 Group:           Applications/System
 License:         EKOL
@@ -54,7 +54,7 @@ Source0:         https://source.kaos.st/%{name}/%{name}-%{version}.tar.bz2
 
 BuildRoot:       %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-BuildRequires:   golang >= 1.11
+BuildRequires:   golang >= 1.12
 
 Provides:        %{name} = %{version}-%{release}
 
@@ -76,7 +76,6 @@ go build src/github.com/essentialkaos/sslcli/%{name}.go
 rm -rf %{buildroot}
 
 install -dm 755 %{buildroot}%{_bindir}
-
 install -pm 755 %{name} %{buildroot}%{_bindir}/
 
 %clean
@@ -92,6 +91,10 @@ rm -rf %{buildroot}
 ################################################################################
 
 %changelog
+* Tue Jul 09 2019 Anton Novojilov <andy@essentialkaos.com> - 2.4.0-0
+- Added '--max-left/-M' for checking certificate expiry date
+- Minor improvements
+
 * Mon Jun 03 2019 Anton Novojilov <andy@essentialkaos.com> - 2.3.1-0
 - Updated for compatibility with the latest version of SSLLabs API
 

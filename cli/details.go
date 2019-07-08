@@ -8,6 +8,7 @@ package cli
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 import (
+	"fmt"
 	"strings"
 	"time"
 
@@ -18,7 +19,7 @@ import (
 	"pkg.re/essentialkaos/ek.v10/strutil"
 	"pkg.re/essentialkaos/ek.v10/timeutil"
 
-	"pkg.re/essentialkaos/sslscan.v10"
+	"pkg.re/essentialkaos/sslscan.v11"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -57,16 +58,16 @@ var isWeakForwardSecrecy bool
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // printDetailedInfo fetches and prints detailed info for all endpoints
-func printDetailedInfo(ap *sslscan.AnalyzeProgress) {
-	info, err := ap.Info(true)
+func printDetailedInfo(ap *sslscan.AnalyzeProgress, fromCache bool) {
+	info, err := ap.Info(true, fromCache)
 
 	if err != nil {
-		fmtc.Printf("\n{r}Can't fetch full analyze info: %v{!}\n\n", err)
+		printError("\nCan't fetch full analyze info: %v\n", err)
 		return
 	}
 
 	if strings.ToUpper(info.Status) != "READY" {
-		fmtc.Printf("\n{r}%s{!}\n\n", info.StatusMessage)
+		printError("\n%s\n", info.StatusMessage)
 		return
 	}
 
@@ -1480,4 +1481,31 @@ func getTrustInfo(certID string, endpoints []*sslscan.EndpointInfo) (map[string]
 	}
 
 	return result, true
+}
+
+// getExpiryMessage returns message if cert is expired in given period
+func getExpiryMessage(ap *sslscan.AnalyzeProgress, dur int64) string {
+	if dur <= 0 {
+		return ""
+	}
+
+	info, err := ap.Info(true, true)
+
+	if err != nil || strings.ToUpper(info.Status) != "READY" || len(info.Certs) == 0 {
+		return ""
+	}
+
+	cert := info.Certs[0]
+	validUntilDate := time.Unix(cert.NotAfter/1000, 0)
+
+	if validUntilDate.Unix()-time.Now().Unix() > dur {
+		return ""
+	}
+
+	validDays := (validUntilDate.Unix() - time.Now().Unix()) / 86400
+
+	return fmt.Sprintf(
+		" {r}(expires in %s){!}",
+		pluralize.Pluralize(int(validDays), "day", "days"),
+	)
 }
