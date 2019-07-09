@@ -23,6 +23,9 @@ import (
 	"pkg.re/essentialkaos/ek.v10/options"
 	"pkg.re/essentialkaos/ek.v10/strutil"
 	"pkg.re/essentialkaos/ek.v10/usage"
+	"pkg.re/essentialkaos/ek.v10/usage/completion/bash"
+	"pkg.re/essentialkaos/ek.v10/usage/completion/fish"
+	"pkg.re/essentialkaos/ek.v10/usage/completion/zsh"
 	"pkg.re/essentialkaos/ek.v10/usage/update"
 
 	"pkg.re/essentialkaos/sslscan.v11"
@@ -49,6 +52,8 @@ const (
 	OPT_NO_COLOR        = "nc:no-color"
 	OPT_HELP            = "h:help"
 	OPT_VER             = "v:version"
+
+	OPT_COMPLETION = "completion"
 )
 
 const (
@@ -95,6 +100,8 @@ var optMap = options.Map{
 	OPT_NO_COLOR:        {Type: options.BOOL},
 	OPT_HELP:            {Type: options.BOOL, Alias: "u:usage"},
 	OPT_VER:             {Type: options.BOOL, Alias: "ver"},
+
+	OPT_COMPLETION: {},
 }
 
 var gradeNumMap = map[string]float64{
@@ -129,6 +136,10 @@ func Init() {
 		}
 
 		os.Exit(1)
+	}
+
+	if options.Has(OPT_COMPLETION) {
+		genCompletion()
 	}
 
 	configureUI()
@@ -578,7 +589,13 @@ func printError(f string, a ...interface{}) {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
+// showUsage prints usage info
 func showUsage() {
+	genUsage().Render()
+}
+
+// genUsage generates usage info
+func genUsage() *usage.Info {
 	info := usage.NewInfo("", "host…")
 
 	info.AddOption(OPT_FORMAT, "Output result in different formats", "text|json|yaml|xml")
@@ -600,9 +617,28 @@ func showUsage() {
 	info.AddExample("-M 3m -q google.com", "Check google.com in quiet mode and return error if cert expire in 3 months")
 	info.AddExample("hosts.txt", "Check all hosts defined in hosts.txt file")
 
-	info.Render()
+	return info
 }
 
+// genCompletion generates completion for different shells
+func genCompletion() {
+	info := genUsage()
+
+	switch options.GetS(OPT_COMPLETION) {
+	case "bash":
+		fmt.Printf(bash.Generate(info, "sslcli"))
+	case "fish":
+		fmt.Printf(fish.Generate(info, "sslcli"))
+	case "zsh":
+		fmt.Printf(zsh.Generate(info, optMap, "sslcli"))
+	default:
+		os.Exit(1)
+	}
+
+	os.Exit(0)
+}
+
+// showAbout prints info about version
 func showAbout() {
 	about := &usage.About{
 		App:           APP,
