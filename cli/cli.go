@@ -9,9 +9,11 @@ package cli
 
 import (
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"os"
 	"runtime"
+	"strconv"
 	"strings"
 	"time"
 
@@ -19,17 +21,21 @@ import (
 	"pkg.re/essentialkaos/ek.v10/fmtutil"
 	"pkg.re/essentialkaos/ek.v10/fsutil"
 	"pkg.re/essentialkaos/ek.v10/options"
+	"pkg.re/essentialkaos/ek.v10/strutil"
 	"pkg.re/essentialkaos/ek.v10/usage"
+	"pkg.re/essentialkaos/ek.v10/usage/completion/bash"
+	"pkg.re/essentialkaos/ek.v10/usage/completion/fish"
+	"pkg.re/essentialkaos/ek.v10/usage/completion/zsh"
 	"pkg.re/essentialkaos/ek.v10/usage/update"
 
-	"pkg.re/essentialkaos/sslscan.v10"
+	"pkg.re/essentialkaos/sslscan.v11"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 const (
 	APP  = "SSLScan Client"
-	VER  = "2.3.1"
+	VER  = "2.4.0"
 	DESC = "Command-line client for the SSL Labs API"
 )
 
@@ -40,11 +46,14 @@ const (
 	OPT_AVOID_CACHE     = "c:avoid-cache"
 	OPT_PUBLIC          = "p:public"
 	OPT_PERFECT         = "P:perfect"
+	OPT_MAX_LEFT        = "M:max-left"
 	OPT_QUIET           = "q:quiet"
 	OPT_NOTIFY          = "n:notify"
 	OPT_NO_COLOR        = "nc:no-color"
 	OPT_HELP            = "h:help"
 	OPT_VER             = "v:version"
+
+	OPT_COMPLETION = "completion"
 )
 
 const (
@@ -80,6 +89,7 @@ type EndpointCheckInfo struct {
 
 var optMap = options.Map{
 	OPT_FORMAT:          {},
+	OPT_MAX_LEFT:        {},
 	OPT_DETAILED:        {Type: options.BOOL},
 	OPT_IGNORE_MISMATCH: {Type: options.BOOL},
 	OPT_AVOID_CACHE:     {Type: options.BOOL},
@@ -90,6 +100,8 @@ var optMap = options.Map{
 	OPT_NO_COLOR:        {Type: options.BOOL},
 	OPT_HELP:            {Type: options.BOOL, Alias: "u:usage"},
 	OPT_VER:             {Type: options.BOOL, Alias: "ver"},
+
+	OPT_COMPLETION: {},
 }
 
 var gradeNumMap = map[string]float64{
@@ -107,6 +119,8 @@ var gradeNumMap = map[string]float64{
 }
 
 var api *sslscan.API
+var maxLeftToExpiry int64
+var serverMessageShown bool
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
@@ -115,16 +129,21 @@ func Init() {
 	args, errs := options.Parse(optMap)
 
 	if len(errs) != 0 {
-		fmtc.Println("{r}Arguments parsing errors:{!}")
+		printError("Arguments parsing errors:")
 
 		for _, err := range errs {
-			fmtc.Printf("  {r}%v{!}\n", err)
+			printError("  %v", err)
 		}
 
 		os.Exit(1)
 	}
 
+	if options.Has(OPT_COMPLETION) {
+		genCompletion()
+	}
+
 	configureUI()
+	prepare()
 
 	if options.GetB(OPT_VER) {
 		showAbout()
@@ -150,6 +169,22 @@ func configureUI() {
 	fmtutil.SeparatorSymbol = "–"
 }
 
+// prepare prepares utility for processing data
+func prepare() {
+	if !options.Has(OPT_MAX_LEFT) {
+		return
+	}
+
+	var err error
+
+	maxLeftToExpiry, err = parseMaxLeft(options.GetS(OPT_MAX_LEFT))
+
+	if err != nil {
+		printError(err.Error())
+		os.Exit(1)
+	}
+}
+
 // process starting request processing
 func process(args []string) {
 	var (
@@ -162,7 +197,7 @@ func process(args []string) {
 
 	if err != nil {
 		if !options.GetB(OPT_FORMAT) {
-			fmtc.Printf("{r}%v{!}\n", err)
+			printError(err.Error())
 		}
 
 		os.Exit(1)
@@ -176,51 +211,38 @@ func process(args []string) {
 		hosts, err = readHostList(hosts[0])
 
 		if err != nil && options.GetB(OPT_FORMAT) {
-			fmtc.Printf("{r}%v{!}\n", err)
+			printError(err.Error())
 			os.Exit(1)
 		}
 	}
 
-	var (
-		grade      string
-		checksInfo []*HostCheckInfo
-		checkInfo  *HostCheckInfo
-	)
+	var grade string
+	var expiredSoon bool
+	var checksInfo []*HostCheckInfo
+	var checkInfo *HostCheckInfo
 
 	for _, host := range hosts {
-
 		switch {
 		case options.GetB(OPT_QUIET):
-			grade, _ = quietCheck(host)
+			grade, expiredSoon, _ = quietCheck(host)
 		case options.GetB(OPT_FORMAT):
-			grade, checkInfo = quietCheck(host)
+			grade, expiredSoon, checkInfo = quietCheck(host)
 			checksInfo = append(checksInfo, checkInfo)
 		default:
-			grade = check(host)
+			grade, expiredSoon = check(host)
 			fmtc.NewLine()
 		}
 
 		switch {
-		case options.GetB(OPT_PERFECT) && grade != "A+":
-			ok = false
-		case grade[:1] != "A":
+		case options.GetB(OPT_PERFECT) && grade != "A+",
+			strutil.Head(grade, 1) != "A",
+			expiredSoon:
 			ok = false
 		}
 	}
 
-	if options.GetB(OPT_FORMAT) {
-		switch options.GetS(OPT_FORMAT) {
-		case FORMAT_TEXT:
-			encodeAsText(checksInfo)
-		case FORMAT_JSON:
-			encodeAsJSON(checksInfo)
-		case FORMAT_XML:
-			encodeAsXML(checksInfo)
-		case FORMAT_YAML:
-			encodeAsYAML(checksInfo)
-		default:
-			os.Exit(1)
-		}
+	if options.Has(OPT_FORMAT) {
+		renderReport(checksInfo)
 	}
 
 	if options.GetB(OPT_NOTIFY) {
@@ -233,7 +255,7 @@ func process(args []string) {
 }
 
 // check check some host
-func check(host string) string {
+func check(host string) (string, bool) {
 	var err error
 	var info *sslscan.AnalyzeInfo
 
@@ -252,20 +274,20 @@ func check(host string) string {
 
 	if err != nil {
 		fmtc.TPrintf("{*}%s{!} → {r}%v{!}\n", host, err)
-		return "T"
+		return "T", false
 	}
 
 	for {
-		info, err = ap.Info(false)
+		info, err = ap.Info(false, params.FromCache)
 
 		if err != nil {
 			fmtc.TPrintf("{*}%s{!} → {r}%v{!}\n", host, err)
-			return "Err"
+			return "Err", false
 		}
 
 		if info.Status == sslscan.STATUS_ERROR {
 			fmtc.TPrintf("{*}%s{!} → {r}%s{!}\n", host, info.StatusMessage)
-			return "Err"
+			return "Err", false
 		} else if info.Status == sslscan.STATUS_READY {
 			break
 		}
@@ -285,23 +307,29 @@ func check(host string) string {
 		}
 	}
 
+	expiryMessage := getExpiryMessage(ap, maxLeftToExpiry)
+
 	if len(info.Endpoints) == 1 {
-		fmtc.TPrintf("{*}%s{!} → "+getColoredGrade(info.Endpoints[0].Grade)+"\n", host)
+		fmtc.TPrintf("{*}%s{!} → "+getColoredGrade(info.Endpoints[0].Grade)+expiryMessage+"\n", host)
 	} else {
-		fmtc.TPrintf("{*}%s{!} → "+getColoredGrades(info.Endpoints)+"\n", host)
+		fmtc.TPrintf("{*}%s{!} → "+getColoredGrades(info.Endpoints)+expiryMessage+"\n", host)
 	}
 
 	if options.GetB(OPT_DETAILED) {
-		printDetailedInfo(ap)
+		printDetailedInfo(ap, true)
 	}
 
 	lowestGrade, _ := getGrades(info.Endpoints)
 
-	return lowestGrade
+	return lowestGrade, expiryMessage != ""
 }
 
 // showServerMessage show message from SSL Labs API
 func showServerMessage() {
+	if serverMessageShown {
+		return
+	}
+
 	serverMessage := strings.Join(api.Info.Messages, " ")
 	wrappedMessage := fmtutil.Wrap(serverMessage, "", 80)
 
@@ -320,10 +348,12 @@ func showServerMessage() {
 		api.Info.NewAssessmentCoolOff,
 	)
 	fmtc.NewLine()
+
+	serverMessageShown = true
 }
 
 // quietCheck check some host without any output to console
-func quietCheck(host string) (string, *HostCheckInfo) {
+func quietCheck(host string) (string, bool, *HostCheckInfo) {
 	var err error
 	var info *sslscan.AnalyzeInfo
 
@@ -346,23 +376,29 @@ func quietCheck(host string) (string, *HostCheckInfo) {
 	ap, err := api.Analyze(host, params)
 
 	if err != nil {
-		return "Err", checkInfo
+		return "Err", false, checkInfo
 	}
 
 	for {
-		info, err = ap.Info(false)
+		info, err = ap.Info(false, params.FromCache)
 
 		if err != nil {
-			return "Err", checkInfo
+			return "Err", false, checkInfo
 		}
 
 		if info.Status == sslscan.STATUS_ERROR {
-			return "Err", checkInfo
+			return "Err", false, checkInfo
 		} else if info.Status == sslscan.STATUS_READY {
 			break
 		}
 
 		time.Sleep(time.Second)
+	}
+
+	var expiredSoon bool
+
+	if maxLeftToExpiry > 0 {
+		expiredSoon = getExpiryMessage(ap, maxLeftToExpiry) != ""
 	}
 
 	appendEndpointsInfo(checkInfo, info.Endpoints)
@@ -374,7 +410,23 @@ func quietCheck(host string) (string, *HostCheckInfo) {
 	checkInfo.LowestGradeNum = gradeNumMap[lowestGrade]
 	checkInfo.HighestGradeNum = gradeNumMap[highestGrade]
 
-	return lowestGrade, checkInfo
+	return lowestGrade, expiredSoon, checkInfo
+}
+
+// renderReport renders report in different formats
+func renderReport(checksInfo []*HostCheckInfo) {
+	switch options.GetS(OPT_FORMAT) {
+	case FORMAT_TEXT:
+		encodeAsText(checksInfo)
+	case FORMAT_JSON:
+		encodeAsJSON(checksInfo)
+	case FORMAT_XML:
+		encodeAsXML(checksInfo)
+	case FORMAT_YAML:
+		encodeAsYAML(checksInfo)
+	default:
+		os.Exit(1)
+	}
 }
 
 // getColoredGrade return grade with color tags
@@ -445,7 +497,7 @@ func getStatusInProgress(endpoints []*sslscan.EndpointInfo) string {
 		}
 
 		if endpoint.StatusDetailsMessage != "" {
-			return fmtc.Sprintf("#%d: %s", num, endpoint.StatusDetailsMessage)
+			return fmt.Sprintf("#%d: %s", num, endpoint.StatusDetailsMessage)
 		}
 	}
 
@@ -498,6 +550,28 @@ func appendEndpointsInfo(checkInfo *HostCheckInfo, endpoints []*sslscan.Endpoint
 	}
 }
 
+// parseMaxLeft parses max left option value
+func parseMaxLeft(dur string) (int64, error) {
+	tm := strutil.Tail(dur, 1)
+	t := strings.Trim(dur, "dwmy")
+	ti, err := strconv.ParseInt(t, 10, 64)
+
+	if err != nil {
+		return -1, fmt.Errorf("Invalid value for --max-left option: %s", dur)
+	}
+
+	switch strings.ToLower(tm) {
+	case "w":
+		return ti * 604800, nil
+	case "m":
+		return ti * 2592000, nil
+	case "y":
+		return ti * 31536000, nil
+	default:
+		return ti * 86400, nil
+	}
+}
+
 // getNormGrade return grade or error
 func getNormGrade(grade string) string {
 	switch grade {
@@ -508,9 +582,20 @@ func getNormGrade(grade string) string {
 	}
 }
 
+// printError prints error message to console
+func printError(f string, a ...interface{}) {
+	fmtc.Fprintf(os.Stderr, "{r}"+f+"{!}\n", a...)
+}
+
 // ////////////////////////////////////////////////////////////////////////////////// //
 
+// showUsage prints usage info
 func showUsage() {
+	genUsage().Render()
+}
+
+// genUsage generates usage info
+func genUsage() *usage.Info {
 	info := usage.NewInfo("", "host…")
 
 	info.AddOption(OPT_FORMAT, "Output result in different formats", "text|json|yaml|xml")
@@ -519,6 +604,7 @@ func showUsage() {
 	info.AddOption(OPT_AVOID_CACHE, "Disable cache usage")
 	info.AddOption(OPT_PUBLIC, "Publish results on sslscan.com")
 	info.AddOption(OPT_PERFECT, "Return non-zero exit code if not A+")
+	info.AddOption(OPT_MAX_LEFT, "Check expiry date {s-}(num + d/w/m/y){!}", "duration")
 	info.AddOption(OPT_NOTIFY, "Notify when check is done")
 	info.AddOption(OPT_QUIET, "Don't show any output")
 	info.AddOption(OPT_NO_COLOR, "Disable colors in output")
@@ -528,11 +614,31 @@ func showUsage() {
 	info.AddExample("google.com", "Check google.com")
 	info.AddExample("-P google.com", "Check google.com and return zero exit code only if result is perfect (A+)")
 	info.AddExample("-p -c google.com", "Check google.com, publish results, disable cache usage")
+	info.AddExample("-M 3m -q google.com", "Check google.com in quiet mode and return error if cert expire in 3 months")
 	info.AddExample("hosts.txt", "Check all hosts defined in hosts.txt file")
 
-	info.Render()
+	return info
 }
 
+// genCompletion generates completion for different shells
+func genCompletion() {
+	info := genUsage()
+
+	switch options.GetS(OPT_COMPLETION) {
+	case "bash":
+		fmt.Printf(bash.Generate(info, "sslcli"))
+	case "fish":
+		fmt.Printf(fish.Generate(info, "sslcli"))
+	case "zsh":
+		fmt.Printf(zsh.Generate(info, optMap, "sslcli"))
+	default:
+		os.Exit(1)
+	}
+
+	os.Exit(0)
+}
+
+// showAbout prints info about version
 func showAbout() {
 	about := &usage.About{
 		App:           APP,
