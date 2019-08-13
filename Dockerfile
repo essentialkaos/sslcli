@@ -12,7 +12,7 @@ RUN apk add --no-cache git=~2.22 make=4.2.1-r2 && \
 
 ## FINAL IMAGE #################################################################
 
-FROM alpine:latest
+FROM alpine:3.10
 
 LABEL name="SSLCLI Image" \
       vendor="ESSENTIAL KAOS" \
