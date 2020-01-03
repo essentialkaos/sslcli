@@ -28,7 +28,7 @@ git-config: ## Configure git redirects for stable import path services
 
 deps: git-config ## Download dependencies
 	go get -d -v pkg.re/essentialkaos/ek.v11
-	go get -d -v pkg.re/essentialkaos/sslscan.v11
+	go get -d -v pkg.re/essentialkaos/sslscan.v12
 
 fmt: ## Format source code with gofmt
 	find . -name "*.go" -exec gofmt -s -w {} \;
