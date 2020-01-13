@@ -6,7 +6,7 @@ WORKDIR /go/src/github.com/essentialkaos/sslcli
 
 COPY . .
 
-RUN apk add --no-cache git=~2.22 make=4.2.1-r2 && \
+RUN apk add --no-cache git=~2.24 make=4.2.1-r2 && \
     make deps && \
     make all
 
@@ -18,7 +18,7 @@ LABEL name="SSLCLI Image" \
       vendor="ESSENTIAL KAOS" \
       maintainer="Anton Novojilov" \
       license="EKOL" \
-      version="2019.08.14"
+      version="2020.01.13"
 
 COPY --from=builder /go/src/github.com/essentialkaos/sslcli/sslcli /usr/bin/
 
