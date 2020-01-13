@@ -29,7 +29,7 @@ matrix:
 before_install:
   - docker pull "$IMAGE"
   - wget https://kaos.sh/perfecto/perfecto-docker
-  - wget -O hadolint https://github.com/hadolint/hadolint/releases/download/v1.17.2/hadolint-Linux-x86_64
+  - wget -O hadolint https://github.com/hadolint/hadolint/releases/download/v1.17.4/hadolint-Linux-x86_64
   - chmod +x perfecto-docker
   - chmod +x hadolint
   - ./hadolint --version
