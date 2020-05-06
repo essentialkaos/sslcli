@@ -1,9 +1,9 @@
 language: go
 
 go:
-  - 1.11.x
   - 1.12.x
   - 1.13.x
+  - 1.14.x
   - tip
 
 os:
@@ -19,7 +19,7 @@ branches:
 
 env:
   global:
-    - IMAGE=essentialkaos/perfecto:centos7
+    - IMAGE=essentialkaos/perfecto:centos7 HADOLINT_VERSION=1.17.5
 
 matrix:
   fast_finish: true
@@ -29,7 +29,7 @@ matrix:
 before_install:
   - docker pull "$IMAGE"
   - wget https://kaos.sh/perfecto/perfecto-docker
-  - wget -O hadolint https://github.com/hadolint/hadolint/releases/download/v1.17.4/hadolint-Linux-x86_64
+  - wget -O hadolint https://github.com/hadolint/hadolint/releases/download/v${HADOLINT_VERSION}/hadolint-Linux-x86_64
   - chmod +x perfecto-docker
   - chmod +x hadolint
   - ./hadolint --version
