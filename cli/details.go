@@ -2,7 +2,7 @@ package cli
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                     Copyright (c) 2009-2019 ESSENTIAL KAOS                         //
+//                     Copyright (c) 2009-2020 ESSENTIAL KAOS                         //
 //      Apache License, Version 2.0 <http://www.apache.org/licenses/LICENSE-2.0>      //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -12,12 +12,12 @@ import (
 	"strings"
 	"time"
 
-	"pkg.re/essentialkaos/ek.v11/fmtc"
-	"pkg.re/essentialkaos/ek.v11/fmtutil"
-	"pkg.re/essentialkaos/ek.v11/pluralize"
-	"pkg.re/essentialkaos/ek.v11/sliceutil"
-	"pkg.re/essentialkaos/ek.v11/strutil"
-	"pkg.re/essentialkaos/ek.v11/timeutil"
+	"pkg.re/essentialkaos/ek.v12/fmtc"
+	"pkg.re/essentialkaos/ek.v12/fmtutil"
+	"pkg.re/essentialkaos/ek.v12/pluralize"
+	"pkg.re/essentialkaos/ek.v12/sliceutil"
+	"pkg.re/essentialkaos/ek.v12/strutil"
+	"pkg.re/essentialkaos/ek.v12/timeutil"
 
 	"pkg.re/essentialkaos/sslscan.v12"
 )
@@ -1126,6 +1126,7 @@ func print0RTTStatus(status int) {
 func printPolicyInfo(policy *sslscan.HPKPPolicy) {
 	if policy == nil {
 		fmtc.Println("No")
+		return
 	}
 
 	switch policy.Status {

@@ -4,7 +4,7 @@ package main
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                     Copyright (c) 2009-2019 ESSENTIAL KAOS                         //
+//                     Copyright (c) 2009-2020 ESSENTIAL KAOS                         //
 //      Apache License, Version 2.0 <http://www.apache.org/licenses/LICENSE-2.0>      //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
