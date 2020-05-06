@@ -2,7 +2,7 @@ package cli
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                     Copyright (c) 2009-2019 ESSENTIAL KAOS                         //
+//                     Copyright (c) 2009-2020 ESSENTIAL KAOS                         //
 //      Apache License, Version 2.0 <http://www.apache.org/licenses/LICENSE-2.0>      //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -17,16 +17,16 @@ import (
 	"strings"
 	"time"
 
-	"pkg.re/essentialkaos/ek.v11/fmtc"
-	"pkg.re/essentialkaos/ek.v11/fmtutil"
-	"pkg.re/essentialkaos/ek.v11/fsutil"
-	"pkg.re/essentialkaos/ek.v11/options"
-	"pkg.re/essentialkaos/ek.v11/strutil"
-	"pkg.re/essentialkaos/ek.v11/usage"
-	"pkg.re/essentialkaos/ek.v11/usage/completion/bash"
-	"pkg.re/essentialkaos/ek.v11/usage/completion/fish"
-	"pkg.re/essentialkaos/ek.v11/usage/completion/zsh"
-	"pkg.re/essentialkaos/ek.v11/usage/update"
+	"pkg.re/essentialkaos/ek.v12/fmtc"
+	"pkg.re/essentialkaos/ek.v12/fmtutil"
+	"pkg.re/essentialkaos/ek.v12/fsutil"
+	"pkg.re/essentialkaos/ek.v12/options"
+	"pkg.re/essentialkaos/ek.v12/strutil"
+	"pkg.re/essentialkaos/ek.v12/usage"
+	"pkg.re/essentialkaos/ek.v12/usage/completion/bash"
+	"pkg.re/essentialkaos/ek.v12/usage/completion/fish"
+	"pkg.re/essentialkaos/ek.v12/usage/completion/zsh"
+	"pkg.re/essentialkaos/ek.v12/usage/update"
 
 	"pkg.re/essentialkaos/sslscan.v12"
 )
