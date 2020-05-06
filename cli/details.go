@@ -1126,6 +1126,7 @@ func print0RTTStatus(status int) {
 func printPolicyInfo(policy *sslscan.HPKPPolicy) {
 	if policy == nil {
 		fmtc.Println("No")
+		return
 	}
 
 	switch policy.Status {

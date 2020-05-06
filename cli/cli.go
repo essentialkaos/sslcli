@@ -35,7 +35,7 @@ import (
 
 const (
 	APP  = "SSLScan Client"
-	VER  = "2.5.0"
+	VER  = "2.6.0"
 	DESC = "Command-line client for the SSL Labs API"
 )
 

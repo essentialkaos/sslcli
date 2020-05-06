@@ -44,7 +44,7 @@
 
 Summary:         Pretty awesome command-line client for public SSLLabs API
 Name:            sslcli
-Version:         2.5.0
+Version:         2.6.0
 Release:         0%{?dist}
 Group:           Applications/System
 License:         EKOL
@@ -119,6 +119,10 @@ fi
 ################################################################################
 
 %changelog
+* Wed May 06 2020 Anton Novojilov <andy@essentialkaos.com> - 2.6.0-0
+- Fixed panic if HPKPPolicy is empty
+- ek package updated to v12
+
 * Fri Jan 03 2020 Anton Novojilov <andy@essentialkaos.com> - 2.5.0-0
 - Updated for compatibility with the latest version of SSLLabs API
 
