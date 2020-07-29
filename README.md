@@ -4,6 +4,7 @@
   <a href="https://goreportcard.com/report/github.com/essentialkaos/sslcli"><img src="https://goreportcard.com/badge/github.com/essentialkaos/sslcli"></a>
   <a href="https://codebeat.co/projects/github-com-essentialkaos-sslcli-master"><img src="https://codebeat.co/badges/edc52bb1-c807-470b-8466-b86cc0cfcdbe"></a>
   <a href="https://travis-ci.com/essentialkaos/sslcli"><img src="https://travis-ci.com/essentialkaos/sslcli.svg"></a>
+  <img src="https://github.com/essentialkaos/sslcli/workflows/CodeQL/badge.svg">
   <a href="#license"><img src="https://gh.kaos.st/apache2.svg"></a>
 </p>
 
