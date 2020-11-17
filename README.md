@@ -3,7 +3,7 @@
 <p align="center">
   <a href="https://goreportcard.com/report/github.com/essentialkaos/sslcli"><img src="https://goreportcard.com/badge/github.com/essentialkaos/sslcli"></a>
   <a href="https://codebeat.co/projects/github-com-essentialkaos-sslcli-master"><img src="https://codebeat.co/badges/edc52bb1-c807-470b-8466-b86cc0cfcdbe"></a>
-  <a href="https://travis-ci.com/essentialkaos/sslcli"><img src="https://travis-ci.com/essentialkaos/sslcli.svg"></a>
+  <a href="https://github.com/essentialkaos/sslcli/actions"><img src="https://github.com/essentialkaos/sslcli/workflows/CI/badge.svg" alt="GitHub Actions Status" /></a>
   <a href="https://github.com/essentialkaos/sslcli/actions?query=workflow%3ACodeQL"><img src="https://github.com/essentialkaos/sslcli/workflows/CodeQL/badge.svg" /></a>
   <a href="#license"><img src="https://gh.kaos.st/apache2.svg"></a>
 </p>
@@ -24,13 +24,7 @@
 
 #### From source
 
-Before the initial install allows git to use redirects for [pkg.re](https://github.com/essentialkaos/pkgre) service (_reason why you should do this described [here](https://github.com/essentialkaos/pkgre#git-support)_):
-
-```
-git config --global http.https://pkg.re.followRedirects true
-```
-
-To build the SSLScan Client from scratch, make sure you have a working Go 1.12+ workspace ([instructions](https://golang.org/doc/install)), then:
+To build the SSLScan Client from scratch, make sure you have a working Go 1.14+ workspace ([instructions](https://golang.org/doc/install)), then:
 
 ```
 go get github.com/essentialkaos/sslcli
@@ -42,18 +36,11 @@ If you want update SSLScan Client to latest stable release, do:
 go get -u github.com/essentialkaos/sslcli
 ```
 
-#### From ESSENTIAL KAOS Public repo for RHEL6/CentOS6
+#### From [ESSENTIAL KAOS Public Repository](https://yum.kaos.st)
 
 ```bash
-[sudo] yum install -y https://yum.kaos.st/kaos-repo-latest.el6.noarch.rpm
-[sudo] yum install sslcli
-```
-
-#### From ESSENTIAL KAOS Public repo for RHEL7/CentOS7
-
-```bash
-[sudo] yum install -y https://yum.kaos.st/kaos-repo-latest.el7.noarch.rpm
-[sudo] yum install sslcli
+sudo yum install -y https://yum.kaos.st/get/$(uname -r).rpm
+sudo yum install yo
 ```
 
 #### Prebuilt binaries
@@ -125,8 +112,8 @@ Examples
 
 | Branch | Status |
 |--------|--------|
-| `master` | [![Build Status](https://travis-ci.com/essentialkaos/sslcli.svg?branch=master)](https://travis-ci.com/essentialkaos/sslcli) |
-| `develop` | [![Build Status](https://travis-ci.com/essentialkaos/sslcli.svg?branch=develop)](https://travis-ci.com/essentialkaos/sslcli) |
+| `master` | [![CI](https://github.com/essentialkaos/sslcli/workflows/CI/badge.svg?branch=master)](https://github.com/essentialkaos/sslcli/actions) |
+| `develop` | [![CI](https://github.com/essentialkaos/sslcli/workflows/CI/badge.svg?branch=develop)](https://github.com/essentialkaos/sslcli/actions) |
 
 ### Contributing
 
