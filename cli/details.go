@@ -19,7 +19,7 @@ import (
 	"pkg.re/essentialkaos/ek.v12/strutil"
 	"pkg.re/essentialkaos/ek.v12/timeutil"
 
-	"pkg.re/essentialkaos/sslscan.v12"
+	"pkg.re/essentialkaos/sslscan.v13"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //

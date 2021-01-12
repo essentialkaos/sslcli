@@ -28,14 +28,14 @@ import (
 	"pkg.re/essentialkaos/ek.v12/usage/completion/zsh"
 	"pkg.re/essentialkaos/ek.v12/usage/update"
 
-	"pkg.re/essentialkaos/sslscan.v12"
+	"pkg.re/essentialkaos/sslscan.v13"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 const (
 	APP  = "SSLScan Client"
-	VER  = "2.6.0"
+	VER  = "2.7.0"
 	DESC = "Command-line client for the SSL Labs API"
 )
 
