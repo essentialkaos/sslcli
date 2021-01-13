@@ -4,6 +4,10 @@
 
 ################################################################################
 
+%global crc_check pushd ../SOURCES ; sha512sum -c %{SOURCE100} ; popd
+
+################################################################################
+
 %define  debug_package %{nil}
 
 ################################################################################
@@ -52,6 +56,8 @@ URL:             https://kaos.sh/sslcli
 
 Source0:         https://source.kaos.st/%{name}/%{name}-%{version}.tar.bz2
 
+Source100:       checksum.sha512
+
 BuildRoot:       %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
 BuildRequires:   golang >= 1.14
@@ -66,6 +72,8 @@ Pretty awesome command-line client for public SSLLabs API.
 ################################################################################
 
 %prep
+%{crc_check}
+
 %setup -q
 
 %build
@@ -76,6 +84,8 @@ go build src/github.com/essentialkaos/sslcli/%{name}.go
 rm -rf %{buildroot}
 
 install -dm 755 %{buildroot}%{_bindir}
+install -dm 755 %{buildroot}%{_mandir}/man1
+
 install -pm 755 %{name} %{buildroot}%{_bindir}/
 
 ./%{name} --generate-man > %{buildroot}%{_mandir}/man1/%{name}.1
