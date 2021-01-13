@@ -4,6 +4,10 @@
 
 ################################################################################
 
+%global crc_check pushd ../SOURCES ; sha512sum -c %{SOURCE100} ; popd
+
+################################################################################
+
 %define  debug_package %{nil}
 
 ################################################################################
@@ -44,17 +48,19 @@
 
 Summary:         Pretty awesome command-line client for public SSLLabs API
 Name:            sslcli
-Version:         2.6.0
+Version:         2.7.0
 Release:         0%{?dist}
 Group:           Applications/System
 License:         Apache License, Version 2.0
-URL:             https://github.com/essentialkaos/sslcli
+URL:             https://kaos.sh/sslcli
 
 Source0:         https://source.kaos.st/%{name}/%{name}-%{version}.tar.bz2
 
+Source100:       checksum.sha512
+
 BuildRoot:       %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-BuildRequires:   golang >= 1.13
+BuildRequires:   golang >= 1.14
 
 Provides:        %{name} = %{version}-%{release}
 
@@ -66,6 +72,8 @@ Pretty awesome command-line client for public SSLLabs API.
 ################################################################################
 
 %prep
+%{crc_check}
+
 %setup -q
 
 %build
@@ -76,7 +84,11 @@ go build src/github.com/essentialkaos/sslcli/%{name}.go
 rm -rf %{buildroot}
 
 install -dm 755 %{buildroot}%{_bindir}
+install -dm 755 %{buildroot}%{_mandir}/man1
+
 install -pm 755 %{name} %{buildroot}%{_bindir}/
+
+./%{name} --generate-man > %{buildroot}%{_mandir}/man1/%{name}.1
 
 %clean
 rm -rf %{buildroot}
@@ -114,11 +126,15 @@ fi
 %files
 %defattr(-,root,root,-)
 %doc LICENSE
+%{_mandir}/man1/%{name}.1.*
 %{_bindir}/%{name}
 
 ################################################################################
 
 %changelog
+* Wed Jan 13 2021 Anton Novojilov <andy@essentialkaos.com> - 2.7.0-0
+- sslscan package updated to v13
+
 * Wed May 06 2020 Anton Novojilov <andy@essentialkaos.com> - 2.6.0-0
 - Fixed panic if HPKPPolicy is empty
 - ek package updated to v12

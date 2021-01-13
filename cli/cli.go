@@ -2,7 +2,7 @@ package cli
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                         Copyright (c) 2020 ESSENTIAL KAOS                          //
+//                         Copyright (c) 2021 ESSENTIAL KAOS                          //
 //      Apache License, Version 2.0 <http://www.apache.org/licenses/LICENSE-2.0>      //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -26,16 +26,17 @@ import (
 	"pkg.re/essentialkaos/ek.v12/usage/completion/bash"
 	"pkg.re/essentialkaos/ek.v12/usage/completion/fish"
 	"pkg.re/essentialkaos/ek.v12/usage/completion/zsh"
+	"pkg.re/essentialkaos/ek.v12/usage/man"
 	"pkg.re/essentialkaos/ek.v12/usage/update"
 
-	"pkg.re/essentialkaos/sslscan.v12"
+	"pkg.re/essentialkaos/sslscan.v13"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 const (
 	APP  = "SSLScan Client"
-	VER  = "2.6.0"
+	VER  = "2.7.0"
 	DESC = "Command-line client for the SSL Labs API"
 )
 
@@ -53,7 +54,8 @@ const (
 	OPT_HELP            = "h:help"
 	OPT_VER             = "v:version"
 
-	OPT_COMPLETION = "completion"
+	OPT_COMPLETION   = "completion"
+	OPT_GENERATE_MAN = "generate-man"
 )
 
 const (
@@ -101,7 +103,8 @@ var optMap = options.Map{
 	OPT_HELP:            {Type: options.BOOL, Alias: "u:usage"},
 	OPT_VER:             {Type: options.BOOL, Alias: "ver"},
 
-	OPT_COMPLETION: {},
+	OPT_COMPLETION:   {},
+	OPT_GENERATE_MAN: {Type: options.BOOL},
 }
 
 var gradeNumMap = map[string]float64{
@@ -139,7 +142,11 @@ func Init() {
 	}
 
 	if options.Has(OPT_COMPLETION) {
-		genCompletion()
+		os.Exit(genCompletion())
+	}
+
+	if options.Has(OPT_GENERATE_MAN) {
+		os.Exit(genMan())
 	}
 
 	configureUI()
@@ -594,6 +601,41 @@ func showUsage() {
 	genUsage().Render()
 }
 
+// showAbout prints info about version
+func showAbout() {
+	genAbout().Render()
+}
+
+// genMan generates man page
+func genMan() int {
+	fmt.Println(
+		man.Generate(
+			genUsage(),
+			genAbout(),
+		),
+	)
+
+	return 0
+}
+
+// genCompletion generates completion for different shells
+func genCompletion() int {
+	info := genUsage()
+
+	switch options.GetS(OPT_COMPLETION) {
+	case "bash":
+		fmt.Printf(bash.Generate(info, "sslcli"))
+	case "fish":
+		fmt.Printf(fish.Generate(info, "sslcli"))
+	case "zsh":
+		fmt.Printf(zsh.Generate(info, optMap, "sslcli"))
+	default:
+		return 1
+	}
+
+	return 0
+}
+
 // genUsage generates usage info
 func genUsage() *usage.Info {
 	info := usage.NewInfo("", "host…")
@@ -620,35 +662,17 @@ func genUsage() *usage.Info {
 	return info
 }
 
-// genCompletion generates completion for different shells
-func genCompletion() {
-	info := genUsage()
-
-	switch options.GetS(OPT_COMPLETION) {
-	case "bash":
-		fmt.Printf(bash.Generate(info, "sslcli"))
-	case "fish":
-		fmt.Printf(fish.Generate(info, "sslcli"))
-	case "zsh":
-		fmt.Printf(zsh.Generate(info, optMap, "sslcli"))
-	default:
-		os.Exit(1)
-	}
-
-	os.Exit(0)
-}
-
-// showAbout prints info about version
-func showAbout() {
+// genAbout generates info about version
+func genAbout() *usage.About {
 	about := &usage.About{
 		App:           APP,
 		Version:       VER,
 		Desc:          DESC,
 		Year:          2009,
-		Owner:         "Essential Kaos",
+		Owner:         "ESSENTIAL KAOS",
 		License:       "Apache License, Version 2.0 <http://www.apache.org/licenses/LICENSE-2.0>",
 		UpdateChecker: usage.UpdateChecker{"essentialkaos/sslcli", update.GitHubChecker},
 	}
 
-	about.Render()
+	return about
 }
