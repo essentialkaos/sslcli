@@ -78,6 +78,8 @@ rm -rf %{buildroot}
 install -dm 755 %{buildroot}%{_bindir}
 install -pm 755 %{name} %{buildroot}%{_bindir}/
 
+./%{name} --generate-man > %{buildroot}%{_mandir}/man1/%{name}.1
+
 %clean
 rm -rf %{buildroot}
 
@@ -114,6 +116,7 @@ fi
 %files
 %defattr(-,root,root,-)
 %doc LICENSE
+%{_mandir}/man1/%{name}.1.*
 %{_bindir}/%{name}
 
 ################################################################################
