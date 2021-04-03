@@ -6,19 +6,22 @@ WORKDIR /go/src/github.com/essentialkaos/sslcli
 
 COPY . .
 
-RUN apk add --no-cache git=~2.26 make=4.3-r0 && \
+ENV GO111MODULE=auto
+
+RUN apk add --no-cache git=~2.30 make=4.3-r0 upx=3.96-r0 && \
     make deps && \
-    make all
+    make all && \
+    upx sslcli
 
 ## FINAL IMAGE #################################################################
 
-FROM alpine:3.10
+FROM alpine:3.13
 
 LABEL name="SSLCLI Image" \
       vendor="ESSENTIAL KAOS" \
       maintainer="Anton Novojilov" \
       license="EKOL" \
-      version="2020.06.13"
+      version="2021.04.03"
 
 COPY --from=builder /go/src/github.com/essentialkaos/sslcli/sslcli /usr/bin/
 
