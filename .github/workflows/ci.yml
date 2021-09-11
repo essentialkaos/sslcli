@@ -79,19 +79,11 @@ jobs:
         working-directory: ${{env.SRC_DIR}}
         run: make deps
 
-      - name: Install Aligo
-        working-directory: ${{env.SRC_DIR}}
-        run: |
-          wget https://apps.kaos.st/aligo/latest/linux/x86_64/aligo
-          chmod +x aligo
-
-      - name: Print Aligo version info
-        working-directory: ${{env.SRC_DIR}}
-        run: ./aligo --version
-
-      - name: Check Go structs alignment info
-        working-directory: ${{env.SRC_DIR}}
-        run: ./aligo check ./...
+      - name: Check Golang sources with Aligo
+        uses: essentialkaos/aligo-action@v1
+        with:
+          path: ${{env.SRC_DIR}}
+          files: ./...
 
   Perfecto:
     name: Perfecto
@@ -109,20 +101,10 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Run Perfecto docker image
-        uses: docker://essentialkaos/perfecto:micro
+      - name: Check specs with Perfecto
+        uses: essentialkaos/perfecto-action@v1
         with:
-          args: --version
-
-      - name: Install perfecto-docker
-        run: |
-          wget https://kaos.sh/perfecto/perfecto-docker
-          chmod +x perfecto-docker
-
-      - name: Run Perfecto check
-        env:
-          IMAGE: essentialkaos/perfecto:micro
-        run: ./perfecto-docker common/sslcli.spec
+          files: common/sslcli.spec
 
   Hadolint:
     name: Hadolint
@@ -130,23 +112,14 @@ jobs:
 
     needs: Go
 
-    env:
-      HADOLINT_VERSION: 2.6.1
-
     steps:
       - name: Checkout
         uses: actions/checkout@v2
 
-      - name: Install Hadolint
-        run: |
-          wget -O hadolint https://github.com/hadolint/hadolint/releases/download/v${HADOLINT_VERSION}/hadolint-Linux-x86_64
-          chmod +x hadolint
-      
-      - name: Print Hadolint version info
-        run: ./hadolint --version
-
-      - name: Check Docker files
-        run: ./hadolint Dockerfile
+      - name: Check dockerfiles with Hadolint
+        uses: essentialkaos/hadolint-action@v1
+        with:
+          files: Dockerfile
 
   DockerBuild:
     name: Docker Build Check
@@ -164,6 +137,6 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Build CentOS 7 image
+      - name: Build Docker image
         run: |
-          docker build -f Dockerfile -t centos7 .
+          docker build -f Dockerfile -t sslcli .
