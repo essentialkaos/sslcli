@@ -2,7 +2,7 @@ package cli
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                         Copyright (c) 2021 ESSENTIAL KAOS                          //
+//                         Copyright (c) 2022 ESSENTIAL KAOS                          //
 //      Apache License, Version 2.0 <http://www.apache.org/licenses/LICENSE-2.0>      //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -12,14 +12,14 @@ import (
 	"strings"
 	"time"
 
-	"pkg.re/essentialkaos/ek.v12/fmtc"
-	"pkg.re/essentialkaos/ek.v12/fmtutil"
-	"pkg.re/essentialkaos/ek.v12/pluralize"
-	"pkg.re/essentialkaos/ek.v12/sliceutil"
-	"pkg.re/essentialkaos/ek.v12/strutil"
-	"pkg.re/essentialkaos/ek.v12/timeutil"
+	"github.com/essentialkaos/ek/v12/fmtc"
+	"github.com/essentialkaos/ek/v12/fmtutil"
+	"github.com/essentialkaos/ek/v12/pluralize"
+	"github.com/essentialkaos/ek/v12/sliceutil"
+	"github.com/essentialkaos/ek/v12/strutil"
+	"github.com/essentialkaos/ek/v12/timeutil"
 
-	"pkg.re/essentialkaos/sslscan.v13"
+	"github.com/essentialkaos/sslscan/v13"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
