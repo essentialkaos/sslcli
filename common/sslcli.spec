@@ -78,7 +78,9 @@ Pretty awesome command-line client for public SSLLabs API.
 
 %build
 export GOPATH=$(pwd)
-go build src/github.com/essentialkaos/sslcli/%{name}.go
+pushd src/github.com/essentialkaos/%{name}
+  go build -mod vendor -o $GOPATH/%{name} %{name}.go
+popd
 
 %install
 rm -rf %{buildroot}
@@ -132,7 +134,7 @@ fi
 ################################################################################
 
 %changelog
-* Tue Mar 29 2022 Anton Novojilov <andy@essentialkaos.com> - 2,7,1-0
+* Tue Mar 29 2022 Anton Novojilov <andy@essentialkaos.com> - 2.7.1-0
 - Removed pkg.re usage
 - Added module info
 - Added Dependabot configuration
