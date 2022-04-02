@@ -48,7 +48,7 @@
 
 Summary:         Pretty awesome command-line client for public SSLLabs API
 Name:            sslcli
-Version:         2.7.0
+Version:         2.7.1
 Release:         0%{?dist}
 Group:           Applications/System
 License:         Apache License, Version 2.0
@@ -60,7 +60,7 @@ Source100:       checksum.sha512
 
 BuildRoot:       %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-BuildRequires:   golang >= 1.14
+BuildRequires:   golang >= 1.17
 
 Provides:        %{name} = %{version}-%{release}
 
@@ -78,7 +78,9 @@ Pretty awesome command-line client for public SSLLabs API.
 
 %build
 export GOPATH=$(pwd)
-go build src/github.com/essentialkaos/sslcli/%{name}.go
+pushd src/github.com/essentialkaos/%{name}
+  go build -mod vendor -o $GOPATH/%{name} %{name}.go
+popd
 
 %install
 rm -rf %{buildroot}
@@ -132,6 +134,11 @@ fi
 ################################################################################
 
 %changelog
+* Tue Mar 29 2022 Anton Novojilov <andy@essentialkaos.com> - 2.7.1-0
+- Removed pkg.re usage
+- Added module info
+- Added Dependabot configuration
+
 * Wed Jan 13 2021 Anton Novojilov <andy@essentialkaos.com> - 2.7.0-0
 - sslscan package updated to v13
 
