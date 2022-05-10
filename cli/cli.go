@@ -36,7 +36,7 @@ import (
 
 const (
 	APP  = "SSLScan Client"
-	VER  = "2.7.1"
+	VER  = "2.7.2"
 	DESC = "Command-line client for the SSL Labs API"
 )
 
@@ -193,12 +193,10 @@ func prepare() {
 }
 
 // process starting request processing
-func process(args []string) {
-	var (
-		ok    bool
-		err   error
-		hosts []string
-	)
+func process(args options.Arguments) {
+	var ok bool
+	var err error
+	var hosts []string
 
 	api, err = sslscan.NewAPI("SSLCli", VER)
 
@@ -210,17 +208,17 @@ func process(args []string) {
 		os.Exit(1)
 	}
 
-	// By default all fine
-	ok = true
-	hosts = args
+	ok = true // By default everything is fine
 
-	if fsutil.CheckPerms("FR", hosts[0]) {
-		hosts, err = readHostList(hosts[0])
+	if fsutil.CheckPerms("FR", args.Get(0).String()) {
+		hosts, err = readHostList(args.Get(0).String())
 
 		if err != nil && options.GetB(OPT_FORMAT) {
 			printError(err.Error())
 			os.Exit(1)
 		}
+	} else {
+		hosts = args.Strings()
 	}
 
 	var grade string
