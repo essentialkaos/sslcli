@@ -48,7 +48,7 @@
 
 Summary:         Pretty awesome command-line client for public SSLLabs API
 Name:            sslcli
-Version:         2.7.1
+Version:         2.7.2
 Release:         0%{?dist}
 Group:           Applications/System
 License:         Apache License, Version 2.0
@@ -134,6 +134,9 @@ fi
 ################################################################################
 
 %changelog
+* Tue May 10 2022 Anton Novojilov <andy@essentialkaos.com> - 2.7.2-0
+- Update for compatibility with the latest version of ek package
+
 * Tue Mar 29 2022 Anton Novojilov <andy@essentialkaos.com> - 2.7.1-0
 - Removed pkg.re usage
 - Added module info
