@@ -133,5 +133,5 @@ jobs:
       - name: Show info about built Docker image
         uses: essentialkaos/docker-info-action@v1
         with:
-          image: ${{env.IMAGE_NAME}}:latest
+          image: ghcr.io/${{env.IMAGE_NAME}}:latest
           show-labels: true
