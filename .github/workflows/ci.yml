@@ -8,13 +8,13 @@ on:
   schedule:
     - cron: '0 13 */15 * *'
 
+env:
+  SRC_DIR: src/github.com/${{ github.repository }}
+
 jobs:
   Go:
     name: Go
     runs-on: ubuntu-latest
-
-    env:
-      SRC_DIR: src/github.com/${{ github.repository }}
 
     strategy:
       matrix:
@@ -25,7 +25,6 @@ jobs:
         uses: actions/setup-go@v3
         with:
           go-version: ${{ matrix.go }}
-        id: go
 
       - name: Checkout
         uses: actions/checkout@v3
@@ -46,15 +45,11 @@ jobs:
 
     needs: Go
 
-    env:
-      SRC_DIR: src/github.com/${{ github.repository }}
-
     steps:
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
           go-version: '1.17.x'
-        id: go
 
       - name: Checkout
         uses: actions/checkout@v3
@@ -82,7 +77,7 @@ jobs:
         uses: actions/checkout@v3
 
       - name: Login to GitHub Container Registry
-        uses: docker/login-action@v1
+        uses: docker/login-action@v2
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
@@ -112,27 +107,51 @@ jobs:
     name: Docker Build Check
     runs-on: ubuntu-latest
 
-    needs: Hadolint
+    needs: [Hadolint, Perfecto, Aligo]
+
+    env:
+      DOCKER_FILE: Dockerfile
+      IMAGE_NAME: sslcli
 
     steps:
+      - name: Check event type
+        run: |
+          if [[ "${{github.event_name}}" != "pull_request" ]] ; then
+            echo "::notice::Event type is not 'pull_request', all job actions will be skipped"
+          fi
+
+          # This step is a hack for needs+if issue with actions
+          # More info about issue: https://github.com/actions/runner/issues/491
+
       - name: Checkout
         uses: actions/checkout@v3
+        if: ${{ github.event_name == 'pull_request' }}
 
       - name: Login to DockerHub
         uses: docker/login-action@v2
         env:
           DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-        if: ${{ env.DOCKERHUB_USERNAME != '' }}
+        if: ${{ github.event_name == 'pull_request' && env.DOCKERHUB_USERNAME != '' }}
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Login to GitHub Container Registry
+        uses: docker/login-action@v2
+        if: ${{ github.event_name == 'pull_request' }}
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
       - name: Build Docker image
+        if: ${{ github.event_name == 'pull_request' }}
         run: |
-          docker build -f Dockerfile -t sslcli .
+          docker build -f ${{ env.DOCKER_FILE }} -t ${{ env.IMAGE_NAME }} .
 
       - name: Show info about built Docker image
         uses: essentialkaos/docker-info-action@v1
+        if: ${{ github.event_name == 'pull_request' }}
         with:
-          image: sslcli
+          image: ${{ env.IMAGE_NAME }}
           show-labels: true
