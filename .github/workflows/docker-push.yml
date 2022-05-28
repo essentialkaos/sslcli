@@ -37,6 +37,21 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Checkout the latest tag
+        run: |
+          rev=$(git rev-list --tags --max-count=1)
+          tag=$(git describe --tags "$rev")
+
+          if [[ -z "$tag" ]] ; then
+            echo "::error::Can't find the latest tag"
+            exit 1
+          fi
+
+          echo -e "\033[34mRev:\033[0m $rev"
+          echo -e "\033[34mTag:\033[0m $tag"
+
+          git checkout "$tag"
+
       - name: Prepare metadata for build
         id: metadata
         run: |
