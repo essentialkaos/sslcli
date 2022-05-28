@@ -1,10 +1,10 @@
 <p align="center"><a href="#readme"><img src="https://gh.kaos.st/sslcli.svg"/></a></p>
 
 <p align="center">
-  <a href="https://goreportcard.com/report/github.com/essentialkaos/sslcli"><img src="https://goreportcard.com/badge/github.com/essentialkaos/sslcli"></a>
-  <a href="https://codebeat.co/projects/github-com-essentialkaos-sslcli-master"><img src="https://codebeat.co/badges/edc52bb1-c807-470b-8466-b86cc0cfcdbe"></a>
-  <a href="https://github.com/essentialkaos/sslcli/actions"><img src="https://github.com/essentialkaos/sslcli/workflows/CI/badge.svg" alt="GitHub Actions Status" /></a>
-  <a href="https://github.com/essentialkaos/sslcli/actions?query=workflow%3ACodeQL"><img src="https://github.com/essentialkaos/sslcli/workflows/CodeQL/badge.svg" /></a>
+  <a href="https://kaos.sh/w/sslcli/ci"><img src="https://kaos.sh/w/sslcli/ci.svg" alt="GitHub Actions CI Status" /></a>
+  <a href="https://kaos.sh/r/sslcli"><img src="https://kaos.sh/r/sslcli.svg" alt="GoReportCard" /></a>
+  <a href="https://kaos.sh/b/sslcli"><img src="https://kaos.sh/b/edc52bb1-c807-470b-8466-b86cc0cfcdbe.svg" alt="codebeat badge" /></a>
+  <a href="https://kaos.sh/w/sslcli/codeql"><img src="https://kaos.sh/w/sslcli/codeql.svg" alt="GitHub Actions CodeQL Status" /></a>
   <a href="#license"><img src="https://gh.kaos.st/apache2.svg"></a>
 </p>
 
@@ -112,9 +112,9 @@ Examples
 ### Build Status
 
 | Branch | Status |
-|--------|--------|
-| `master` | [![CI](https://github.com/essentialkaos/sslcli/workflows/CI/badge.svg?branch=master)](https://github.com/essentialkaos/sslcli/actions) |
-| `develop` | [![CI](https://github.com/essentialkaos/sslcli/workflows/CI/badge.svg?branch=develop)](https://github.com/essentialkaos/sslcli/actions) |
+|------------|--------|
+| `master` | [![CI](https://kaos.sh/w/bibop/ci.svg?branch=master)](https://kaos.sh/w/bibop/ci?query=branch:master) |
+| `develop` | [![CI](https://kaos.sh/w/bibop/ci.svg?branch=develop)](https://kaos.sh/w/bibop/ci?query=branch:develop) |
 
 ### Contributing
 
