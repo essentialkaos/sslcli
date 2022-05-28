@@ -112,6 +112,10 @@ jobs:
 
     needs: [Hadolint, Perfecto, Aligo]
 
+    env:
+      DOCKER_FILE: Dockerfile
+      IMAGE_NAME: sslcli
+
     steps:
       - name: Check event type
         run: |
@@ -146,11 +150,11 @@ jobs:
       - name: Build Docker image
         if: ${{ github.event_name == 'pull_request' }}
         run: |
-          docker build -f Dockerfile -t sslcli .
+          docker build -f ${{ env.DOCKER_FILE }} -t ${{ env.IMAGE_NAME }} .
 
       - name: Show info about built Docker image
         uses: essentialkaos/docker-info-action@v1
         if: ${{ github.event_name == 'pull_request' }}
         with:
-          image: sslcli
+          image: ${{ env.IMAGE_NAME }}
           show-labels: true
