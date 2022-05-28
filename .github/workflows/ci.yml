@@ -8,13 +8,13 @@ on:
   schedule:
     - cron: '0 13 */15 * *'
 
+env:
+  SRC_DIR: src/github.com/${{ github.repository }}
+
 jobs:
   Go:
     name: Go
     runs-on: ubuntu-latest
-
-    env:
-      SRC_DIR: src/github.com/${{ github.repository }}
 
     strategy:
       matrix:
@@ -44,9 +44,6 @@ jobs:
     runs-on: ubuntu-latest
 
     needs: Go
-
-    env:
-      SRC_DIR: src/github.com/${{ github.repository }}
 
     steps:
       - name: Set up Go
