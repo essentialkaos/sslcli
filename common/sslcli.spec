@@ -49,7 +49,7 @@
 Summary:         Pretty awesome command-line client for public SSLLabs API
 Name:            sslcli
 Version:         2.7.2
-Release:         0%{?dist}
+Release:         1%{?dist}
 Group:           Applications/System
 License:         Apache License, Version 2.0
 URL:             https://kaos.sh/sslcli
@@ -60,7 +60,7 @@ Source100:       checksum.sha512
 
 BuildRoot:       %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-BuildRequires:   golang >= 1.17
+BuildRequires:   golang >= 1.19
 
 Provides:        %{name} = %{version}-%{release}
 
@@ -77,9 +77,9 @@ Pretty awesome command-line client for public SSLLabs API.
 %setup -q
 
 %build
-export GOPATH=$(pwd)
-pushd src/github.com/essentialkaos/%{name}
-  go build -mod vendor -o $GOPATH/%{name} %{name}.go
+pushd %{name}
+  go build %{name}.go
+  cp LICENSE ..
 popd
 
 %install
@@ -88,7 +88,7 @@ rm -rf %{buildroot}
 install -dm 755 %{buildroot}%{_bindir}
 install -dm 755 %{buildroot}%{_mandir}/man1
 
-install -pm 755 %{name} %{buildroot}%{_bindir}/
+install -pm 755 %{name}/%{name} %{buildroot}%{_bindir}/
 
 ./%{name} --generate-man > %{buildroot}%{_mandir}/man1/%{name}.1
 
@@ -134,6 +134,9 @@ fi
 ################################################################################
 
 %changelog
+* Thu Dec 01 2022 Anton Novojilov <andy@essentialkaos.com> - 2.7.2-1
+- Fixed build using sources from source.kaos.st
+
 * Tue May 10 2022 Anton Novojilov <andy@essentialkaos.com> - 2.7.2-0
 - Update for compatibility with the latest version of ek package
 
