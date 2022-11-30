@@ -90,7 +90,7 @@ install -dm 755 %{buildroot}%{_mandir}/man1
 
 install -pm 755 %{name}/%{name} %{buildroot}%{_bindir}/
 
-./%{name} --generate-man > %{buildroot}%{_mandir}/man1/%{name}.1
+./%{name}/%{name} --generate-man > %{buildroot}%{_mandir}/man1/%{name}.1
 
 %clean
 rm -rf %{buildroot}
