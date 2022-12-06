@@ -3,6 +3,13 @@ name: "Docker Push"
 on:
   release:
     types: [published]
+  workflow_dispatch:
+    inputs:
+      force_rebuild:
+        description: 'Force container rebuild'
+        required: true
+        type: choice
+        options: [yes, no]
   schedule:
     - cron: '30 12 * * *'
 
@@ -18,9 +25,8 @@ jobs:
     name: Docker Build & Publish
     runs-on: ubuntu-latest
 
-    strategy:
-      matrix:
-        image: [ 'alpine' ]
+    env:
+      DOCKER_FILE: alpine
 
     steps:
       - name: Checkout
@@ -67,7 +73,7 @@ jobs:
             exit 1
           fi
 
-          docker_file=".docker/${{matrix.image}}.docker"
+          docker_file=".docker/${{env.DOCKER_FILE}}.docker"
           base_image=$(grep 'FROM ' $docker_file | grep -v 'builder' | sed 's#${REGISTRY}/##' | tail -1 | cut -f2 -d' ')
 
           if [[ -z "$base_image" ]] ; then
@@ -91,10 +97,16 @@ jobs:
             exit 0
           fi
 
+          if [[ "${{ github.event.inputs.force_rebuild }}" == "true" ]] ; then
+            echo "::warning::Rebuild is required (reason: forced rebuild)"
+            echo "build=true" >> $GITHUB_OUTPUT
+            exit 0
+          fi
+
           echo -e "::group::\033[34mDownloading built image…\033[0m"
 
-          if ! docker pull ghcr.io/${{env.IMAGE_NAME}}:${{matrix.image}} ; then
-            echo "::error::Can't download image ghcr.io/${{env.IMAGE_NAME}}:${{matrix.image}}"
+          if ! docker pull ghcr.io/${{env.IMAGE_NAME}}:latest ; then
+            echo "::error::Can't download image ghcr.io/${{env.IMAGE_NAME}}:latest"
             exit 1
           fi
 
@@ -115,7 +127,7 @@ jobs:
             exit 1
           fi
 
-          if ! docker inspect "ghcr.io/${{env.IMAGE_NAME}}:${{matrix.image}}" | jq -r '.[0].RootFS.Layers' | grep -q "$base_layer" ; then
+          if ! docker inspect "ghcr.io/${{env.IMAGE_NAME}}:latest" | jq -r '.[0].RootFS.Layers' | grep -q "$base_layer" ; then
             echo "::warning::Rebuild image (reason: base image rebuilt)"
             echo "build=true" >> $GITHUB_OUTPUT
             exit 0
@@ -131,8 +143,8 @@ jobs:
           build-args: |
             REGISTRY=docker.io
           tags: |
-            ${{env.IMAGE_NAME}}:${{matrix.image}}-${{steps.metadata.outputs.version}}
-            ${{env.IMAGE_NAME}}:${{matrix.image}}
+            ${{env.IMAGE_NAME}}:${{steps.metadata.outputs.version}}
+            ${{env.IMAGE_NAME}}:latest
 
       - name: Build and push Docker images (GHCR)
         if: ${{ steps.build_check.outputs.build == 'true' }}
@@ -144,11 +156,12 @@ jobs:
           build-args: |
             REGISTRY=ghcr.io
           tags: |
-            ghcr.io/${{env.IMAGE_NAME}}:${{matrix.image}}-${{steps.metadata.outputs.version}}
-            ghcr.io/${{env.IMAGE_NAME}}:${{matrix.image}}
+            ghcr.io/${{env.IMAGE_NAME}}:${{steps.metadata.outputs.version}}
+            ghcr.io/${{env.IMAGE_NAME}}:latest
 
       - name: Show info about built Docker image
+        if: ${{ steps.build_check.outputs.build == 'true' }}
         uses: essentialkaos/docker-info-action@v1
         with:
-          image: ghcr.io/${{env.IMAGE_NAME}}:${{matrix.image}}
+          image: ghcr.io/${{env.IMAGE_NAME}}:latest
           show-labels: true
