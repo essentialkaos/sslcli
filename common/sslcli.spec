@@ -48,8 +48,8 @@
 
 Summary:         Pretty awesome command-line client for public SSLLabs API
 Name:            sslcli
-Version:         2.7.2
-Release:         1%{?dist}
+Version:         2.7.3
+Release:         0%{?dist}
 Group:           Applications/System
 License:         Apache License, Version 2.0
 URL:             https://kaos.sh/sslcli
@@ -134,7 +134,7 @@ fi
 ################################################################################
 
 %changelog
-* Thu Dec 01 2022 Anton Novojilov <andy@essentialkaos.com> - 2.7.2-1
+* Thu Dec 01 2022 Anton Novojilov <andy@essentialkaos.com> - 2.7.3-0
 - Fixed build using sources from source.kaos.st
 
 * Tue May 10 2022 Anton Novojilov <andy@essentialkaos.com> - 2.7.2-0
