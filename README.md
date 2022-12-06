@@ -33,8 +33,8 @@ go install github.com/essentialkaos/sslcli@latest
 #### From [ESSENTIAL KAOS Public Repository](https://yum.kaos.st)
 
 ```bash
-sudo yum install -y https://yum.kaos.st/get/$(uname -r).rpm
-sudo yum install yo
+sudo yum install -y https://yum.kaos.st/kaos-repo-latest.el$(grep 'CPE_NAME' /etc/os-release | tr -d '"' | cut -d':' -f5).noarch.rpm
+sudo yum install sslcli
 ```
 
 #### Prebuilt binaries
@@ -112,8 +112,8 @@ Examples
 
 | Branch | Status |
 |------------|--------|
-| `master` | [![CI](https://kaos.sh/w/bibop/ci.svg?branch=master)](https://kaos.sh/w/bibop/ci?query=branch:master) |
-| `develop` | [![CI](https://kaos.sh/w/bibop/ci.svg?branch=develop)](https://kaos.sh/w/bibop/ci?query=branch:develop) |
+| `master` | [![CI](https://kaos.sh/w/sslcli/ci.svg?branch=master)](https://kaos.sh/w/sslcli/ci?query=branch:master) |
+| `develop` | [![CI](https://kaos.sh/w/sslcli/ci.svg?branch=develop)](https://kaos.sh/w/sslcli/ci?query=branch:develop) |
 
 ### Contributing
 
