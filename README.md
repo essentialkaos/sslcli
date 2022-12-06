@@ -106,7 +106,6 @@ Examples
 
   sslcli hosts.txt
   Check all hosts defined in hosts.txt file
-
 ```
 
 ### Build Status

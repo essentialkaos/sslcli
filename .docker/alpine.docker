@@ -13,10 +13,7 @@ COPY . .
 ENV GO111MODULE=auto
 
 # hadolint ignore=DL3018
-RUN apk add --no-cache git make upx && \
-    make deps && \
-    make all && \
-    upx sslcli
+RUN apk add --no-cache git make && make deps && make all
 
 ## FINAL IMAGE #################################################################
 
