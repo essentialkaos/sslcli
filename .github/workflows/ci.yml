@@ -53,7 +53,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v3
         with:
-          go-version: '1.17.x'
+          go-version: '1.18.x'
 
       - name: Checkout
         uses: actions/checkout@v3
@@ -105,7 +105,7 @@ jobs:
       - name: Check dockerfiles with Hadolint
         uses: essentialkaos/hadolint-action@v1
         with:
-          files: Dockerfile
+          files: .docker/*.docker
 
   DockerBuild:
     name: Docker Build Check
@@ -114,8 +114,11 @@ jobs:
     needs: [Hadolint, Perfecto, Aligo]
 
     env:
-      DOCKER_FILE: Dockerfile
-      IMAGE_NAME: sslcli
+      REGISTRY: ghcr.io
+
+    strategy:
+      matrix:
+        image: [ 'alpine' ]
 
     steps:
       - name: Check event type
@@ -151,11 +154,11 @@ jobs:
       - name: Build Docker image
         if: ${{ github.event_name == 'pull_request' }}
         run: |
-          docker build -f ${{ env.DOCKER_FILE }} -t ${{ env.IMAGE_NAME }} .
+          docker build --build-arg REGISTRY=${REGISTRY} -f .docker/${{matrix.image}}.docker -t ${{matrix.image}} .
 
       - name: Show info about built Docker image
         uses: essentialkaos/docker-info-action@v1
         if: ${{ github.event_name == 'pull_request' }}
         with:
-          image: ${{ env.IMAGE_NAME }}
+          image: ${{matrix.image}}
           show-labels: true
