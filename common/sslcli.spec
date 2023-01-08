@@ -1,9 +1,5 @@
 ################################################################################
 
-# rpmbuilder:relative-pack true
-
-################################################################################
-
 %global crc_check pushd ../SOURCES ; sha512sum -c %{SOURCE100} ; popd
 
 ################################################################################
@@ -77,6 +73,11 @@ Pretty awesome command-line client for public SSLLabs API.
 %setup -q
 
 %build
+if [[ ! -d "%{name}/vendor" ]] ; then
+  echo "This package requires vendored dependencies"
+  exit 1
+fi
+
 pushd %{name}
   go build %{name}.go
   cp LICENSE ..
