@@ -25,9 +25,9 @@ import (
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// ShowSupportInfo prints verbose info about application, system, dependencies and
+// Print prints verbose info about application, system, dependencies and
 // important environment
-func ShowSupportInfo(app, ver, gitRev string, gomod []byte) {
+func Print(app, ver, gitRev string, gomod []byte) {
 	fmtutil.SeparatorTitleColorTag = "{s-}"
 	fmtutil.SeparatorFullscreen = false
 	fmtutil.SeparatorColorTag = "{s-}"

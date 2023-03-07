@@ -161,7 +161,7 @@ func Init(gitRev string, gomod []byte) {
 		showAbout(gitRev)
 		os.Exit(0)
 	case options.GetB(OPT_VERB_VER):
-		support.ShowSupportInfo(APP, VER, gitRev, gomod)
+		support.Print(APP, VER, gitRev, gomod)
 		os.Exit(0)
 	case options.GetB(OPT_HELP) || len(args) == 0:
 		showUsage()
