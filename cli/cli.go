@@ -131,8 +131,8 @@ var serverMessageShown bool
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// Init is main function
-func Init(gitRev string, gomod []byte) {
+// Run is main function
+func Run(gitRev string, gomod []byte) {
 	runtime.GOMAXPROCS(2)
 
 	preConfigureUI()
@@ -624,12 +624,12 @@ func printError(f string, a ...interface{}) {
 
 // showUsage prints usage info
 func showUsage() {
-	genUsage().Render()
+	genUsage().Print()
 }
 
 // showAbout prints info about version
 func showAbout(gitRev string) {
-	genAbout(gitRev).Render()
+	genAbout(gitRev).Print()
 }
 
 // genMan generates man page

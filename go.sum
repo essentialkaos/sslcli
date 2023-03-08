@@ -1,11 +1,11 @@
 github.com/andybalholm/brotli v1.0.4/go.mod h1:fO7iG3H7G2nSZ7m0zPUDn85XEX2GTukHGRSepvi9Eig=
 github.com/andybalholm/brotli v1.0.5 h1:8uQZIdzKmjc/iuPu7O2ioW48L81FgatrcpfFmiq/cCs=
 github.com/andybalholm/brotli v1.0.5/go.mod h1:fO7iG3H7G2nSZ7m0zPUDn85XEX2GTukHGRSepvi9Eig=
-github.com/essentialkaos/check v1.3.0 h1:ria+8o22RCLdt2D/1SHQsEH5Mmy5S+iWHaGHrrbPUc0=
+github.com/essentialkaos/check v1.4.0 h1:kWdFxu9odCxUqo1NNFNJmguGrDHgwi3A8daXX1nkuKk=
 github.com/essentialkaos/depsy v1.0.0 h1:FikBtTnNhk+xFO/hFr+CfiKs6QnA3wMD6tGL0XTEUkc=
 github.com/essentialkaos/depsy v1.0.0/go.mod h1:XVsB2eVUonEzmLKQP3ig2P6v2+WcHVgJ10zm0JLqFMM=
-github.com/essentialkaos/ek/v12 v12.60.1 h1:8soxFFOK5ryGxjrlcc6tAHdeVoCI5paIpXYqh+CTrMQ=
-github.com/essentialkaos/ek/v12 v12.60.1/go.mod h1:aDym0Lf/AFZJ37hJhJ+JAw2AeQQAwcYksjSC5lDNWh4=
+github.com/essentialkaos/ek/v12 v12.61.0 h1:8cmtVy/0FqUuWJVQNTnaeFxpQSiPWAxPc6j2EIUAEpA=
+github.com/essentialkaos/ek/v12 v12.61.0/go.mod h1:9MlSuHpewu7OZ9tM9dLFHvoA8dflBIUPCA0Ctt97wRs=
 github.com/essentialkaos/sslscan/v13 v13.1.4 h1:MQaaVdp7TRBP92ci90vIq1x9BZfKfrfdMMdhAOSrrsY=
 github.com/essentialkaos/sslscan/v13 v13.1.4/go.mod h1:xAzDhR8d+QyugSLJoWvUH1MCz7seaLUwayIqRCEjFGg=
 github.com/klauspost/compress v1.15.9/go.mod h1:PhcZ0MbTNciWF3rruxRgKxI5NkcHHrHUDtV4Yw2GlzU=

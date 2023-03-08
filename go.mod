@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/essentialkaos/depsy v1.0.0
-	github.com/essentialkaos/ek/v12 v12.60.1
+	github.com/essentialkaos/ek/v12 v12.61.0
 	github.com/essentialkaos/sslscan/v13 v13.1.4
 )
 
