@@ -47,14 +47,7 @@ bash <(curl -fsSL https://apps.kaos.st/get) sslcli
 
 #### Docker Image
 
-The latest version of `sslcli` also available as Docker image on [Docker Hub](https://kaos.sh/d/sslcli) and [GitHub Container Registry](https://kaos.sh/p/sslcli):
-
-```bash
-docker pull essentialkaos/sslcli:latest
-docker run --rm -it essentialkaos/sslcli:latest mydomain.com
-```
-
-or
+The latest version of `sslcli` also available as Docker image on [GitHub Container Registry](https://kaos.sh/p/sslcli) and [Docker Hub](https://kaos.sh/d/sslcli):
 
 ```bash
 docker pull ghcr.io/essentialkaos/sslcli:latest
