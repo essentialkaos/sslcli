@@ -45,11 +45,14 @@ You can download prebuilt binaries for Linux and macOS from [EK Apps Repository]
 bash <(curl -fsSL https://apps.kaos.st/get) sslcli
 ```
 
-#### Docker Image
+#### Container Image
 
-The latest version of `sslcli` also available as Docker image on [GitHub Container Registry](https://kaos.sh/p/sslcli) and [Docker Hub](https://kaos.sh/d/sslcli):
+The latest version of `sslcli` also available as container image on [GitHub Container Registry](https://kaos.sh/p/sslcli) and [Docker Hub](https://kaos.sh/d/sslcli):
 
 ```bash
+podman pull ghcr.io/essentialkaos/sslcli:latest
+podman run --rm -it ghcr.io/essentialkaos/sslcli:latest mydomain.com
+# or
 docker pull ghcr.io/essentialkaos/sslcli:latest
 docker run --rm -it ghcr.io/essentialkaos/sslcli:latest mydomain.com
 ```
