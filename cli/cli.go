@@ -2,7 +2,7 @@ package cli
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                         Copyright (c) 2022 ESSENTIAL KAOS                          //
+//                         Copyright (c) 2023 ESSENTIAL KAOS                          //
 //      Apache License, Version 2.0 <http://www.apache.org/licenses/LICENSE-2.0>      //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -30,13 +30,15 @@ import (
 	"github.com/essentialkaos/ek/v12/usage/update"
 
 	"github.com/essentialkaos/sslscan/v13"
+
+	"github.com/essentialkaos/sslcli/cli/support"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 const (
 	APP  = "SSLScan Client"
-	VER  = "2.7.3"
+	VER  = "2.7.4"
 	DESC = "Command-line client for the SSL Labs API"
 )
 
@@ -54,6 +56,7 @@ const (
 	OPT_HELP            = "h:help"
 	OPT_VER             = "v:version"
 
+	OPT_VERB_VER     = "vv:verbose-version"
 	OPT_COMPLETION   = "completion"
 	OPT_GENERATE_MAN = "generate-man"
 )
@@ -100,9 +103,10 @@ var optMap = options.Map{
 	OPT_QUIET:           {Type: options.BOOL},
 	OPT_NOTIFY:          {Type: options.BOOL},
 	OPT_NO_COLOR:        {Type: options.BOOL},
-	OPT_HELP:            {Type: options.BOOL, Alias: "u:usage"},
-	OPT_VER:             {Type: options.BOOL, Alias: "ver"},
+	OPT_HELP:            {Type: options.BOOL},
+	OPT_VER:             {Type: options.BOOL},
 
+	OPT_VERB_VER:     {Type: options.BOOL},
 	OPT_COMPLETION:   {},
 	OPT_GENERATE_MAN: {Type: options.BOOL},
 }
@@ -127,44 +131,64 @@ var serverMessageShown bool
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// Init starts initialization rutine
-func Init() {
+// Run is main function
+func Run(gitRev string, gomod []byte) {
+	runtime.GOMAXPROCS(2)
+
+	preConfigureUI()
+
 	args, errs := options.Parse(optMap)
 
 	if len(errs) != 0 {
-		printError("Arguments parsing errors:")
-
-		for _, err := range errs {
-			printError("  %v", err)
-		}
-
+		printError(errs[0].Error())
 		os.Exit(1)
-	}
-
-	if options.Has(OPT_COMPLETION) {
-		os.Exit(genCompletion())
-	}
-
-	if options.Has(OPT_GENERATE_MAN) {
-		os.Exit(genMan())
 	}
 
 	configureUI()
 	prepare()
 
-	if options.GetB(OPT_VER) {
-		showAbout()
-		return
+	switch {
+	case options.Has(OPT_COMPLETION):
+		os.Exit(printCompletion())
+	case options.Has(OPT_GENERATE_MAN):
+		printMan()
+		os.Exit(0)
+	case options.GetB(OPT_VER):
+		genAbout(gitRev).Print()
+		os.Exit(0)
+	case options.GetB(OPT_VERB_VER):
+		support.Print(APP, VER, gitRev, gomod)
+		os.Exit(0)
+	case options.GetB(OPT_HELP) || len(args) == 0:
+		genUsage().Print()
+		os.Exit(0)
 	}
-
-	if options.GetB(OPT_HELP) || len(args) == 0 {
-		showUsage()
-		return
-	}
-
-	runtime.GOMAXPROCS(2)
 
 	process(args)
+}
+
+// preConfigureUI preconfigures UI based on information about user terminal
+func preConfigureUI() {
+	term := os.Getenv("TERM")
+
+	fmtc.DisableColors = true
+
+	if term != "" {
+		switch {
+		case strings.Contains(term, "xterm"),
+			strings.Contains(term, "color"),
+			term == "screen":
+			fmtc.DisableColors = false
+		}
+	}
+
+	if !fsutil.IsCharacterDevice("/dev/stdout") && os.Getenv("FAKETTY") == "" {
+		fmtc.DisableColors = true
+	}
+
+	if os.Getenv("NO_COLOR") != "" {
+		fmtc.DisableColors = true
+	}
 }
 
 // configureUI configures user interface
@@ -594,30 +618,8 @@ func printError(f string, a ...interface{}) {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-// showUsage prints usage info
-func showUsage() {
-	genUsage().Render()
-}
-
-// showAbout prints info about version
-func showAbout() {
-	genAbout().Render()
-}
-
-// genMan generates man page
-func genMan() int {
-	fmt.Println(
-		man.Generate(
-			genUsage(),
-			genAbout(),
-		),
-	)
-
-	return 0
-}
-
-// genCompletion generates completion for different shells
-func genCompletion() int {
+// printCompletion prints completion for given shell
+func printCompletion() int {
 	info := genUsage()
 
 	switch options.GetS(OPT_COMPLETION) {
@@ -632,6 +634,16 @@ func genCompletion() int {
 	}
 
 	return 0
+}
+
+// printMan prints man page
+func printMan() {
+	fmt.Println(
+		man.Generate(
+			genUsage(),
+			genAbout(""),
+		),
+	)
 }
 
 // genUsage generates usage info
@@ -661,7 +673,7 @@ func genUsage() *usage.Info {
 }
 
 // genAbout generates info about version
-func genAbout() *usage.About {
+func genAbout(gitRev string) *usage.About {
 	about := &usage.About{
 		App:           APP,
 		Version:       VER,
@@ -670,6 +682,10 @@ func genAbout() *usage.About {
 		Owner:         "ESSENTIAL KAOS",
 		License:       "Apache License, Version 2.0 <http://www.apache.org/licenses/LICENSE-2.0>",
 		UpdateChecker: usage.UpdateChecker{"essentialkaos/sslcli", update.GitHubChecker},
+	}
+
+	if gitRev != "" {
+		about.Build = "git:" + gitRev
 	}
 
 	return about

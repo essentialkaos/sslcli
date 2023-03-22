@@ -24,7 +24,7 @@
 
 #### From source
 
-To build the SSLScan Client from scratch, make sure you have a working Go 1.17+ workspace ([instructions](https://golang.org/doc/install)), then:
+To build the SSLScan Client from scratch, make sure you have a working Go 1.19+ workspace ([instructions](https://golang.org/doc/install)), then:
 
 ```
 go install github.com/essentialkaos/sslcli@latest
@@ -47,14 +47,7 @@ bash <(curl -fsSL https://apps.kaos.st/get) sslcli
 
 #### Docker Image
 
-The latest version of `sslcli` also available as Docker image on [Docker Hub](https://kaos.sh/d/sslcli) and [GitHub Container Registry](https://kaos.sh/p/sslcli):
-
-```bash
-docker pull essentialkaos/sslcli:latest
-docker run --rm -it essentialkaos/sslcli:latest mydomain.com
-```
-
-or
+The latest version of `sslcli` also available as Docker image on [GitHub Container Registry](https://kaos.sh/p/sslcli) and [Docker Hub](https://kaos.sh/d/sslcli):
 
 ```bash
 docker pull ghcr.io/essentialkaos/sslcli:latest
