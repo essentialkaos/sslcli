@@ -85,7 +85,7 @@ type HostCheckInfo struct {
 }
 
 type EndpointCheckInfo struct {
-	IPAdress string  `json:"ipAddress"`
+	IPAddress string  `json:"ipAddress"`
 	Grade    string  `json:"grade"`
 	GradeNum float64 `json:"gradeNum"`
 }
@@ -477,7 +477,7 @@ func getColoredGrades(endpoints []*sslscan.EndpointInfo) string {
 	var result string
 
 	for _, endpoint := range endpoints {
-		result += getColoredGrade(endpoint.Grade) + "{s-}/" + endpoint.IPAdress + "{!} "
+		result += getColoredGrade(endpoint.Grade) + "{s-}/" + endpoint.IPAddress + "{!} "
 	}
 
 	return result
@@ -572,7 +572,7 @@ func appendEndpointsInfo(checkInfo *HostCheckInfo, endpoints []*sslscan.Endpoint
 		grade := getNormGrade(endpoint.Grade)
 
 		checkInfo.Endpoints = append(checkInfo.Endpoints, &EndpointCheckInfo{
-			IPAdress: endpoint.IPAdress,
+			IPAddress: endpoint.IPAddress,
 			Grade:    grade,
 			GradeNum: gradeNumMap[grade],
 		})

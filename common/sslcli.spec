@@ -212,7 +212,7 @@ fi
 
 * Tue Oct 11 2016 Anton Novojilov <andy@essentialkaos.com> - 1.1.0-0
 - EK package updated to v5
-- SSLScan package udated to v2
+- SSLScan package updated to v2
 
 * Fri Sep 23 2016 Anton Novojilov <andy@essentialkaos.com> - 1.0.2-0
 - Minor UI improvements

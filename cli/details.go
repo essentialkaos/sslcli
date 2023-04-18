@@ -74,7 +74,7 @@ func printDetailedInfo(ap *sslscan.AnalyzeProgress, fromCache bool) {
 	printCertificateInfo(info.Certs, info.Endpoints)
 
 	for index, endpoint := range info.Endpoints {
-		fmtc.Printf("\n{c*} %s {!*}#%d (%s){!}\n", info.Host, index+1, endpoint.IPAdress)
+		fmtc.Printf("\n{c*} %s {!*}#%d (%s){!}\n", info.Host, index+1, endpoint.IPAddress)
 		printDetailedEndpointInfo(endpoint, info.Certs)
 	}
 }
