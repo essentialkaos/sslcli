@@ -5,7 +5,7 @@ go 1.19
 require (
 	github.com/essentialkaos/depsy v1.0.0
 	github.com/essentialkaos/ek/v12 v12.64.1
-	github.com/essentialkaos/sslscan/v13 v13.1.5
+	github.com/essentialkaos/sslscan/v13 v13.2.0
 )
 
 require (

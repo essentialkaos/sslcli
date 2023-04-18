@@ -5,8 +5,8 @@ github.com/essentialkaos/depsy v1.0.0 h1:FikBtTnNhk+xFO/hFr+CfiKs6QnA3wMD6tGL0XT
 github.com/essentialkaos/depsy v1.0.0/go.mod h1:XVsB2eVUonEzmLKQP3ig2P6v2+WcHVgJ10zm0JLqFMM=
 github.com/essentialkaos/ek/v12 v12.64.1 h1:XjIF4GHCgVIY0S0KEz8g1OrNrRoHGU+vAUXSYIKNIbI=
 github.com/essentialkaos/ek/v12 v12.64.1/go.mod h1:PFJckNu+x4mHqsjndUeYRDPgDgvZEgcjpy1RpCYtx4g=
-github.com/essentialkaos/sslscan/v13 v13.1.5 h1:gw+3BNv2dp/6iNUEP1HTYKUiapqcwqJHmQQb7evx6+0=
-github.com/essentialkaos/sslscan/v13 v13.1.5/go.mod h1:kh0bzr6C8i33Bbcj510nGJ+UcAD6pvZSIfLZS89fD00=
+github.com/essentialkaos/sslscan/v13 v13.2.0 h1:myHahuvrPkjIL9PKGeaBz+8NglpWE55WsvRgQ1QDS8A=
+github.com/essentialkaos/sslscan/v13 v13.2.0/go.mod h1:8gPBJnA41juOmUsqGol0dJysXJ1+baXNgGqGp0AYvZs=
 github.com/klauspost/compress v1.16.5 h1:IFV2oUNUzZaz+XyusxpLzpzS8Pt5rh0Z16For/djlyI=
 github.com/klauspost/compress v1.16.5/go.mod h1:ntbaceVETuRiXiv4DpjP66DpAtAGkEQskQzEyD//IeE=
 github.com/kr/pretty v0.3.1 h1:flRD4NNwYAUpkphVc1HcthR4KEIFJ65n8Mw5qdRn3LE=
