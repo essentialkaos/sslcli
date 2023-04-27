@@ -333,8 +333,9 @@ func printCertValidityInfo(cert *sslscan.Cert) {
 		)
 	} else {
 		fmtc.Printf(
-			"%s {s-}(expires in %s){!}\n",
+			"%s {s-}(expires in %s %s){!}\n",
 			timeutil.Format(validUntilDate, "%Y/%m/%d %H:%M:%S"),
+			fmtutil.PrettyNum(validDays),
 			pluralize.Pluralize(int(validDays), "day", "days"),
 		)
 	}
@@ -503,8 +504,9 @@ func printChainCertInfo(cert *sslscan.Cert) {
 	fmtc.Printf(" %-24s {s}|{!} {s-}Pin: %s{!}\n", "", cert.PINSHA256)
 
 	fmtc.Printf(
-		" %-24s {s}|{!} %s {s-}(expires in %s){!}\n", "Valid until",
+		" %-24s {s}|{!} %s {s-}(expires in %s %s){!}\n", "Valid until",
 		timeutil.Format(validUntilDate, "%Y/%m/%d %H:%M:%S"),
+		fmtutil.PrettyNum(validDays),
 		pluralize.Pluralize(int(validDays), "day", "days"),
 	)
 
@@ -1506,7 +1508,8 @@ func getExpiryMessage(ap *sslscan.AnalyzeProgress, dur int64) string {
 	validDays := (validUntilDate.Unix() - time.Now().Unix()) / 86400
 
 	return fmt.Sprintf(
-		" {r}(expires in %s){!}",
+		" {r}(expires in %s %s){!}",
+		fmtutil.PrettyNum(validDays),
 		pluralize.Pluralize(int(validDays), "day", "days"),
 	)
 }

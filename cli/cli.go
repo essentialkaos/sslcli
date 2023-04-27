@@ -38,7 +38,7 @@ import (
 
 const (
 	APP  = "SSLScan Client"
-	VER  = "2.7.4"
+	VER  = "2.7.5"
 	DESC = "Command-line client for the SSL Labs API"
 )
 
@@ -86,8 +86,8 @@ type HostCheckInfo struct {
 
 type EndpointCheckInfo struct {
 	IPAddress string  `json:"ipAddress"`
-	Grade    string  `json:"grade"`
-	GradeNum float64 `json:"gradeNum"`
+	Grade     string  `json:"grade"`
+	GradeNum  float64 `json:"gradeNum"`
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -573,8 +573,8 @@ func appendEndpointsInfo(checkInfo *HostCheckInfo, endpoints []*sslscan.Endpoint
 
 		checkInfo.Endpoints = append(checkInfo.Endpoints, &EndpointCheckInfo{
 			IPAddress: endpoint.IPAddress,
-			Grade:    grade,
-			GradeNum: gradeNumMap[grade],
+			Grade:     grade,
+			GradeNum:  gradeNumMap[grade],
 		})
 	}
 }
