@@ -639,9 +639,19 @@ func printSimulationInfo(sim *sslscan.SIM, suites []*sslscan.ProtocolSuites) {
 	}
 
 	if sim.Client.IsReference {
-		fmtc.Printf(" %-29s {s}|{!} ", sim.Client.Name+" "+sim.Client.Version+" "+fmtc.Sprintf("{g}R"))
+		fmtc.Printf(
+			" %s {s}|{!} ",
+			fmtutil.Align(fmtc.Sprintf(
+				"%s %s {g}R{!}", sim.Client.Name, sim.Client.Version,
+			), fmtutil.LEFT, 20),
+		)
 	} else {
-		fmtc.Printf(" %-20s {s}|{!} ", sim.Client.Name+" "+sim.Client.Version)
+		fmtc.Printf(
+			" %s {s}|{!} ",
+			fmtutil.Align(fmtc.Sprintf(
+				"%s %s", sim.Client.Name, sim.Client.Version,
+			), fmtutil.LEFT, 20),
+		)
 	}
 
 	switch protocolsNames[sim.ProtocolID] {

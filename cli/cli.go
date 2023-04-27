@@ -182,10 +182,6 @@ func preConfigureUI() {
 		}
 	}
 
-	if !fsutil.IsCharacterDevice("/dev/stdout") && os.Getenv("FAKETTY") == "" {
-		fmtc.DisableColors = true
-	}
-
 	if os.Getenv("NO_COLOR") != "" {
 		fmtc.DisableColors = true
 	}

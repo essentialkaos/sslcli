@@ -103,6 +103,7 @@ fi
 %changelog
 * Thu Apr 27 2023 Anton Novojilov <andy@essentialkaos.com> - 2.7.5-0
 - Fixed the bug with showing the number of certificate validity days
+- Fixed the bug with text alignment if colors are disabled
 - Typos fixed
 
 * Mon Mar 06 2023 Anton Novojilov <andy@essentialkaos.com> - 2.7.4-0
