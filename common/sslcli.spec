@@ -10,7 +10,7 @@
 
 Summary:        Pretty awesome command-line client for public SSLLabs API
 Name:           sslcli
-Version:        2.7.4
+Version:        2.7.5
 Release:        0%{?dist}
 Group:          Applications/System
 License:        Apache License, Version 2.0
@@ -22,7 +22,7 @@ Source100:      checksum.sha512
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-BuildRequires:  golang >= 1.19
+BuildRequires:  golang >= 1.20
 
 Provides:       %{name} = %{version}-%{release}
 
@@ -101,6 +101,10 @@ fi
 ################################################################################
 
 %changelog
+* Thu Apr 27 2023 Anton Novojilov <andy@essentialkaos.com> - 2.7.5-0
+- Fixed the bug with showing the number of certificate validity days
+- Typos fixed
+
 * Mon Mar 06 2023 Anton Novojilov <andy@essentialkaos.com> - 2.7.4-0
 - Added verbose info output
 - Dependencies update
