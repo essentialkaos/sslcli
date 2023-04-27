@@ -14,6 +14,7 @@ import (
 
 	"github.com/essentialkaos/ek/v12/fmtc"
 	"github.com/essentialkaos/ek/v12/fmtutil"
+	"github.com/essentialkaos/ek/v12/httputil"
 	"github.com/essentialkaos/ek/v12/pluralize"
 	"github.com/essentialkaos/ek/v12/sliceutil"
 	"github.com/essentialkaos/ek/v12/strutil"
@@ -1190,7 +1191,11 @@ func printTestInfo(info *sslscan.EndpointInfo) {
 	if details.HTTPStatusCode == 0 {
 		fmtc.Printf(" %-24s {s}|{!} {y}Request failed{!}\n", "HTTP status code")
 	} else {
-		fmtc.Printf(" %-24s {s}|{!} %d\n", "HTTP status code", details.HTTPStatusCode)
+		fmtc.Printf(
+			" %-24s {s}|{!} %d {s-}(%s){!}\n", "HTTP status code",
+			details.HTTPStatusCode,
+			httputil.GetDescByCode(details.HTTPStatusCode),
+		)
 	}
 }
 
