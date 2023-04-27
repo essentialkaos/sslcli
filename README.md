@@ -18,7 +18,7 @@
 
 ### Usage demo
 
-[![demo](https://gh.kaos.st/sslcli-200.gif)](#usage-demo)
+[![demo](https://gh.kaos.st/sslcli-275.gif)](#usage-demo)
 
 ### Installation
 
