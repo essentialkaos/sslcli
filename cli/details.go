@@ -14,6 +14,7 @@ import (
 
 	"github.com/essentialkaos/ek/v12/fmtc"
 	"github.com/essentialkaos/ek/v12/fmtutil"
+	"github.com/essentialkaos/ek/v12/httputil"
 	"github.com/essentialkaos/ek/v12/pluralize"
 	"github.com/essentialkaos/ek/v12/sliceutil"
 	"github.com/essentialkaos/ek/v12/strutil"
@@ -74,7 +75,7 @@ func printDetailedInfo(ap *sslscan.AnalyzeProgress, fromCache bool) {
 	printCertificateInfo(info.Certs, info.Endpoints)
 
 	for index, endpoint := range info.Endpoints {
-		fmtc.Printf("\n{c*} %s {!*}#%d (%s){!}\n", info.Host, index+1, endpoint.IPAdress)
+		fmtc.Printf("\n{c*} %s {!*}#%d (%s){!}\n", info.Host, index+1, endpoint.IPAddress)
 		printDetailedEndpointInfo(endpoint, info.Certs)
 	}
 }
@@ -333,8 +334,9 @@ func printCertValidityInfo(cert *sslscan.Cert) {
 		)
 	} else {
 		fmtc.Printf(
-			"%s {s-}(expires in %s){!}\n",
+			"%s {s-}(expires in %s %s){!}\n",
 			timeutil.Format(validUntilDate, "%Y/%m/%d %H:%M:%S"),
+			fmtutil.PrettyNum(validDays),
 			pluralize.Pluralize(int(validDays), "day", "days"),
 		)
 	}
@@ -503,8 +505,9 @@ func printChainCertInfo(cert *sslscan.Cert) {
 	fmtc.Printf(" %-24s {s}|{!} {s-}Pin: %s{!}\n", "", cert.PINSHA256)
 
 	fmtc.Printf(
-		" %-24s {s}|{!} %s {s-}(expires in %s){!}\n", "Valid until",
+		" %-24s {s}|{!} %s {s-}(expires in %s %s){!}\n", "Valid until",
 		timeutil.Format(validUntilDate, "%Y/%m/%d %H:%M:%S"),
+		fmtutil.PrettyNum(validDays),
 		pluralize.Pluralize(int(validDays), "day", "days"),
 	)
 
@@ -637,9 +640,19 @@ func printSimulationInfo(sim *sslscan.SIM, suites []*sslscan.ProtocolSuites) {
 	}
 
 	if sim.Client.IsReference {
-		fmtc.Printf(" %-29s {s}|{!} ", sim.Client.Name+" "+sim.Client.Version+" "+fmtc.Sprintf("{g}R"))
+		fmtc.Printf(
+			" %s {s}|{!} ",
+			fmtutil.Align(fmtc.Sprintf(
+				"%s %s {g}R{!}", sim.Client.Name, sim.Client.Version,
+			), fmtutil.LEFT, 20),
+		)
 	} else {
-		fmtc.Printf(" %-20s {s}|{!} ", sim.Client.Name+" "+sim.Client.Version)
+		fmtc.Printf(
+			" %s {s}|{!} ",
+			fmtutil.Align(fmtc.Sprintf(
+				"%s %s", sim.Client.Name, sim.Client.Version,
+			), fmtutil.LEFT, 20),
+		)
 	}
 
 	switch protocolsNames[sim.ProtocolID] {
@@ -1178,7 +1191,11 @@ func printTestInfo(info *sslscan.EndpointInfo) {
 	if details.HTTPStatusCode == 0 {
 		fmtc.Printf(" %-24s {s}|{!} {y}Request failed{!}\n", "HTTP status code")
 	} else {
-		fmtc.Printf(" %-24s {s}|{!} %d\n", "HTTP status code", details.HTTPStatusCode)
+		fmtc.Printf(
+			" %-24s {s}|{!} %d {s-}(%s){!}\n", "HTTP status code",
+			details.HTTPStatusCode,
+			httputil.GetDescByCode(details.HTTPStatusCode),
+		)
 	}
 }
 
@@ -1506,7 +1523,8 @@ func getExpiryMessage(ap *sslscan.AnalyzeProgress, dur int64) string {
 	validDays := (validUntilDate.Unix() - time.Now().Unix()) / 86400
 
 	return fmt.Sprintf(
-		" {r}(expires in %s){!}",
+		" {r}(expires in %s %s){!}",
+		fmtutil.PrettyNum(validDays),
 		pluralize.Pluralize(int(validDays), "day", "days"),
 	)
 }

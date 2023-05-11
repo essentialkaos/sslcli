@@ -38,7 +38,7 @@ import (
 
 const (
 	APP  = "SSLScan Client"
-	VER  = "2.7.4"
+	VER  = "2.7.5"
 	DESC = "Command-line client for the SSL Labs API"
 )
 
@@ -85,9 +85,9 @@ type HostCheckInfo struct {
 }
 
 type EndpointCheckInfo struct {
-	IPAdress string  `json:"ipAddress"`
-	Grade    string  `json:"grade"`
-	GradeNum float64 `json:"gradeNum"`
+	IPAddress string  `json:"ipAddress"`
+	Grade     string  `json:"grade"`
+	GradeNum  float64 `json:"gradeNum"`
 }
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -104,7 +104,7 @@ var optMap = options.Map{
 	OPT_NOTIFY:          {Type: options.BOOL},
 	OPT_NO_COLOR:        {Type: options.BOOL},
 	OPT_HELP:            {Type: options.BOOL},
-	OPT_VER:             {Type: options.BOOL},
+	OPT_VER:             {Type: options.MIXED},
 
 	OPT_VERB_VER:     {Type: options.BOOL},
 	OPT_COMPLETION:   {},
@@ -154,7 +154,7 @@ func Run(gitRev string, gomod []byte) {
 		printMan()
 		os.Exit(0)
 	case options.GetB(OPT_VER):
-		genAbout(gitRev).Print()
+		genAbout(gitRev).Print(options.GetS(OPT_VER))
 		os.Exit(0)
 	case options.GetB(OPT_VERB_VER):
 		support.Print(APP, VER, gitRev, gomod)
@@ -180,10 +180,6 @@ func preConfigureUI() {
 			term == "screen":
 			fmtc.DisableColors = false
 		}
-	}
-
-	if !fsutil.IsCharacterDevice("/dev/stdout") && os.Getenv("FAKETTY") == "" {
-		fmtc.DisableColors = true
 	}
 
 	if os.Getenv("NO_COLOR") != "" {
@@ -477,7 +473,7 @@ func getColoredGrades(endpoints []*sslscan.EndpointInfo) string {
 	var result string
 
 	for _, endpoint := range endpoints {
-		result += getColoredGrade(endpoint.Grade) + "{s-}/" + endpoint.IPAdress + "{!} "
+		result += getColoredGrade(endpoint.Grade) + "{s-}/" + endpoint.IPAddress + "{!} "
 	}
 
 	return result
@@ -572,9 +568,9 @@ func appendEndpointsInfo(checkInfo *HostCheckInfo, endpoints []*sslscan.Endpoint
 		grade := getNormGrade(endpoint.Grade)
 
 		checkInfo.Endpoints = append(checkInfo.Endpoints, &EndpointCheckInfo{
-			IPAdress: endpoint.IPAdress,
-			Grade:    grade,
-			GradeNum: gradeNumMap[grade],
+			IPAddress: endpoint.IPAddress,
+			Grade:     grade,
+			GradeNum:  gradeNumMap[grade],
 		})
 	}
 }

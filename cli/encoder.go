@@ -57,7 +57,7 @@ func encodeAsXML(checksInfo []*HostCheckInfo) {
 			for _, endpoint := range info.Endpoints {
 				fmt.Printf(
 					"      <endpoint ip=\"%s\" grade=\"%s\" grade=\"%.1f\" />\n",
-					endpoint.IPAdress, endpoint.Grade, endpoint.GradeNum,
+					endpoint.IPAddress, endpoint.Grade, endpoint.GradeNum,
 				)
 			}
 
@@ -84,7 +84,7 @@ func encodeAsYAML(checksInfo []*HostCheckInfo) {
 			fmt.Println("      -")
 			fmt.Printf("        grade: %s\n", endpoint.Grade)
 			fmt.Printf("        gradeNum: %.1f\n", endpoint.GradeNum)
-			fmt.Printf("        ipAddress: \"%s\"\n", endpoint.IPAdress)
+			fmt.Printf("        ipAddress: \"%s\"\n", endpoint.IPAddress)
 		}
 
 		fmt.Printf("    host: %s\n", info.Host)

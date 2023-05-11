@@ -18,13 +18,13 @@
 
 ### Usage demo
 
-[![demo](https://gh.kaos.st/sslcli-200.gif)](#usage-demo)
+[![demo](https://gh.kaos.st/sslcli-275.gif)](#usage-demo)
 
 ### Installation
 
 #### From source
 
-To build the SSLScan Client from scratch, make sure you have a working Go 1.19+ workspace ([instructions](https://golang.org/doc/install)), then:
+To build the SSLScan Client from scratch, make sure you have a working Go 1.19+ workspace ([instructions](https://go.dev/doc/install)), then:
 
 ```
 go install github.com/essentialkaos/sslcli@latest
@@ -50,10 +50,8 @@ bash <(curl -fsSL https://apps.kaos.st/get) sslcli
 The latest version of `sslcli` also available as container image on [GitHub Container Registry](https://kaos.sh/p/sslcli) and [Docker Hub](https://kaos.sh/d/sslcli):
 
 ```bash
-podman pull ghcr.io/essentialkaos/sslcli:latest
 podman run --rm -it ghcr.io/essentialkaos/sslcli:latest mydomain.com
 # or
-docker pull ghcr.io/essentialkaos/sslcli:latest
 docker run --rm -it ghcr.io/essentialkaos/sslcli:latest mydomain.com
 ```
 
