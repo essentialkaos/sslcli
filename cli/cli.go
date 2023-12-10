@@ -21,6 +21,7 @@ import (
 	"github.com/essentialkaos/ek/v12/fmtutil"
 	"github.com/essentialkaos/ek/v12/fsutil"
 	"github.com/essentialkaos/ek/v12/options"
+	"github.com/essentialkaos/ek/v12/pager"
 	"github.com/essentialkaos/ek/v12/strutil"
 	"github.com/essentialkaos/ek/v12/usage"
 	"github.com/essentialkaos/ek/v12/usage/completion/bash"
@@ -38,7 +39,7 @@ import (
 
 const (
 	APP  = "SSLScan Client"
-	VER  = "2.7.5"
+	VER  = "2.8.0"
 	DESC = "Command-line client for the SSL Labs API"
 )
 
@@ -52,6 +53,7 @@ const (
 	OPT_MAX_LEFT        = "M:max-left"
 	OPT_QUIET           = "q:quiet"
 	OPT_NOTIFY          = "n:notify"
+	OPT_PAGER           = "G:pager"
 	OPT_NO_COLOR        = "nc:no-color"
 	OPT_HELP            = "h:help"
 	OPT_VER             = "v:version"
@@ -102,6 +104,7 @@ var optMap = options.Map{
 	OPT_PERFECT:         {Type: options.BOOL},
 	OPT_QUIET:           {Type: options.BOOL},
 	OPT_NOTIFY:          {Type: options.BOOL},
+	OPT_PAGER:           {Type: options.BOOL},
 	OPT_NO_COLOR:        {Type: options.BOOL},
 	OPT_HELP:            {Type: options.BOOL},
 	OPT_VER:             {Type: options.MIXED},
@@ -129,13 +132,13 @@ var api *sslscan.API
 var maxLeftToExpiry int64
 var serverMessageShown bool
 
+var colorTagApp, colorTagVer string
+
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // Run is main function
 func Run(gitRev string, gomod []byte) {
 	runtime.GOMAXPROCS(2)
-
-	preConfigureUI()
 
 	args, errs := options.Parse(optMap)
 
@@ -167,26 +170,6 @@ func Run(gitRev string, gomod []byte) {
 	process(args)
 }
 
-// preConfigureUI preconfigures UI based on information about user terminal
-func preConfigureUI() {
-	term := os.Getenv("TERM")
-
-	fmtc.DisableColors = true
-
-	if term != "" {
-		switch {
-		case strings.Contains(term, "xterm"),
-			strings.Contains(term, "color"),
-			term == "screen":
-			fmtc.DisableColors = false
-		}
-	}
-
-	if os.Getenv("NO_COLOR") != "" {
-		fmtc.DisableColors = true
-	}
-}
-
 // configureUI configures user interface
 func configureUI() {
 	if options.GetB(OPT_NO_COLOR) {
@@ -194,6 +177,15 @@ func configureUI() {
 	}
 
 	fmtutil.SeparatorSymbol = "–"
+
+	switch {
+	case fmtc.IsTrueColorSupported():
+		colorTagApp, colorTagVer = "{*}{#875FFF}", "{#875FFF}"
+	case fmtc.Is256ColorsSupported():
+		colorTagApp, colorTagVer = "{*}{#99}", "{#99}"
+	default:
+		colorTagApp, colorTagVer = "{*}{b}", "{c}"
+	}
 }
 
 // prepare prepares utility for processing data
@@ -341,6 +333,12 @@ func check(host string) (string, bool) {
 	}
 
 	if options.GetB(OPT_DETAILED) {
+		if options.GetB(OPT_PAGER) {
+			if pager.Setup() == nil {
+				defer pager.Complete()
+			}
+		}
+
 		printDetailedInfo(ap, true)
 	}
 
@@ -620,11 +618,11 @@ func printCompletion() int {
 
 	switch options.GetS(OPT_COMPLETION) {
 	case "bash":
-		fmt.Printf(bash.Generate(info, "sslcli"))
+		fmt.Print(bash.Generate(info, "sslcli"))
 	case "fish":
-		fmt.Printf(fish.Generate(info, "sslcli"))
+		fmt.Print(fish.Generate(info, "sslcli"))
 	case "zsh":
-		fmt.Printf(zsh.Generate(info, optMap, "sslcli"))
+		fmt.Print(zsh.Generate(info, optMap, "sslcli"))
 	default:
 		return 1
 	}
@@ -646,6 +644,8 @@ func printMan() {
 func genUsage() *usage.Info {
 	info := usage.NewInfo("", "host…")
 
+	info.AppNameColorTag = colorTagApp
+
 	info.AddOption(OPT_FORMAT, "Output result in different formats", "text|json|yaml|xml")
 	info.AddOption(OPT_DETAILED, "Show detailed info for each endpoint")
 	info.AddOption(OPT_IGNORE_MISMATCH, "Proceed with assessments on certificate mismatch")
@@ -655,6 +655,7 @@ func genUsage() *usage.Info {
 	info.AddOption(OPT_MAX_LEFT, "Check expiry date {s-}(num + d/w/m/y){!}", "duration")
 	info.AddOption(OPT_NOTIFY, "Notify when check is done")
 	info.AddOption(OPT_QUIET, "Don't show any output")
+	info.AddOption(OPT_PAGER, "Use pager for long output")
 	info.AddOption(OPT_NO_COLOR, "Disable colors in output")
 	info.AddOption(OPT_HELP, "Show this help message")
 	info.AddOption(OPT_VER, "Show version")
@@ -671,11 +672,16 @@ func genUsage() *usage.Info {
 // genAbout generates info about version
 func genAbout(gitRev string) *usage.About {
 	about := &usage.About{
-		App:           APP,
-		Version:       VER,
-		Desc:          DESC,
-		Year:          2009,
-		Owner:         "ESSENTIAL KAOS",
+		App:     APP,
+		Version: VER,
+		Desc:    DESC,
+		Year:    2009,
+		Owner:   "ESSENTIAL KAOS",
+
+		AppNameColorTag: colorTagApp,
+		VersionColorTag: colorTagVer,
+		DescSeparator:   "{s}—{!}",
+
 		License:       "Apache License, Version 2.0 <http://www.apache.org/licenses/LICENSE-2.0>",
 		UpdateChecker: usage.UpdateChecker{"essentialkaos/sslcli", update.GitHubChecker},
 	}
