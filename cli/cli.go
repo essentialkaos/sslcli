@@ -177,6 +177,7 @@ func configureUI() {
 	}
 
 	fmtutil.SeparatorSymbol = "–"
+	fmtutil.SeparatorSize = 92
 
 	switch {
 	case fmtc.IsTrueColorSupported():

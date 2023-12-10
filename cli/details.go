@@ -593,13 +593,13 @@ func printProtocolSuiteInfo(suite *sslscan.Suite, chaCha20Preference bool) {
 
 	switch {
 	case insecure == true:
-		fmtc.Printf(" {r}%-46s{!} {s}|{!} {r}%d (INSECURE){!} ", suite.Name, suite.CipherStrength)
+		fmtc.Printf(" {r}%-52s{!} {s}|{!} {r}%d (INSECURE){!} ", suite.Name, suite.CipherStrength)
 	case weak == true:
-		fmtc.Printf(" {y}%-46s{!} {s}|{!} {y}%d (WEAK){!} ", suite.Name, suite.CipherStrength)
+		fmtc.Printf(" {y}%-52s{!} {s}|{!} {y}%d (WEAK){!} ", suite.Name, suite.CipherStrength)
 	case preferred == true:
-		fmtc.Printf(" {*}%-46s{!} {s}|{!} %d ", suite.Name, suite.CipherStrength)
+		fmtc.Printf(" {*}%-52s{!} {s}|{!} %d ", suite.Name, suite.CipherStrength)
 	default:
-		fmtc.Printf(" %-46s {s}|{!} %d ", suite.Name, suite.CipherStrength)
+		fmtc.Printf(" %-52s {s}|{!} %d ", suite.Name, suite.CipherStrength)
 	}
 
 	switch {
@@ -657,22 +657,22 @@ func printSimulationInfo(sim *sslscan.SIM, suites []*sslscan.ProtocolSuites) {
 
 	switch protocolsNames[sim.ProtocolID] {
 	case "TLS 1.2", "TLS 1.3":
-		fmtc.Printf("{g}%-7s{!} %-46s "+tag+" %d\n",
+		fmtc.Printf("{g}%-7s{!} %-50s "+tag+" %d\n",
 			protocolsNames[sim.ProtocolID],
 			suite.Name, suite.CipherStrength,
 		)
 	case "TLS 1.1", "TLS 1.0":
-		fmtc.Printf("{y}%-7s{!} %-46s "+tag+" %d\n",
+		fmtc.Printf("{y}%-7s{!} %-50s "+tag+" %d\n",
 			protocolsNames[sim.ProtocolID],
 			suite.Name, suite.CipherStrength,
 		)
 	case "SSL 2.0", "SSL 3.0":
-		fmtc.Printf("{r}%-7s{!} %-46s "+tag+" %d\n",
+		fmtc.Printf("{r}%-7s{!} %-50s "+tag+" %d\n",
 			protocolsNames[sim.ProtocolID],
 			suite.Name, suite.CipherStrength,
 		)
 	default:
-		fmtc.Printf("%-7s %-46s "+tag+" %d\n",
+		fmtc.Printf("%-7s %-50s "+tag+" %d\n",
 			protocolsNames[sim.ProtocolID],
 			suite.Name, suite.CipherStrength,
 		)
