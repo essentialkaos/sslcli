@@ -550,7 +550,11 @@ func printProtocolInfo(protocol string, supportedProtocols map[string]bool) {
 			fmtc.Println("{y}No{!}")
 		}
 	case protocol == "TLS 1.0", protocol == "TLS 1.1":
-		fmtc.Printf("{y}%s{!}\n", printBool(supportedProtocols[protocol]))
+		if supportedProtocols[protocol] {
+			fmtc.Println("{y}Yes{!}")
+		} else {
+			fmtc.Println("No")
+		}
 	case protocol == "SSL 3.0" && supportedProtocols[protocol]:
 		fmtc.Printf("{r}%s (INSECURE){!}\n", printBool(supportedProtocols[protocol]))
 	case protocol == "SSL 2.0" && supportedProtocols[protocol]:
@@ -1099,28 +1103,16 @@ func printEndpointNamedGroups(namedGroups *sslscan.NamedGroups) {
 		return
 	}
 
-	groups := getNamedGroups(namedGroups)
+	var groups []string
 
-	for i := 0; i < len(groups); i++ {
-		switch i {
-		case 0:
-			// skip
-		default:
-			fmtc.NewLine()
-			fmtc.Printf(" %-40s {s}|{!} ", "")
-		}
-
-		fmtc.Printf(strings.Join(groups[i], ", "))
-
-		if i != len(groups)-1 {
-			fmtc.Printf(",")
-		}
+	for _, group := range namedGroups.List {
+		groups = append(groups, group.Name)
 	}
+
+	fmtc.Print(strings.Join(groups, ", "))
 
 	if namedGroups.Preference {
 		fmtc.Printf(" {s-}(server preferred order){!}\n")
-	} else {
-		fmtc.Printf("\n")
 	}
 }
 
@@ -1364,27 +1356,6 @@ func getProtocols(protocols []*sslscan.Protocol) map[string]bool {
 	}
 
 	return supported
-}
-
-// getNamedGroups returns slice of slices with named groups
-func getNamedGroups(groups *sslscan.NamedGroups) [][]string {
-	var result [][]string
-	var buf []string
-
-	for _, group := range groups.List {
-		buf = append(buf, group.Name)
-
-		if len(buf) == 3 {
-			result = append(result, buf)
-			buf = nil
-		}
-	}
-
-	if buf != nil {
-		result = append(result, buf)
-	}
-
-	return result
 }
 
 // getPinsFromPolicy returns slice with all pins in policy

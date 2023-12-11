@@ -347,9 +347,9 @@ func check(host string) (string, bool) {
 	expiryMessage := getExpiryMessage(ap, maxLeftToExpiry)
 
 	if len(info.Endpoints) == 1 {
-		fmtc.TPrintf("{*}%s{!} → "+getColoredGrade(info.Endpoints[0].Grade)+expiryMessage+"\n", host)
+		fmtc.TPrintf("{*}%s{!} {s-}→{!} "+getColoredGrade(info.Endpoints[0].Grade)+expiryMessage+"\n", host)
 	} else {
-		fmtc.TPrintf("{*}%s{!} → "+getColoredGrades(info.Endpoints)+expiryMessage+"\n", host)
+		fmtc.TPrintf("{*}%s{!} {s-}→{!} "+getColoredGrades(info.Endpoints)+expiryMessage+"\n", host)
 	}
 
 	if options.GetB(OPT_DETAILED) {
@@ -491,7 +491,7 @@ func getColoredGrades(endpoints []*sslscan.EndpointInfo) string {
 	var result string
 
 	for _, endpoint := range endpoints {
-		result += getColoredGrade(endpoint.Grade) + "{s-}/" + endpoint.IPAddress + "{!} "
+		result += getColoredGrade(endpoint.Grade) + "{s}/" + endpoint.IPAddress + "{!} "
 	}
 
 	return result
