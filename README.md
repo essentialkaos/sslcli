@@ -30,10 +30,10 @@ To build the SSLScan Client from scratch, make sure you have a working Go 1.19+ 
 go install github.com/essentialkaos/sslcli@latest
 ```
 
-#### From [ESSENTIAL KAOS Public Repository](https://yum.kaos.st)
+#### From [ESSENTIAL KAOS Public Repository](https://kaos.sh/kaos-repo)
 
 ```bash
-sudo yum install -y https://yum.kaos.st/kaos-repo-latest.el$(grep 'CPE_NAME' /etc/os-release | tr -d '"' | cut -d':' -f5).noarch.rpm
+sudo yum install -y https://pkgs.kaos.st/kaos-repo-latest.el$(grep 'CPE_NAME' /etc/os-release | tr -d '"' | cut -d':' -f5).noarch.rpm
 sudo yum install sslcli
 ```
 
