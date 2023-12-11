@@ -194,11 +194,11 @@ func configureUI() {
 
 	switch {
 	case fmtc.IsTrueColorSupported():
-		colorTagApp, colorTagVer = "{*}{#875FFF}", "{#875FFF}"
+		colorTagApp, colorTagVer = "{*}{#00AFFF}", "{#00AFFF}"
 	case fmtc.Is256ColorsSupported():
-		colorTagApp, colorTagVer = "{*}{#99}", "{#99}"
+		colorTagApp, colorTagVer = "{*}{#39}", "{#39}"
 	default:
-		colorTagApp, colorTagVer = "{*}{b}", "{b}"
+		colorTagApp, colorTagVer = "{*}{c}", "{c}"
 	}
 }
 
@@ -229,7 +229,7 @@ func process(args options.Arguments) (error, bool) {
 
 	if err != nil {
 		if !options.GetB(OPT_FORMAT) {
-			return err, false
+			return fmt.Errorf("Error while sending scan request to SSL Labs API: %v", err), false
 		}
 
 		return nil, false
@@ -305,12 +305,12 @@ func check(host string) (string, bool) {
 		IgnoreMismatch: options.GetB(OPT_IGNORE_MISMATCH),
 	}
 
-	fmtc.TPrintf("{*}%s{!} → {s}Preparing for tests…{!}", host)
+	fmtc.TPrintf("{*}%s{!} {s-}→{!} {s}Preparing for tests…{!}", host)
 
 	ap, err := api.Analyze(host, params)
 
 	if err != nil {
-		fmtc.TPrintf("{*}%s{!} → {r}%v{!}\n", host, err)
+		fmtc.TPrintf("{*}%s{!} {s-}→{!} {r}%v{!}\n", host, err)
 		return "T", false
 	}
 
@@ -318,12 +318,12 @@ func check(host string) (string, bool) {
 		info, err = ap.Info(false, params.FromCache)
 
 		if err != nil {
-			fmtc.TPrintf("{*}%s{!} → {r}%v{!}\n", host, err)
+			fmtc.TPrintf("{*}%s{!} {s-}→{!} {r}%v{!}\n", host, err)
 			return "Err", false
 		}
 
 		if info.Status == sslscan.STATUS_ERROR {
-			fmtc.TPrintf("{*}%s{!} → {r}%s{!}\n", host, info.StatusMessage)
+			fmtc.TPrintf("{*}%s{!} {s-}→{!} {r}%s{!}\n", host, info.StatusMessage)
 			return "Err", false
 		} else if info.Status == sslscan.STATUS_READY {
 			break
@@ -333,7 +333,7 @@ func check(host string) (string, bool) {
 			message := getStatusInProgress(info.Endpoints)
 
 			if message != "" {
-				fmtc.TPrintf("{*}%s{!} → {s}%s…{!}", host, message)
+				fmtc.TPrintf("{*}%s{!} {s-}→{!} {s}%s…{!}", host, message)
 			}
 		}
 
