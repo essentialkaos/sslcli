@@ -86,6 +86,12 @@ func printCertificateInfo(certs []*sslscan.Cert, endpoints []*sslscan.EndpointIn
 
 	printCategoryHeader("Server Key and Certificate")
 
+	if len(certs) == 0 {
+		fmtc.Println("\n {r}No valid certificates and keys{!}\n")
+		fmtutil.Separator(true)
+		return
+	}
+
 	cert := certs[0]
 
 	fmtc.Printf(" %-24s {s}|{!} %s\n", "Subject", extractSubject(cert.Subject))
@@ -1025,11 +1031,12 @@ func printEndpointHPKPInfo(details *sslscan.EndpointDetails) {
 func printEndpointHandshakeInfo(details *sslscan.EndpointDetails) {
 	fmtc.Printf(" %-40s {s}|{!} ", "Long handshake intolerance")
 
-	if details.MiscIntolerance&2 == 2 {
+	switch {
+	case details.MiscIntolerance&2 == 2:
 		fmtc.Println("{y}Yes{!}")
-	} else if details.MiscIntolerance&4 == 4 {
+	case details.MiscIntolerance&4 == 4:
 		fmtc.Println("{y}Yes{!} {s-}(workaround success){!}")
-	} else {
+	default:
 		fmtc.Println("No")
 	}
 }
@@ -1386,7 +1393,7 @@ func getPinsFromPolicy(policy *sslscan.HPKPPolicy) []string {
 
 	for _, pin := range strings.Split(policy.Header, ";") {
 		pin = strings.TrimSpace(pin)
-		pin = strings.Replace(pin, "\"", "", -1)
+		pin = strings.ReplaceAll(pin, "\"", "")
 		pin = strings.Replace(pin, "=", ": ", 1)
 
 		if strings.HasPrefix(pin, "pin-") {
@@ -1460,8 +1467,8 @@ func isWeakSuite(suite *sslscan.Suite) bool {
 // extractSubject extracts subject name from certificate subject
 func extractSubject(data string) string {
 	subject := strutil.ReadField(data, 0, false, ",")
-	subject = strings.Replace(subject, "CN=", "", -1)
-	subject = strings.Replace(subject, "OU=", "", -1)
+	subject = strings.ReplaceAll(subject, "CN=", "")
+	subject = strings.ReplaceAll(subject, "OU=", "")
 
 	return subject
 }
@@ -1502,7 +1509,7 @@ func getTrustInfo(certID string, endpoints []*sslscan.EndpointInfo) (map[string]
 }
 
 // getExpiryMessage returns message if cert is expired in given period
-func getExpiryMessage(ap *sslscan.AnalyzeProgress, dur int64) string {
+func getExpiryMessage(ap *sslscan.AnalyzeProgress, dur time.Duration) string {
 	if dur <= 0 {
 		return ""
 	}
@@ -1516,7 +1523,7 @@ func getExpiryMessage(ap *sslscan.AnalyzeProgress, dur int64) string {
 	cert := info.Certs[0]
 	validUntilDate := time.Unix(cert.NotAfter/1000, 0)
 
-	if validUntilDate.Unix()-time.Now().Unix() > dur {
+	if time.Until(validUntilDate) > dur {
 		return ""
 	}
 

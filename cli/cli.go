@@ -10,10 +10,8 @@ package cli
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"runtime"
-	"strconv"
 	"strings"
 	"time"
 
@@ -23,6 +21,7 @@ import (
 	"github.com/essentialkaos/ek/v12/options"
 	"github.com/essentialkaos/ek/v12/pager"
 	"github.com/essentialkaos/ek/v12/strutil"
+	"github.com/essentialkaos/ek/v12/timeutil"
 	"github.com/essentialkaos/ek/v12/usage"
 	"github.com/essentialkaos/ek/v12/usage/completion/bash"
 	"github.com/essentialkaos/ek/v12/usage/completion/fish"
@@ -129,7 +128,7 @@ var gradeNumMap = map[string]float64{
 }
 
 var api *sslscan.API
-var maxLeftToExpiry int64
+var maxLeftToExpiry time.Duration
 var serverMessageShown bool
 
 var colorTagApp, colorTagVer string
@@ -148,7 +147,6 @@ func Run(gitRev string, gomod []byte) {
 	}
 
 	configureUI()
-	prepare()
 
 	switch {
 	case options.Has(OPT_COMPLETION):
@@ -167,7 +165,22 @@ func Run(gitRev string, gomod []byte) {
 		os.Exit(0)
 	}
 
-	process(args)
+	err := prepare()
+
+	if err != nil {
+		printError(err.Error())
+		os.Exit(1)
+	}
+
+	err, ok := process(args)
+
+	if err != nil {
+		printError(err.Error())
+	}
+
+	if !ok {
+		os.Exit(1)
+	}
 }
 
 // configureUI configures user interface
@@ -185,28 +198,29 @@ func configureUI() {
 	case fmtc.Is256ColorsSupported():
 		colorTagApp, colorTagVer = "{*}{#99}", "{#99}"
 	default:
-		colorTagApp, colorTagVer = "{*}{b}", "{c}"
+		colorTagApp, colorTagVer = "{*}{b}", "{b}"
 	}
 }
 
 // prepare prepares utility for processing data
-func prepare() {
+func prepare() error {
 	if !options.Has(OPT_MAX_LEFT) {
-		return
+		return nil
 	}
 
 	var err error
 
-	maxLeftToExpiry, err = parseMaxLeft(options.GetS(OPT_MAX_LEFT))
+	maxLeftToExpiry, err = timeutil.ParseDuration(options.GetS(OPT_MAX_LEFT), 'd')
 
 	if err != nil {
-		printError(err.Error())
-		os.Exit(1)
+		return err
 	}
+
+	return nil
 }
 
 // process starting request processing
-func process(args options.Arguments) {
+func process(args options.Arguments) (error, bool) {
 	var ok bool
 	var err error
 	var hosts []string
@@ -215,10 +229,10 @@ func process(args options.Arguments) {
 
 	if err != nil {
 		if !options.GetB(OPT_FORMAT) {
-			printError(err.Error())
+			return err, false
 		}
 
-		os.Exit(1)
+		return nil, false
 	}
 
 	ok = true // By default everything is fine
@@ -226,9 +240,12 @@ func process(args options.Arguments) {
 	if fsutil.CheckPerms("FR", args.Get(0).String()) {
 		hosts, err = readHostList(args.Get(0).String())
 
-		if err != nil && options.GetB(OPT_FORMAT) {
-			printError(err.Error())
-			os.Exit(1)
+		if err != nil {
+			if !options.GetB(OPT_FORMAT) {
+				return err, false
+			}
+
+			return nil, false
 		}
 	} else {
 		hosts = args.Strings()
@@ -268,8 +285,10 @@ func process(args options.Arguments) {
 	}
 
 	if !ok {
-		os.Exit(1)
+		return nil, false
 	}
+
+	return nil, true
 }
 
 // check check some host
@@ -528,25 +547,17 @@ func getStatusInProgress(endpoints []*sslscan.EndpointInfo) string {
 	return ""
 }
 
-// readHostList read file with hosts
+// readHostList reads file with hosts
 func readHostList(file string) ([]string, error) {
 	var result []string
 
-	fd, err := os.OpenFile(file, os.O_RDONLY, 0)
+	listData, err := os.ReadFile(file)
 
 	if err != nil {
-		return result, err
+		return nil, err
 	}
 
-	defer fd.Close()
-
-	listData, err := ioutil.ReadAll(fd)
-
-	if err != nil {
-		return result, err
-	}
-
-	list := strings.Split(string(listData[:]), "\n")
+	list := strings.Split(string(listData), "\n")
 
 	for _, host := range list {
 		if host != "" {
@@ -571,28 +582,6 @@ func appendEndpointsInfo(checkInfo *HostCheckInfo, endpoints []*sslscan.Endpoint
 			Grade:     grade,
 			GradeNum:  gradeNumMap[grade],
 		})
-	}
-}
-
-// parseMaxLeft parses max left option value
-func parseMaxLeft(dur string) (int64, error) {
-	tm := strutil.Tail(dur, 1)
-	t := strings.Trim(dur, "dwmy")
-	ti, err := strconv.ParseInt(t, 10, 64)
-
-	if err != nil {
-		return -1, fmt.Errorf("Invalid value for --max-left option: %s", dur)
-	}
-
-	switch strings.ToLower(tm) {
-	case "w":
-		return ti * 604800, nil
-	case "m":
-		return ti * 2592000, nil
-	case "y":
-		return ti * 31536000, nil
-	default:
-		return ti * 86400, nil
 	}
 }
 

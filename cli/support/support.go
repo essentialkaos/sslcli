@@ -11,14 +11,15 @@ import (
 	"fmt"
 	"os"
 	"runtime"
+	"runtime/debug"
 	"strings"
 
 	"github.com/essentialkaos/ek/v12/fmtc"
 	"github.com/essentialkaos/ek/v12/fmtutil"
-	"github.com/essentialkaos/ek/v12/fsutil"
 	"github.com/essentialkaos/ek/v12/hash"
 	"github.com/essentialkaos/ek/v12/strutil"
 	"github.com/essentialkaos/ek/v12/system"
+	"github.com/essentialkaos/ek/v12/system/container"
 
 	"github.com/essentialkaos/depsy"
 )
@@ -55,6 +56,10 @@ func showApplicationInfo(app, ver, gitRev string) {
 		runtime.GOOS, runtime.GOARCH,
 	))
 
+	if gitRev == "" {
+		gitRev = extractGitRevFromBuildInfo()
+	}
+
 	if gitRev != "" {
 		if !fmtc.DisableColors && fmtc.IsTrueColorSupported() {
 			printInfo(7, "Git SHA", gitRev+getHashColorBullet(gitRev))
@@ -83,13 +88,14 @@ func showOSInfo() {
 	if err == nil {
 		fmtutil.Separator(false, "OS INFO")
 
-		printInfo(12, "Name", osInfo.Name)
-		printInfo(12, "Pretty Name", osInfo.PrettyName)
-		printInfo(12, "Version", osInfo.VersionID)
+		printInfo(12, "Name", osInfo.ColoredName())
+		printInfo(12, "Pretty Name", osInfo.ColoredPrettyName())
+		printInfo(12, "Version", osInfo.Version)
 		printInfo(12, "ID", osInfo.ID)
 		printInfo(12, "ID Like", osInfo.IDLike)
 		printInfo(12, "Version ID", osInfo.VersionID)
 		printInfo(12, "Version Code", osInfo.VersionCodename)
+		printInfo(12, "Platform ID", osInfo.PlatformID)
 		printInfo(12, "CPE", osInfo.CPEName)
 	}
 
@@ -97,11 +103,9 @@ func showOSInfo() {
 
 	if err != nil {
 		return
-	} else {
-		if osInfo == nil {
-			fmtutil.Separator(false, "SYSTEM INFO")
-			printInfo(12, "Name", systemInfo.OS)
-		}
+	} else if osInfo == nil {
+		fmtutil.Separator(false, "SYSTEM INFO")
+		printInfo(12, "Name", systemInfo.OS)
 	}
 
 	printInfo(12, "Arch", systemInfo.Arch)
@@ -109,11 +113,13 @@ func showOSInfo() {
 
 	containerEngine := "No"
 
-	switch {
-	case fsutil.IsExist("/.dockerenv"):
+	switch container.GetEngine() {
+	case container.DOCKER:
 		containerEngine = "Yes (Docker)"
-	case fsutil.IsExist("/run/.containerenv"):
+	case container.PODMAN:
 		containerEngine = "Yes (Podman)"
+	case container.LXC:
+		containerEngine = "Yes (LXC)"
 	}
 
 	fmtc.NewLine()
@@ -140,6 +146,23 @@ func showDepsInfo(gomod []byte) {
 	}
 }
 
+// extractGitRevFromBuildInfo extracts git SHA from embedded build info
+func extractGitRevFromBuildInfo() string {
+	info, ok := debug.ReadBuildInfo()
+
+	if !ok {
+		return ""
+	}
+
+	for _, s := range info.Settings {
+		if s.Key == "vcs.revision" && len(s.Value) > 7 {
+			return s.Value[:7]
+		}
+	}
+
+	return ""
+}
+
 // getHashColorBullet return bullet with color from hash
 func getHashColorBullet(v string) string {
 	if len(v) > 6 {
@@ -151,7 +174,7 @@ func getHashColorBullet(v string) string {
 
 // printInfo formats and prints info record
 func printInfo(size int, name, value string) {
-	name = name + ":"
+	name += ":"
 	size++
 
 	if value == "" {
