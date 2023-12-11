@@ -10,7 +10,7 @@
 
 Summary:        Pretty awesome command-line client for public SSLLabs API
 Name:           sslcli
-Version:        2.7.5
+Version:        2.8.0
 Release:        0%{?dist}
 Group:          Applications/System
 License:        Apache License, Version 2.0
@@ -101,6 +101,13 @@ fi
 ################################################################################
 
 %changelog
+* Mon Dec 11 2023 Anton Novojilov <andy@essentialkaos.com> - 2.8.0-0
+- Add '-G'/'--pager' option to use pager for long output
+- Minor UI improvements
+- Code refactoring
+- Dependencies update
+- Fixed panic when API returned empty slice with certificates
+
 * Thu Apr 27 2023 Anton Novojilov <andy@essentialkaos.com> - 2.7.5-0
 - Fixed the bug with showing the number of certificate validity days
 - Fixed the bug with text alignment if colors are disabled
