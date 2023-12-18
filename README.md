@@ -30,10 +30,10 @@ To build the SSLScan Client from scratch, make sure you have a working Go 1.19+ 
 go install github.com/essentialkaos/sslcli@latest
 ```
 
-#### From [ESSENTIAL KAOS Public Repository](https://yum.kaos.st)
+#### From [ESSENTIAL KAOS Public Repository](https://kaos.sh/kaos-repo)
 
 ```bash
-sudo yum install -y https://yum.kaos.st/kaos-repo-latest.el$(grep 'CPE_NAME' /etc/os-release | tr -d '"' | cut -d':' -f5).noarch.rpm
+sudo yum install -y https://pkgs.kaos.st/kaos-repo-latest.el$(grep 'CPE_NAME' /etc/os-release | tr -d '"' | cut -d':' -f5).noarch.rpm
 sudo yum install sslcli
 ```
 
@@ -71,18 +71,19 @@ Usage: sslcli {options} host…
 
 Options
 
-  --format, -f text|json|yaml|xml    Output result in different formats
-  --detailed, -d                     Show detailed info for each endpoint
-  --ignore-mismatch, -i              Proceed with assessments on certificate mismatch
-  --avoid-cache, -c                  Disable cache usage
-  --public, -p                       Publish results on sslscan.com
-  --perfect, -P                      Return non-zero exit code if not A+
-  --max-left, -M duration            Check expiry date (num + d/w/m/y)
-  --notify, -n                       Notify when check is done
-  --quiet, -q                        Don't show any output
-  --no-color, -nc                    Disable colors in output
-  --help, -h                         Show this help message
-  --version, -v                      Show version
+  --format, -f format        Output result in different formats (text/json/yaml/xml)
+  --detailed, -d             Show detailed info for each endpoint
+  --ignore-mismatch, -i      Proceed with assessments on certificate mismatch
+  --avoid-cache, -c          Disable cache usage
+  --public, -p               Publish results on sslscan.com
+  --perfect, -P              Return non-zero exit code if not A+
+  --max-left, -M duration    Check expiry date (num + d/w/m/y)
+  --notify, -n               Notify when check is done
+  --quiet, -q                Don't show any output
+  --pager, -G                Use pager for long output
+  --no-color, -nc            Disable colors in output
+  --help, -h                 Show this help message
+  --version, -v              Show version
 
 Examples
 

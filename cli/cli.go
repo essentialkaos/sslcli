@@ -10,10 +10,8 @@ package cli
 import (
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"runtime"
-	"strconv"
 	"strings"
 	"time"
 
@@ -21,7 +19,9 @@ import (
 	"github.com/essentialkaos/ek/v12/fmtutil"
 	"github.com/essentialkaos/ek/v12/fsutil"
 	"github.com/essentialkaos/ek/v12/options"
+	"github.com/essentialkaos/ek/v12/pager"
 	"github.com/essentialkaos/ek/v12/strutil"
+	"github.com/essentialkaos/ek/v12/timeutil"
 	"github.com/essentialkaos/ek/v12/usage"
 	"github.com/essentialkaos/ek/v12/usage/completion/bash"
 	"github.com/essentialkaos/ek/v12/usage/completion/fish"
@@ -38,7 +38,7 @@ import (
 
 const (
 	APP  = "SSLScan Client"
-	VER  = "2.7.5"
+	VER  = "2.8.0"
 	DESC = "Command-line client for the SSL Labs API"
 )
 
@@ -52,6 +52,7 @@ const (
 	OPT_MAX_LEFT        = "M:max-left"
 	OPT_QUIET           = "q:quiet"
 	OPT_NOTIFY          = "n:notify"
+	OPT_PAGER           = "G:pager"
 	OPT_NO_COLOR        = "nc:no-color"
 	OPT_HELP            = "h:help"
 	OPT_VER             = "v:version"
@@ -102,6 +103,7 @@ var optMap = options.Map{
 	OPT_PERFECT:         {Type: options.BOOL},
 	OPT_QUIET:           {Type: options.BOOL},
 	OPT_NOTIFY:          {Type: options.BOOL},
+	OPT_PAGER:           {Type: options.BOOL},
 	OPT_NO_COLOR:        {Type: options.BOOL},
 	OPT_HELP:            {Type: options.BOOL},
 	OPT_VER:             {Type: options.MIXED},
@@ -126,16 +128,16 @@ var gradeNumMap = map[string]float64{
 }
 
 var api *sslscan.API
-var maxLeftToExpiry int64
+var maxLeftToExpiry time.Duration
 var serverMessageShown bool
+
+var colorTagApp, colorTagVer string
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 // Run is main function
 func Run(gitRev string, gomod []byte) {
 	runtime.GOMAXPROCS(2)
-
-	preConfigureUI()
 
 	args, errs := options.Parse(optMap)
 
@@ -145,7 +147,6 @@ func Run(gitRev string, gomod []byte) {
 	}
 
 	configureUI()
-	prepare()
 
 	switch {
 	case options.Has(OPT_COMPLETION):
@@ -164,26 +165,21 @@ func Run(gitRev string, gomod []byte) {
 		os.Exit(0)
 	}
 
-	process(args)
-}
+	err := prepare()
 
-// preConfigureUI preconfigures UI based on information about user terminal
-func preConfigureUI() {
-	term := os.Getenv("TERM")
-
-	fmtc.DisableColors = true
-
-	if term != "" {
-		switch {
-		case strings.Contains(term, "xterm"),
-			strings.Contains(term, "color"),
-			term == "screen":
-			fmtc.DisableColors = false
-		}
+	if err != nil {
+		printError(err.Error())
+		os.Exit(1)
 	}
 
-	if os.Getenv("NO_COLOR") != "" {
-		fmtc.DisableColors = true
+	err, ok := process(args)
+
+	if err != nil {
+		printError(err.Error())
+	}
+
+	if !ok {
+		os.Exit(1)
 	}
 }
 
@@ -194,26 +190,37 @@ func configureUI() {
 	}
 
 	fmtutil.SeparatorSymbol = "–"
+	fmtutil.SeparatorSize = 92
+
+	switch {
+	case fmtc.IsTrueColorSupported():
+		colorTagApp, colorTagVer = "{*}{#00AFFF}", "{#00AFFF}"
+	case fmtc.Is256ColorsSupported():
+		colorTagApp, colorTagVer = "{*}{#39}", "{#39}"
+	default:
+		colorTagApp, colorTagVer = "{*}{c}", "{c}"
+	}
 }
 
 // prepare prepares utility for processing data
-func prepare() {
+func prepare() error {
 	if !options.Has(OPT_MAX_LEFT) {
-		return
+		return nil
 	}
 
 	var err error
 
-	maxLeftToExpiry, err = parseMaxLeft(options.GetS(OPT_MAX_LEFT))
+	maxLeftToExpiry, err = timeutil.ParseDuration(options.GetS(OPT_MAX_LEFT), 'd')
 
 	if err != nil {
-		printError(err.Error())
-		os.Exit(1)
+		return err
 	}
+
+	return nil
 }
 
 // process starting request processing
-func process(args options.Arguments) {
+func process(args options.Arguments) (error, bool) {
 	var ok bool
 	var err error
 	var hosts []string
@@ -222,10 +229,10 @@ func process(args options.Arguments) {
 
 	if err != nil {
 		if !options.GetB(OPT_FORMAT) {
-			printError(err.Error())
+			return fmt.Errorf("Error while sending scan request to SSL Labs API: %v", err), false
 		}
 
-		os.Exit(1)
+		return nil, false
 	}
 
 	ok = true // By default everything is fine
@@ -233,9 +240,12 @@ func process(args options.Arguments) {
 	if fsutil.CheckPerms("FR", args.Get(0).String()) {
 		hosts, err = readHostList(args.Get(0).String())
 
-		if err != nil && options.GetB(OPT_FORMAT) {
-			printError(err.Error())
-			os.Exit(1)
+		if err != nil {
+			if !options.GetB(OPT_FORMAT) {
+				return err, false
+			}
+
+			return nil, false
 		}
 	} else {
 		hosts = args.Strings()
@@ -275,8 +285,10 @@ func process(args options.Arguments) {
 	}
 
 	if !ok {
-		os.Exit(1)
+		return nil, false
 	}
+
+	return nil, true
 }
 
 // check check some host
@@ -293,12 +305,12 @@ func check(host string) (string, bool) {
 		IgnoreMismatch: options.GetB(OPT_IGNORE_MISMATCH),
 	}
 
-	fmtc.TPrintf("{*}%s{!} → {s}Preparing for tests…{!}", host)
+	fmtc.TPrintf("{*}%s{!} {s-}→{!} {s}Preparing for tests…{!}", host)
 
 	ap, err := api.Analyze(host, params)
 
 	if err != nil {
-		fmtc.TPrintf("{*}%s{!} → {r}%v{!}\n", host, err)
+		fmtc.TPrintf("{*}%s{!} {s-}→{!} {r}%v{!}\n", host, err)
 		return "T", false
 	}
 
@@ -306,12 +318,12 @@ func check(host string) (string, bool) {
 		info, err = ap.Info(false, params.FromCache)
 
 		if err != nil {
-			fmtc.TPrintf("{*}%s{!} → {r}%v{!}\n", host, err)
+			fmtc.TPrintf("{*}%s{!} {s-}→{!} {r}%v{!}\n", host, err)
 			return "Err", false
 		}
 
 		if info.Status == sslscan.STATUS_ERROR {
-			fmtc.TPrintf("{*}%s{!} → {r}%s{!}\n", host, info.StatusMessage)
+			fmtc.TPrintf("{*}%s{!} {s-}→{!} {r}%s{!}\n", host, info.StatusMessage)
 			return "Err", false
 		} else if info.Status == sslscan.STATUS_READY {
 			break
@@ -321,7 +333,7 @@ func check(host string) (string, bool) {
 			message := getStatusInProgress(info.Endpoints)
 
 			if message != "" {
-				fmtc.TPrintf("{*}%s{!} → {s}%s…{!}", host, message)
+				fmtc.TPrintf("{*}%s{!} {s-}→{!} {s}%s…{!}", host, message)
 			}
 		}
 
@@ -335,12 +347,18 @@ func check(host string) (string, bool) {
 	expiryMessage := getExpiryMessage(ap, maxLeftToExpiry)
 
 	if len(info.Endpoints) == 1 {
-		fmtc.TPrintf("{*}%s{!} → "+getColoredGrade(info.Endpoints[0].Grade)+expiryMessage+"\n", host)
+		fmtc.TPrintf("{*}%s{!} {s-}→{!} "+getColoredGrade(info.Endpoints[0].Grade)+expiryMessage+"\n", host)
 	} else {
-		fmtc.TPrintf("{*}%s{!} → "+getColoredGrades(info.Endpoints)+expiryMessage+"\n", host)
+		fmtc.TPrintf("{*}%s{!} {s-}→{!} "+getColoredGrades(info.Endpoints)+expiryMessage+"\n", host)
 	}
 
 	if options.GetB(OPT_DETAILED) {
+		if options.GetB(OPT_PAGER) {
+			if pager.Setup() == nil {
+				defer pager.Complete()
+			}
+		}
+
 		printDetailedInfo(ap, true)
 	}
 
@@ -473,7 +491,7 @@ func getColoredGrades(endpoints []*sslscan.EndpointInfo) string {
 	var result string
 
 	for _, endpoint := range endpoints {
-		result += getColoredGrade(endpoint.Grade) + "{s-}/" + endpoint.IPAddress + "{!} "
+		result += getColoredGrade(endpoint.Grade) + "{s}/" + endpoint.IPAddress + "{!} "
 	}
 
 	return result
@@ -529,25 +547,17 @@ func getStatusInProgress(endpoints []*sslscan.EndpointInfo) string {
 	return ""
 }
 
-// readHostList read file with hosts
+// readHostList reads file with hosts
 func readHostList(file string) ([]string, error) {
 	var result []string
 
-	fd, err := os.OpenFile(file, os.O_RDONLY, 0)
+	listData, err := os.ReadFile(file)
 
 	if err != nil {
-		return result, err
+		return nil, err
 	}
 
-	defer fd.Close()
-
-	listData, err := ioutil.ReadAll(fd)
-
-	if err != nil {
-		return result, err
-	}
-
-	list := strings.Split(string(listData[:]), "\n")
+	list := strings.Split(string(listData), "\n")
 
 	for _, host := range list {
 		if host != "" {
@@ -575,28 +585,6 @@ func appendEndpointsInfo(checkInfo *HostCheckInfo, endpoints []*sslscan.Endpoint
 	}
 }
 
-// parseMaxLeft parses max left option value
-func parseMaxLeft(dur string) (int64, error) {
-	tm := strutil.Tail(dur, 1)
-	t := strings.Trim(dur, "dwmy")
-	ti, err := strconv.ParseInt(t, 10, 64)
-
-	if err != nil {
-		return -1, fmt.Errorf("Invalid value for --max-left option: %s", dur)
-	}
-
-	switch strings.ToLower(tm) {
-	case "w":
-		return ti * 604800, nil
-	case "m":
-		return ti * 2592000, nil
-	case "y":
-		return ti * 31536000, nil
-	default:
-		return ti * 86400, nil
-	}
-}
-
 // getNormGrade return grade or error
 func getNormGrade(grade string) string {
 	switch grade {
@@ -620,11 +608,11 @@ func printCompletion() int {
 
 	switch options.GetS(OPT_COMPLETION) {
 	case "bash":
-		fmt.Printf(bash.Generate(info, "sslcli"))
+		fmt.Print(bash.Generate(info, "sslcli"))
 	case "fish":
-		fmt.Printf(fish.Generate(info, "sslcli"))
+		fmt.Print(fish.Generate(info, "sslcli"))
 	case "zsh":
-		fmt.Printf(zsh.Generate(info, optMap, "sslcli"))
+		fmt.Print(zsh.Generate(info, optMap, "sslcli"))
 	default:
 		return 1
 	}
@@ -646,7 +634,9 @@ func printMan() {
 func genUsage() *usage.Info {
 	info := usage.NewInfo("", "host…")
 
-	info.AddOption(OPT_FORMAT, "Output result in different formats", "text|json|yaml|xml")
+	info.AppNameColorTag = colorTagApp
+
+	info.AddOption(OPT_FORMAT, "Output result in different formats {s-}(text/json/yaml/xml){!}", "format")
 	info.AddOption(OPT_DETAILED, "Show detailed info for each endpoint")
 	info.AddOption(OPT_IGNORE_MISMATCH, "Proceed with assessments on certificate mismatch")
 	info.AddOption(OPT_AVOID_CACHE, "Disable cache usage")
@@ -655,6 +645,7 @@ func genUsage() *usage.Info {
 	info.AddOption(OPT_MAX_LEFT, "Check expiry date {s-}(num + d/w/m/y){!}", "duration")
 	info.AddOption(OPT_NOTIFY, "Notify when check is done")
 	info.AddOption(OPT_QUIET, "Don't show any output")
+	info.AddOption(OPT_PAGER, "Use pager for long output")
 	info.AddOption(OPT_NO_COLOR, "Disable colors in output")
 	info.AddOption(OPT_HELP, "Show this help message")
 	info.AddOption(OPT_VER, "Show version")
@@ -671,11 +662,16 @@ func genUsage() *usage.Info {
 // genAbout generates info about version
 func genAbout(gitRev string) *usage.About {
 	about := &usage.About{
-		App:           APP,
-		Version:       VER,
-		Desc:          DESC,
-		Year:          2009,
-		Owner:         "ESSENTIAL KAOS",
+		App:     APP,
+		Version: VER,
+		Desc:    DESC,
+		Year:    2009,
+		Owner:   "ESSENTIAL KAOS",
+
+		AppNameColorTag: colorTagApp,
+		VersionColorTag: colorTagVer,
+		DescSeparator:   "{s}—{!}",
+
 		License:       "Apache License, Version 2.0 <http://www.apache.org/licenses/LICENSE-2.0>",
 		UpdateChecker: usage.UpdateChecker{"essentialkaos/sslcli", update.GitHubChecker},
 	}

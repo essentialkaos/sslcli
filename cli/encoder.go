@@ -38,7 +38,7 @@ func encodeAsJSON(checksInfo []*HostCheckInfo) {
 		os.Exit(1)
 	}
 
-	fmt.Println(string(jsonData[:]))
+	fmt.Println(string(jsonData))
 }
 
 // encodeAsXML print check info in XML format

@@ -86,6 +86,12 @@ func printCertificateInfo(certs []*sslscan.Cert, endpoints []*sslscan.EndpointIn
 
 	printCategoryHeader("Server Key and Certificate")
 
+	if len(certs) == 0 {
+		fmtc.Println("\n {r}No valid certificates and keys{!}\n")
+		fmtutil.Separator(true)
+		return
+	}
+
 	cert := certs[0]
 
 	fmtc.Printf(" %-24s {s}|{!} %s\n", "Subject", extractSubject(cert.Subject))
@@ -544,7 +550,11 @@ func printProtocolInfo(protocol string, supportedProtocols map[string]bool) {
 			fmtc.Println("{y}No{!}")
 		}
 	case protocol == "TLS 1.0", protocol == "TLS 1.1":
-		fmtc.Printf("{y}%s{!}\n", printBool(supportedProtocols[protocol]))
+		if supportedProtocols[protocol] {
+			fmtc.Println("{y}Yes{!}")
+		} else {
+			fmtc.Println("No")
+		}
 	case protocol == "SSL 3.0" && supportedProtocols[protocol]:
 		fmtc.Printf("{r}%s (INSECURE){!}\n", printBool(supportedProtocols[protocol]))
 	case protocol == "SSL 2.0" && supportedProtocols[protocol]:
@@ -593,13 +603,13 @@ func printProtocolSuiteInfo(suite *sslscan.Suite, chaCha20Preference bool) {
 
 	switch {
 	case insecure == true:
-		fmtc.Printf(" {r}%-46s{!} {s}|{!} {r}%d (INSECURE){!} ", suite.Name, suite.CipherStrength)
+		fmtc.Printf(" {r}%-52s{!} {s}|{!} {r}%d (INSECURE){!} ", suite.Name, suite.CipherStrength)
 	case weak == true:
-		fmtc.Printf(" {y}%-46s{!} {s}|{!} {y}%d (WEAK){!} ", suite.Name, suite.CipherStrength)
+		fmtc.Printf(" {y}%-52s{!} {s}|{!} {y}%d (WEAK){!} ", suite.Name, suite.CipherStrength)
 	case preferred == true:
-		fmtc.Printf(" {*}%-46s{!} {s}|{!} %d ", suite.Name, suite.CipherStrength)
+		fmtc.Printf(" {*}%-52s{!} {s}|{!} %d ", suite.Name, suite.CipherStrength)
 	default:
-		fmtc.Printf(" %-46s {s}|{!} %d ", suite.Name, suite.CipherStrength)
+		fmtc.Printf(" %-52s {s}|{!} %d ", suite.Name, suite.CipherStrength)
 	}
 
 	switch {
@@ -657,22 +667,22 @@ func printSimulationInfo(sim *sslscan.SIM, suites []*sslscan.ProtocolSuites) {
 
 	switch protocolsNames[sim.ProtocolID] {
 	case "TLS 1.2", "TLS 1.3":
-		fmtc.Printf("{g}%-7s{!} %-46s "+tag+" %d\n",
+		fmtc.Printf("{g}%-7s{!} %-50s "+tag+" %d\n",
 			protocolsNames[sim.ProtocolID],
 			suite.Name, suite.CipherStrength,
 		)
 	case "TLS 1.1", "TLS 1.0":
-		fmtc.Printf("{y}%-7s{!} %-46s "+tag+" %d\n",
+		fmtc.Printf("{y}%-7s{!} %-50s "+tag+" %d\n",
 			protocolsNames[sim.ProtocolID],
 			suite.Name, suite.CipherStrength,
 		)
 	case "SSL 2.0", "SSL 3.0":
-		fmtc.Printf("{r}%-7s{!} %-46s "+tag+" %d\n",
+		fmtc.Printf("{r}%-7s{!} %-50s "+tag+" %d\n",
 			protocolsNames[sim.ProtocolID],
 			suite.Name, suite.CipherStrength,
 		)
 	default:
-		fmtc.Printf("%-7s %-46s "+tag+" %d\n",
+		fmtc.Printf("%-7s %-50s "+tag+" %d\n",
 			protocolsNames[sim.ProtocolID],
 			suite.Name, suite.CipherStrength,
 		)
@@ -1025,11 +1035,12 @@ func printEndpointHPKPInfo(details *sslscan.EndpointDetails) {
 func printEndpointHandshakeInfo(details *sslscan.EndpointDetails) {
 	fmtc.Printf(" %-40s {s}|{!} ", "Long handshake intolerance")
 
-	if details.MiscIntolerance&2 == 2 {
+	switch {
+	case details.MiscIntolerance&2 == 2:
 		fmtc.Println("{y}Yes{!}")
-	} else if details.MiscIntolerance&4 == 4 {
+	case details.MiscIntolerance&4 == 4:
 		fmtc.Println("{y}Yes{!} {s-}(workaround success){!}")
-	} else {
+	default:
 		fmtc.Println("No")
 	}
 }
@@ -1092,28 +1103,16 @@ func printEndpointNamedGroups(namedGroups *sslscan.NamedGroups) {
 		return
 	}
 
-	groups := getNamedGroups(namedGroups)
+	var groups []string
 
-	for i := 0; i < len(groups); i++ {
-		switch i {
-		case 0:
-			// skip
-		default:
-			fmtc.NewLine()
-			fmtc.Printf(" %-40s {s}|{!} ", "")
-		}
-
-		fmtc.Printf(strings.Join(groups[i], ", "))
-
-		if i != len(groups)-1 {
-			fmtc.Printf(",")
-		}
+	for _, group := range namedGroups.List {
+		groups = append(groups, group.Name)
 	}
+
+	fmtc.Print(strings.Join(groups, ", "))
 
 	if namedGroups.Preference {
 		fmtc.Printf(" {s-}(server preferred order){!}\n")
-	} else {
-		fmtc.Printf("\n")
 	}
 }
 
@@ -1359,34 +1358,13 @@ func getProtocols(protocols []*sslscan.Protocol) map[string]bool {
 	return supported
 }
 
-// getNamedGroups returns slice of slices with named groups
-func getNamedGroups(groups *sslscan.NamedGroups) [][]string {
-	var result [][]string
-	var buf []string
-
-	for _, group := range groups.List {
-		buf = append(buf, group.Name)
-
-		if len(buf) == 3 {
-			result = append(result, buf)
-			buf = nil
-		}
-	}
-
-	if buf != nil {
-		result = append(result, buf)
-	}
-
-	return result
-}
-
 // getPinsFromPolicy returns slice with all pins in policy
 func getPinsFromPolicy(policy *sslscan.HPKPPolicy) []string {
 	var pins []string
 
 	for _, pin := range strings.Split(policy.Header, ";") {
 		pin = strings.TrimSpace(pin)
-		pin = strings.Replace(pin, "\"", "", -1)
+		pin = strings.ReplaceAll(pin, "\"", "")
 		pin = strings.Replace(pin, "=", ": ", 1)
 
 		if strings.HasPrefix(pin, "pin-") {
@@ -1460,8 +1438,8 @@ func isWeakSuite(suite *sslscan.Suite) bool {
 // extractSubject extracts subject name from certificate subject
 func extractSubject(data string) string {
 	subject := strutil.ReadField(data, 0, false, ",")
-	subject = strings.Replace(subject, "CN=", "", -1)
-	subject = strings.Replace(subject, "OU=", "", -1)
+	subject = strings.ReplaceAll(subject, "CN=", "")
+	subject = strings.ReplaceAll(subject, "OU=", "")
 
 	return subject
 }
@@ -1502,7 +1480,7 @@ func getTrustInfo(certID string, endpoints []*sslscan.EndpointInfo) (map[string]
 }
 
 // getExpiryMessage returns message if cert is expired in given period
-func getExpiryMessage(ap *sslscan.AnalyzeProgress, dur int64) string {
+func getExpiryMessage(ap *sslscan.AnalyzeProgress, dur time.Duration) string {
 	if dur <= 0 {
 		return ""
 	}
@@ -1516,7 +1494,7 @@ func getExpiryMessage(ap *sslscan.AnalyzeProgress, dur int64) string {
 	cert := info.Certs[0]
 	validUntilDate := time.Unix(cert.NotAfter/1000, 0)
 
-	if validUntilDate.Unix()-time.Now().Unix() > dur {
+	if time.Until(validUntilDate) > dur {
 		return ""
 	}
 
