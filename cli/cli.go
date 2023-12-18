@@ -636,7 +636,7 @@ func genUsage() *usage.Info {
 
 	info.AppNameColorTag = colorTagApp
 
-	info.AddOption(OPT_FORMAT, "Output result in different formats", "text|json|yaml|xml")
+	info.AddOption(OPT_FORMAT, "Output result in different formats {s-}(text/json/yaml/xml){!}", "format")
 	info.AddOption(OPT_DETAILED, "Show detailed info for each endpoint")
 	info.AddOption(OPT_IGNORE_MISMATCH, "Proceed with assessments on certificate mismatch")
 	info.AddOption(OPT_AVOID_CACHE, "Disable cache usage")
