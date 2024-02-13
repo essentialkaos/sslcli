@@ -1437,7 +1437,7 @@ func isWeakSuite(suite *sslscan.Suite) bool {
 
 // extractSubject extracts subject name from certificate subject
 func extractSubject(data string) string {
-	subject := strutil.ReadField(data, 0, false, ",")
+	subject := strutil.ReadField(data, 0, false, ',')
 	subject = strings.ReplaceAll(subject, "CN=", "")
 	subject = strings.ReplaceAll(subject, "OU=", "")
 
