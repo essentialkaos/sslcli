@@ -15,7 +15,7 @@ RUN apk add --no-cache git make && make deps && make all
 
 ## FINAL IMAGE #################################################################
 
-FROM ${REGISTRY}/essentialkaos/alpine:3.15
+FROM ${REGISTRY}/essentialkaos/alpine:3.18
 
 LABEL org.opencontainers.image.title="sslcli" \
       org.opencontainers.image.description="Pretty awesome command-line client for public SSLLabs API" \
