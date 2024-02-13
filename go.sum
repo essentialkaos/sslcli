@@ -3,8 +3,8 @@ github.com/andybalholm/brotli v1.0.6/go.mod h1:fO7iG3H7G2nSZ7m0zPUDn85XEX2GTukHG
 github.com/essentialkaos/check v1.4.0 h1:kWdFxu9odCxUqo1NNFNJmguGrDHgwi3A8daXX1nkuKk=
 github.com/essentialkaos/depsy v1.1.0 h1:U6dp687UkQwXlZU17Hg2KMxbp3nfZAoZ8duaeUFYvJI=
 github.com/essentialkaos/depsy v1.1.0/go.mod h1:kpiTAV17dyByVnrbNaMcZt2jRwvuXClUYOzpyJQwtG8=
-github.com/essentialkaos/ek/v12 v12.99.0 h1:WobgR9z6j34IsMvt8kwa54mlSBgHV4bZF6/shYZK6N4=
-github.com/essentialkaos/ek/v12 v12.99.0/go.mod h1:peB5w8zUkRuDs7m/QG5Z2gMmqzSIs2viAmxzzNFIIoo=
+github.com/essentialkaos/ek/v12 v12.100.0 h1:bup8cqsUUXJtKHAgdt2eHjYKBFU/0rPbg/us2H1E46I=
+github.com/essentialkaos/ek/v12 v12.100.0/go.mod h1:VjMWDJ1r4HsfBYJuCNDUo4R1lhCgYkFZOMOH0S3W6iM=
 github.com/essentialkaos/sslscan/v13 v13.2.1 h1:TWT+isjAtE4hLb4RFXfVbSV7e4kRMkSwOcqK6FU4bp0=
 github.com/essentialkaos/sslscan/v13 v13.2.1/go.mod h1:YFx/6iJ97/57mMMVa5+r/JywNTjlo0dGQQIu//E0bnU=
 github.com/klauspost/compress v1.17.4 h1:Ej5ixsIri7BrIjBkRZLTo6ghwrEtHFk7ijlczPW4fZ4=
@@ -16,5 +16,5 @@ github.com/valyala/bytebufferpool v1.0.0 h1:GqA5TC/0021Y/b9FG4Oi9Mr3q7XYx6Kllzaw
 github.com/valyala/bytebufferpool v1.0.0/go.mod h1:6bBcMArwyJ5K/AmCkWv1jt77kVWyCJ6HpOuEn7z0Csc=
 github.com/valyala/fasthttp v1.51.0 h1:8b30A5JlZ6C7AS81RsWjYMQmrZG6feChmgAolCl1SqA=
 github.com/valyala/fasthttp v1.51.0/go.mod h1:oI2XroL+lI7vdXyYoQk03bXBThfFl2cVdIA3Xl7cH8g=
-golang.org/x/sys v0.16.0 h1:xWw16ngr6ZMtmxDyKyIgsE93KNKz5HKmMa3b8ALHidU=
-golang.org/x/sys v0.16.0/go.mod h1:/VUhepiaJMQUp4+oa/7Zr1D23ma6VTLIYjOOTFZPUcA=
+golang.org/x/sys v0.17.0 h1:25cE3gD+tdBA7lp7QfhuV+rJiE9YXTcS3VG1SqssI/Y=
+golang.org/x/sys v0.17.0/go.mod h1:/VUhepiaJMQUp4+oa/7Zr1D23ma6VTLIYjOOTFZPUcA=
