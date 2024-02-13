@@ -4,7 +4,7 @@ go 1.19
 
 require (
 	github.com/essentialkaos/depsy v1.1.0
-	github.com/essentialkaos/ek/v12 v12.99.0
+	github.com/essentialkaos/ek/v12 v12.100.0
 	github.com/essentialkaos/sslscan/v13 v13.2.1
 )
 
@@ -13,5 +13,5 @@ require (
 	github.com/klauspost/compress v1.17.4 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasthttp v1.51.0 // indirect
-	golang.org/x/sys v0.16.0 // indirect
+	golang.org/x/sys v0.17.0 // indirect
 )
