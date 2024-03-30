@@ -15,7 +15,7 @@
 `sslcli` is command-line client for <a href="https://www.ssllabs.com">SSLLabs</a> public API.
 
 > [!CAUTION]
-> Currently, the SSLLabs API doesn't provide the same information as the SSLLabs website.
+> Currently, the SSL Labs API doesn't provide the same information as the [SSL Labs website](https://www.ssllabs.com/ssltest/).
 
 ### Usage demo
 
