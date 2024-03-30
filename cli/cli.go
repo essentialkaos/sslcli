@@ -20,7 +20,10 @@ import (
 	"github.com/essentialkaos/ek/v12/fsutil"
 	"github.com/essentialkaos/ek/v12/options"
 	"github.com/essentialkaos/ek/v12/pager"
+	"github.com/essentialkaos/ek/v12/req"
 	"github.com/essentialkaos/ek/v12/strutil"
+	"github.com/essentialkaos/ek/v12/support"
+	"github.com/essentialkaos/ek/v12/support/deps"
 	"github.com/essentialkaos/ek/v12/timeutil"
 	"github.com/essentialkaos/ek/v12/usage"
 	"github.com/essentialkaos/ek/v12/usage/completion/bash"
@@ -29,20 +32,19 @@ import (
 	"github.com/essentialkaos/ek/v12/usage/man"
 	"github.com/essentialkaos/ek/v12/usage/update"
 
-	"github.com/essentialkaos/sslscan/v13"
-
-	"github.com/essentialkaos/sslcli/cli/support"
+	sslscan "github.com/essentialkaos/sslscan/v14"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 const (
 	APP  = "SSLScan Client"
-	VER  = "2.8.0"
+	VER  = "3.0.0"
 	DESC = "Command-line client for the SSL Labs API"
 )
 
 const (
+	OPT_EMAIL           = "e:email"
 	OPT_FORMAT          = "f:format"
 	OPT_DETAILED        = "d:detailed"
 	OPT_IGNORE_MISMATCH = "i:ignore-mismatch"
@@ -56,6 +58,10 @@ const (
 	OPT_NO_COLOR        = "nc:no-color"
 	OPT_HELP            = "h:help"
 	OPT_VER             = "v:version"
+
+	OPT_REGISTER = "register"
+	OPT_NAME     = "name"
+	OPT_ORG      = "org"
 
 	OPT_VERB_VER     = "vv:verbose-version"
 	OPT_COMPLETION   = "completion"
@@ -94,6 +100,7 @@ type EndpointCheckInfo struct {
 // ////////////////////////////////////////////////////////////////////////////////// //
 
 var optMap = options.Map{
+	OPT_EMAIL:           {},
 	OPT_FORMAT:          {},
 	OPT_MAX_LEFT:        {},
 	OPT_DETAILED:        {Type: options.BOOL},
@@ -107,6 +114,10 @@ var optMap = options.Map{
 	OPT_NO_COLOR:        {Type: options.BOOL},
 	OPT_HELP:            {Type: options.BOOL},
 	OPT_VER:             {Type: options.MIXED},
+
+	OPT_REGISTER: {Type: options.BOOL, Bound: []string{OPT_EMAIL, OPT_NAME, OPT_ORG}},
+	OPT_NAME:     {},
+	OPT_ORG:      {},
 
 	OPT_VERB_VER:     {Type: options.BOOL},
 	OPT_COMPLETION:   {},
@@ -130,6 +141,7 @@ var gradeNumMap = map[string]float64{
 var api *sslscan.API
 var maxLeftToExpiry time.Duration
 var serverMessageShown bool
+var email string
 
 var colorTagApp, colorTagVer string
 
@@ -137,6 +149,9 @@ var colorTagApp, colorTagVer string
 
 // Run is main function
 func Run(gitRev string, gomod []byte) {
+	var err error
+	var ok bool
+
 	runtime.GOMAXPROCS(2)
 
 	args, errs := options.Parse(optMap)
@@ -158,21 +173,32 @@ func Run(gitRev string, gomod []byte) {
 		genAbout(gitRev).Print(options.GetS(OPT_VER))
 		os.Exit(0)
 	case options.GetB(OPT_VERB_VER):
-		support.Print(APP, VER, gitRev, gomod)
+		support.Collect(APP, VER).
+			WithRevision(gitRev).
+			WithDeps(deps.Extract(gomod)).
+			WithChecks(checkAPIAvailability()).
+			Print()
 		os.Exit(0)
-	case options.GetB(OPT_HELP) || len(args) == 0:
+	case options.GetB(OPT_HELP) || (len(args) == 0 && !options.GetB(OPT_REGISTER)):
 		genUsage().Print()
 		os.Exit(0)
 	}
 
-	err := prepare()
+	checkForEmail()
+
+	err = prepare()
 
 	if err != nil {
 		printError(err.Error())
 		os.Exit(1)
 	}
 
-	err, ok := process(args)
+	switch {
+	case options.GetB(OPT_REGISTER):
+		err, ok = registerUser()
+	default:
+		err, ok = runHostCheck(args)
+	}
 
 	if err != nil {
 		printError(err.Error())
@@ -219,17 +245,80 @@ func prepare() error {
 	return nil
 }
 
-// process starting request processing
-func process(args options.Arguments) (error, bool) {
+// checkForEmail checks for provided email
+func checkForEmail() {
+	email = strutil.Q(options.GetS(OPT_EMAIL), os.Getenv("SSLLABS_EMAIL"))
+
+	if email != "" {
+		return
+	}
+
+	printError("You must provide an email address to make requests to the API.")
+	printError(
+		"You can provide it using %s option, or using SSLLABS_EMAIL environment variable.",
+		options.Format(OPT_EMAIL),
+	)
+
+	fmtc.Println("{s-}More info: {_}https://github.com/ssllabs/ssllabs-scan/blob/master/ssllabs-api-docs-v4.md#register-for-scan-api-initiation-and-result-fetching{!}")
+
+	os.Exit(1)
+}
+
+// registerUser sends user registration request
+func registerUser() (error, bool) {
+	api, err := sslscan.NewAPI("SSLCli", VER, email)
+
+	if err != nil {
+		if !options.GetB(OPT_FORMAT) {
+			return fmt.Errorf("Error while sending request to SSL Labs API: %v", err), false
+		}
+
+		return nil, false
+	}
+
+	org := options.GetS(OPT_ORG)
+	name := options.GetS(OPT_NAME)
+
+	if !strings.Contains(name, " ") {
+		return fmt.Errorf("Name must contain first and last name"), false
+	}
+
+	firstName, lastName, _ := strings.Cut(name, " ")
+
+	fmtc.NewLine()
+	fmtc.Printf("  {s}Email:{!}        %s\n", email)
+	fmtc.Printf("  {s}Organization:{!} %s\n", org)
+	fmtc.Printf("  {s}First Name:{!}   %s\n", firstName)
+	fmtc.Printf("  {s}Last Name:{!}    %s\n", lastName)
+	fmtc.NewLine()
+
+	resp, err := api.Register(&sslscan.RegisterRequest{
+		FirstName:    firstName,
+		LastName:     lastName,
+		Email:        email,
+		Organization: org,
+	})
+
+	if err != nil {
+		return fmt.Errorf("Can't register user: %v", err), false
+	}
+
+	fmtc.Printf("{g}%s{!}\n\n", resp.Message)
+
+	return nil, true
+}
+
+// runHostCheck starts check for host
+func runHostCheck(args options.Arguments) (error, bool) {
 	var ok bool
 	var err error
 	var hosts []string
 
-	api, err = sslscan.NewAPI("SSLCli", VER)
+	api, err = sslscan.NewAPI("SSLCli", VER, email)
 
 	if err != nil {
 		if !options.GetB(OPT_FORMAT) {
-			return fmt.Errorf("Error while sending scan request to SSL Labs API: %v", err), false
+			return fmt.Errorf("Error while sending request to SSL Labs API: %v", err), false
 		}
 
 		return nil, false
@@ -602,6 +691,30 @@ func printError(f string, a ...interface{}) {
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
+// checkAPIAvailability checks SSLLabs API availability
+func checkAPIAvailability() support.Check {
+	req.SetUserAgent("SSLCli", VER)
+
+	resp, err := req.Request{
+		URL:         sslscan.API_URL_INFO,
+		AutoDiscard: true,
+	}.Head()
+
+	if err != nil {
+		return support.Check{
+			support.CHECK_ERROR, "SSLLabs API", "Can't send request",
+		}
+	} else if resp.StatusCode != 200 {
+		return support.Check{
+			support.CHECK_ERROR, "SSLLabs API", fmt.Sprintf(
+				"API returned non-ok status code %s", resp.StatusCode,
+			),
+		}
+	}
+
+	return support.Check{support.CHECK_OK, "SSLLabs API", "API available"}
+}
+
 // printCompletion prints completion for given shell
 func printCompletion() int {
 	info := genUsage()
@@ -636,6 +749,7 @@ func genUsage() *usage.Info {
 
 	info.AppNameColorTag = colorTagApp
 
+	info.AddOption(OPT_EMAIL, "User account email {r}(required){!}", "email")
 	info.AddOption(OPT_FORMAT, "Output result in different formats {s-}(text/json/yaml/xml){!}", "format")
 	info.AddOption(OPT_DETAILED, "Show detailed info for each endpoint")
 	info.AddOption(OPT_IGNORE_MISMATCH, "Proceed with assessments on certificate mismatch")
@@ -650,11 +764,35 @@ func genUsage() *usage.Info {
 	info.AddOption(OPT_HELP, "Show this help message")
 	info.AddOption(OPT_VER, "Show version")
 
-	info.AddExample("google.com", "Check google.com")
-	info.AddExample("-P google.com", "Check google.com and return zero exit code only if result is perfect (A+)")
-	info.AddExample("-p -c google.com", "Check google.com, publish results, disable cache usage")
-	info.AddExample("-M 3m -q google.com", "Check google.com in quiet mode and return error if cert expire in 3 months")
-	info.AddExample("hosts.txt", "Check all hosts defined in hosts.txt file")
+	info.AddExample(
+		"--register --email john@domain.com --org 'Some Organization' --name 'John Doe'",
+		"Register new user account for scanning",
+	)
+
+	info.AddExample(
+		"google.com",
+		"Check google.com",
+	)
+
+	info.AddExample(
+		"-P google.com",
+		"Check google.com and return zero exit code only if result is perfect (A+)",
+	)
+
+	info.AddExample(
+		"-p -c google.com",
+		"Check google.com, publish results, disable cache usage",
+	)
+
+	info.AddExample(
+		"-M 3m -q google.com",
+		"Check google.com in quiet mode and return error if cert expire in 3 months",
+	)
+
+	info.AddExample(
+		"hosts.txt",
+		"Check all hosts defined in hosts.txt file",
+	)
 
 	return info
 }
@@ -672,12 +810,12 @@ func genAbout(gitRev string) *usage.About {
 		VersionColorTag: colorTagVer,
 		DescSeparator:   "{s}—{!}",
 
-		License:       "Apache License, Version 2.0 <http://www.apache.org/licenses/LICENSE-2.0>",
-		UpdateChecker: usage.UpdateChecker{"essentialkaos/sslcli", update.GitHubChecker},
+		License: "Apache License, Version 2.0 <http://www.apache.org/licenses/LICENSE-2.0>",
 	}
 
 	if gitRev != "" {
 		about.Build = "git:" + gitRev
+		about.UpdateChecker = usage.UpdateChecker{"essentialkaos/sslcli", update.GitHubChecker}
 	}
 
 	return about

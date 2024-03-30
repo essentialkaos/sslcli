@@ -20,7 +20,7 @@ import (
 	"github.com/essentialkaos/ek/v12/strutil"
 	"github.com/essentialkaos/ek/v12/timeutil"
 
-	"github.com/essentialkaos/sslscan/v13"
+	sslscan "github.com/essentialkaos/sslscan/v14"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
