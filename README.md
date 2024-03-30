@@ -71,6 +71,7 @@ Usage: sslcli {options} host…
 
 Options
 
+  --email, -e email          User account email (required)
   --format, -f format        Output result in different formats (text/json/yaml/xml)
   --detailed, -d             Show detailed info for each endpoint
   --ignore-mismatch, -i      Proceed with assessments on certificate mismatch
@@ -86,6 +87,9 @@ Options
   --version, -v              Show version
 
 Examples
+
+  sslcli --register --email john@domain.com --org 'Some Organization' --name 'John Doe'
+  Register new user account for scanning
 
   sslcli google.com
   Check google.com
