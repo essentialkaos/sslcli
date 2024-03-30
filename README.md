@@ -14,7 +14,8 @@
 
 `sslcli` is command-line client for <a href="https://www.ssllabs.com">SSLLabs</a> public API.
 
-**IMPORTANT:** Currently, SSLLabs API doesn't provide same info as SSLLabs website.
+> [!CAUTION]
+> Currently, the SSLLabs API doesn't provide the same information as the SSLLabs website.
 
 ### Usage demo
 
@@ -24,7 +25,7 @@
 
 #### From source
 
-To build the SSLScan Client from scratch, make sure you have a working Go 1.19+ workspace ([instructions](https://go.dev/doc/install)), then:
+To build the SSLScan Client from scratch, make sure you have a working Go 1.21+ workspace ([instructions](https://go.dev/doc/install)), then:
 
 ```
 go install github.com/essentialkaos/sslcli@latest
