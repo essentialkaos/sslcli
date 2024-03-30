@@ -12,7 +12,7 @@
 
 <br/>
 
-`sslcli` is command-line client for <a href="https://www.ssllabs.com">SSLLabs</a> public API.
+`sslcli` is command-line client for <a href="https://www.ssllabs.com">Qualys SSL Labs</a> public API.
 
 > [!CAUTION]
 > Currently, the SSL Labs API doesn't provide the same information as the [SSL Labs website](https://www.ssllabs.com/ssltest/).
