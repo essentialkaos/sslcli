@@ -10,7 +10,7 @@
 
 Summary:        Pretty awesome command-line client for public SSLLabs API
 Name:           sslcli
-Version:        2.8.0
+Version:        3.0.0
 Release:        0%{?dist}
 Group:          Applications/System
 License:        Apache License, Version 2.0
@@ -101,6 +101,13 @@ fi
 ################################################################################
 
 %changelog
+* Sat Mar 30 2024 Anton Novojilov <andy@essentialkaos.com> - 3.0.0-0
+- sslscan package update to v14
+- Added account registration feature
+- Improved support information gathering
+- Code refactoring
+- Dependencies update
+
 * Mon Dec 11 2023 Anton Novojilov <andy@essentialkaos.com> - 2.8.0-0
 - Add '-G'/'--pager' option to use pager for long output
 - Minor UI improvements

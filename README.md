@@ -12,9 +12,10 @@
 
 <br/>
 
-`sslcli` is command-line client for <a href="https://www.ssllabs.com">SSLLabs</a> public API.
+`sslcli` is command-line client for <a href="https://www.ssllabs.com">Qualys SSL Labs</a> public API.
 
-**IMPORTANT:** Currently, SSLLabs API doesn't provide same info as SSLLabs website.
+> [!CAUTION]
+> Currently, the SSL Labs API doesn't provide the same information as the [SSL Labs website](https://www.ssllabs.com/ssltest/).
 
 ### Usage demo
 
@@ -24,7 +25,7 @@
 
 #### From source
 
-To build the SSLScan Client from scratch, make sure you have a working Go 1.19+ workspace ([instructions](https://go.dev/doc/install)), then:
+To build the SSLScan Client from scratch, make sure you have a working Go 1.21+ workspace ([instructions](https://go.dev/doc/install)), then:
 
 ```
 go install github.com/essentialkaos/sslcli@latest
@@ -71,6 +72,7 @@ Usage: sslcli {options} host…
 
 Options
 
+  --email, -e email          User account email (required)
   --format, -f format        Output result in different formats (text/json/yaml/xml)
   --detailed, -d             Show detailed info for each endpoint
   --ignore-mismatch, -i      Proceed with assessments on certificate mismatch
@@ -86,6 +88,9 @@ Options
   --version, -v              Show version
 
 Examples
+
+  sslcli --register --email john@domain.com --org 'Some Organization' --name 'John Doe'
+  Register new user account for scanning
 
   sslcli google.com
   Check google.com

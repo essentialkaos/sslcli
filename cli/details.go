@@ -20,7 +20,7 @@ import (
 	"github.com/essentialkaos/ek/v12/strutil"
 	"github.com/essentialkaos/ek/v12/timeutil"
 
-	"github.com/essentialkaos/sslscan/v13"
+	sslscan "github.com/essentialkaos/sslscan/v14"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -1437,7 +1437,7 @@ func isWeakSuite(suite *sslscan.Suite) bool {
 
 // extractSubject extracts subject name from certificate subject
 func extractSubject(data string) string {
-	subject := strutil.ReadField(data, 0, false, ",")
+	subject := strutil.ReadField(data, 0, false, ',')
 	subject = strings.ReplaceAll(subject, "CN=", "")
 	subject = strings.ReplaceAll(subject, "OU=", "")
 
