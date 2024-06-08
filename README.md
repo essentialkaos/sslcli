@@ -67,46 +67,7 @@ docker run --rm -it ghcr.io/essentialkaos/sslcli:latest mydomain.com
 
 ### Usage
 
-```
-Usage: sslcli {options} host…
-
-Options
-
-  --email, -e email          User account email (required)
-  --format, -f format        Output result in different formats (text/json/yaml/xml)
-  --detailed, -d             Show detailed info for each endpoint
-  --ignore-mismatch, -i      Proceed with assessments on certificate mismatch
-  --avoid-cache, -c          Disable cache usage
-  --public, -p               Publish results on sslscan.com
-  --perfect, -P              Return non-zero exit code if not A+
-  --max-left, -M duration    Check expiry date (num + d/w/m/y)
-  --notify, -n               Notify when check is done
-  --quiet, -q                Don't show any output
-  --pager, -G                Use pager for long output
-  --no-color, -nc            Disable colors in output
-  --help, -h                 Show this help message
-  --version, -v              Show version
-
-Examples
-
-  sslcli --register --email john@domain.com --org 'Some Organization' --name 'John Doe'
-  Register new user account for scanning
-
-  sslcli google.com
-  Check google.com
-
-  sslcli -P google.com
-  Check google.com and return zero exit code only if result is perfect (A+)
-
-  sslcli -p -c google.com
-  Check google.com, publish results, disable cache usage
-
-  sslcli -M 3m -q google.com
-  Check google.com in quiet mode and return error if cert expire in 3 months
-
-  sslcli hosts.txt
-  Check all hosts defined in hosts.txt file
-```
+<img src=".github/images/usage.svg" />
 
 ### Build Status
 
