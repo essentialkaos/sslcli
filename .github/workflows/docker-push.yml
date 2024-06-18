@@ -135,7 +135,7 @@ jobs:
 
       - name: Build and push Docker images (Docker)
         if: ${{ steps.build_check.outputs.build == 'true' }}
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           push: true
           context: .
@@ -148,7 +148,7 @@ jobs:
 
       - name: Build and push Docker images (GHCR)
         if: ${{ steps.build_check.outputs.build == 'true' }}
-        uses: docker/build-push-action@v5
+        uses: docker/build-push-action@v6
         with:
           push: true
           context: .
