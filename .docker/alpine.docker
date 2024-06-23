@@ -4,14 +4,13 @@ ARG REGISTRY="docker.io"
 
 ## BUILDER #####################################################################
 
-FROM golang:alpine3.18 as builder
+FROM ${REGISTRY}/essentialkaos/golang:alpine3.18 as builder
 
 WORKDIR /go/src/github.com/essentialkaos/sslcli
 
 COPY . .
 
-# hadolint ignore=DL3018
-RUN apk add --no-cache git make && make deps && make all
+RUN make deps && make all
 
 ## FINAL IMAGE #################################################################
 
