@@ -18,6 +18,7 @@ import (
 	"github.com/essentialkaos/ek/v12/pluralize"
 	"github.com/essentialkaos/ek/v12/sliceutil"
 	"github.com/essentialkaos/ek/v12/strutil"
+	"github.com/essentialkaos/ek/v12/terminal"
 	"github.com/essentialkaos/ek/v12/timeutil"
 
 	sslscan "github.com/essentialkaos/sslscan/v14"
@@ -63,12 +64,12 @@ func printDetailedInfo(ap *sslscan.AnalyzeProgress, fromCache bool) {
 	info, err := ap.Info(true, fromCache)
 
 	if err != nil {
-		printError("\nCan't fetch full analyze info: %v\n", err)
+		terminal.Error("\nCan't fetch full analyze info: %v\n", err)
 		return
 	}
 
 	if strings.ToUpper(info.Status) != "READY" {
-		printError("\n%s\n", info.StatusMessage)
+		terminal.Error("\n%s\n", info.StatusMessage)
 		return
 	}
 
