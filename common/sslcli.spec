@@ -103,6 +103,10 @@ fi
 ################################################################################
 
 %changelog
+* Mon Jun 24 2024 Anton Novojilov <andy@essentialkaos.com> - 3.0.1-0
+- Code refactoring
+- Dependencies update
+
 * Sat Mar 30 2024 Anton Novojilov <andy@essentialkaos.com> - 3.0.0-0
 - sslscan package update to v14
 - Added account registration feature
