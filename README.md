@@ -1,14 +1,14 @@
-<p align="center"><a href="#readme"><img src="https://gh.kaos.st/sslcli.svg"/></a></p>
+<p align="center"><a href="#readme"><img src=".github/images/card.svg"/></a></p>
 
 <p align="center">
   <a href="https://kaos.sh/w/sslcli/ci"><img src="https://kaos.sh/w/sslcli/ci.svg" alt="GitHub Actions CI Status" /></a>
   <a href="https://kaos.sh/r/sslcli"><img src="https://kaos.sh/r/sslcli.svg" alt="GoReportCard" /></a>
   <a href="https://kaos.sh/b/sslcli"><img src="https://kaos.sh/b/edc52bb1-c807-470b-8466-b86cc0cfcdbe.svg" alt="codebeat badge" /></a>
   <a href="https://kaos.sh/w/sslcli/codeql"><img src="https://kaos.sh/w/sslcli/codeql.svg" alt="GitHub Actions CodeQL Status" /></a>
-  <a href="#license"><img src="https://gh.kaos.st/apache2.svg"></a>
+  <a href="#license"><img src=".github/images/license.svg"/></a>
 </p>
 
-<p align="center"><a href="#usage-demo">Usage demo</a> • <a href="#installation">Installation</a> • <a href="#feature-list">Feature list</a> • <a href="#usage">Usage</a> • <a href="#build-status">Build Status</a> • <a href="#contributing">Contributing</a> • <a href="#terms-of-use">Terms of Use</a> • <a href="#license">License</a></p>
+<p align="center"><a href="#usage-demo">Usage demo</a> • <a href="#installation">Installation</a> • <a href="#feature-list">Feature list</a> • <a href="#usage">Usage</a> • <a href="#ci-status">CI Status</a> • <a href="#contributing">Contributing</a> • <a href="#terms-of-use">Terms of Use</a> • <a href="#license">License</a></p>
 
 <br/>
 
@@ -67,48 +67,9 @@ docker run --rm -it ghcr.io/essentialkaos/sslcli:latest mydomain.com
 
 ### Usage
 
-```
-Usage: sslcli {options} host…
+<img src=".github/images/usage.svg" />
 
-Options
-
-  --email, -e email          User account email (required)
-  --format, -f format        Output result in different formats (text/json/yaml/xml)
-  --detailed, -d             Show detailed info for each endpoint
-  --ignore-mismatch, -i      Proceed with assessments on certificate mismatch
-  --avoid-cache, -c          Disable cache usage
-  --public, -p               Publish results on sslscan.com
-  --perfect, -P              Return non-zero exit code if not A+
-  --max-left, -M duration    Check expiry date (num + d/w/m/y)
-  --notify, -n               Notify when check is done
-  --quiet, -q                Don't show any output
-  --pager, -G                Use pager for long output
-  --no-color, -nc            Disable colors in output
-  --help, -h                 Show this help message
-  --version, -v              Show version
-
-Examples
-
-  sslcli --register --email john@domain.com --org 'Some Organization' --name 'John Doe'
-  Register new user account for scanning
-
-  sslcli google.com
-  Check google.com
-
-  sslcli -P google.com
-  Check google.com and return zero exit code only if result is perfect (A+)
-
-  sslcli -p -c google.com
-  Check google.com, publish results, disable cache usage
-
-  sslcli -M 3m -q google.com
-  Check google.com in quiet mode and return error if cert expire in 3 months
-
-  sslcli hosts.txt
-  Check all hosts defined in hosts.txt file
-```
-
-### Build Status
+### CI Status
 
 | Branch | Status |
 |------------|--------|
