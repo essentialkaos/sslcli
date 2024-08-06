@@ -1,4 +1,4 @@
-module github.com/essentialkaos/sslcli
+module github.com/essentialkaos/sslcli/v3
 
 go 1.19
 

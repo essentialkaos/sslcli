@@ -10,7 +10,7 @@ package main
 import (
 	_ "embed"
 
-	CLI "github.com/essentialkaos/sslcli/cli"
+	CLI "github.com/essentialkaos/sslcli/v3/cli"
 )
 
 // ////////////////////////////////////////////////////////////////////////////////// //

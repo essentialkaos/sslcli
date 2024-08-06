@@ -3,7 +3,6 @@
 <p align="center">
   <a href="https://kaos.sh/w/sslcli/ci"><img src="https://kaos.sh/w/sslcli/ci.svg" alt="GitHub Actions CI Status" /></a>
   <a href="https://kaos.sh/r/sslcli"><img src="https://kaos.sh/r/sslcli.svg" alt="GoReportCard" /></a>
-  <a href="https://kaos.sh/b/sslcli"><img src="https://kaos.sh/b/edc52bb1-c807-470b-8466-b86cc0cfcdbe.svg" alt="codebeat badge" /></a>
   <a href="https://kaos.sh/w/sslcli/codeql"><img src="https://kaos.sh/w/sslcli/codeql.svg" alt="GitHub Actions CodeQL Status" /></a>
   <a href="#license"><img src=".github/images/license.svg"/></a>
 </p>
@@ -28,7 +27,7 @@
 To build the SSLScan Client from scratch, make sure you have a working Go 1.21+ workspace ([instructions](https://go.dev/doc/install)), then:
 
 ```
-go install github.com/essentialkaos/sslcli@latest
+go install github.com/essentialkaos/sslcli/v3@latest
 ```
 
 #### From [ESSENTIAL KAOS Public Repository](https://kaos.sh/kaos-repo)
