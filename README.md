@@ -1,8 +1,9 @@
 <p align="center"><a href="#readme"><img src=".github/images/card.svg"/></a></p>
 
 <p align="center">
-  <a href="https://kaos.sh/w/sslcli/ci"><img src="https://kaos.sh/w/sslcli/ci.svg" alt="GitHub Actions CI Status" /></a>
   <a href="https://kaos.sh/r/sslcli"><img src="https://kaos.sh/r/sslcli.svg" alt="GoReportCard" /></a>
+  <a href="https://kaos.sh/y/sslcli"><img src="https://kaos.sh/y/cb0c9951ae5c4ac89ea6192e9bfb170f.svg" alt="Codacy badge" /></a>
+  <a href="https://kaos.sh/w/sslcli/ci-push"><img src="https://kaos.sh/w/sslcli/ci-push.svg" alt="GitHub Actions CI Status" /></a>
   <a href="https://kaos.sh/w/sslcli/codeql"><img src="https://kaos.sh/w/sslcli/codeql.svg" alt="GitHub Actions CodeQL Status" /></a>
   <a href="#license"><img src=".github/images/license.svg"/></a>
 </p>
@@ -72,8 +73,8 @@ docker run --rm -it ghcr.io/essentialkaos/sslcli:latest mydomain.com
 
 | Branch | Status |
 |------------|--------|
-| `master` | [![CI](https://kaos.sh/w/sslcli/ci.svg?branch=master)](https://kaos.sh/w/sslcli/ci?query=branch:master) |
-| `develop` | [![CI](https://kaos.sh/w/sslcli/ci.svg?branch=develop)](https://kaos.sh/w/sslcli/ci?query=branch:develop) |
+| `master` | [![CI](https://kaos.sh/w/sslcli/ci-push.svg?branch=master)](https://kaos.sh/w/sslcli/ci-push?query=branch:master) |
+| `develop` | [![CI](https://kaos.sh/w/sslcli/ci-push.svg?branch=develop)](https://kaos.sh/w/sslcli/ci-push?query=branch:develop) |
 
 ### Contributing
 
