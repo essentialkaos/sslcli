@@ -1,0 +1,26 @@
+name: CI (Push)
+
+on:
+  push:
+    branches: [master, develop]
+  workflow_dispatch:
+    inputs:
+      force_run:
+        description: 'Force workflow run'
+        required: true
+        type: choice
+        options: [yes, no]
+
+permissions:
+  actions: read
+  contents: read
+  statuses: write
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  CI:
+    uses: ./.github/workflows/ci.yml
+    secrets: inherit

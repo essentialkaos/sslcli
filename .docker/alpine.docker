@@ -4,7 +4,7 @@ ARG REGISTRY="docker.io"
 
 ## BUILDER #####################################################################
 
-FROM ${REGISTRY}/essentialkaos/golang:alpine3.18 as builder
+FROM ${REGISTRY}/essentialkaos/golang:alpine3.20 as builder
 
 WORKDIR /go/src/github.com/essentialkaos/sslcli
 
@@ -14,7 +14,7 @@ RUN make deps && make all
 
 ## FINAL IMAGE #################################################################
 
-FROM ${REGISTRY}/essentialkaos/alpine:3.18
+FROM ${REGISTRY}/essentialkaos/alpine:3.20
 
 LABEL org.opencontainers.image.title="sslcli" \
       org.opencontainers.image.description="Pretty awesome command-line client for public SSLLabs API" \
