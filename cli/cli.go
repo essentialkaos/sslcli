@@ -288,10 +288,10 @@ func registerUser() (error, bool) {
 	firstName, lastName, _ := strings.Cut(name, " ")
 
 	fmtc.NewLine()
-	fmtc.Printf("  {s}Email:{!}        %s\n", email)
-	fmtc.Printf("  {s}Organization:{!} %s\n", org)
-	fmtc.Printf("  {s}First Name:{!}   %s\n", firstName)
-	fmtc.Printf("  {s}Last Name:{!}    %s\n", lastName)
+	fmtc.Printfn("  {s}Email:{!}        %s", email)
+	fmtc.Printfn("  {s}Organization:{!} %s", org)
+	fmtc.Printfn("  {s}First Name:{!}   %s", firstName)
+	fmtc.Printfn("  {s}Last Name:{!}    %s", lastName)
 	fmtc.NewLine()
 
 	resp, err := api.Register(&sslscan.RegisterRequest{
@@ -305,7 +305,7 @@ func registerUser() (error, bool) {
 		return fmt.Errorf("Can't register user: %v", err), false
 	}
 
-	fmtc.Printf("{g}%s{!}\n\n", resp.Message)
+	fmtc.Printfn("{g}%s{!}\n", resp.Message)
 
 	return nil, true
 }
@@ -475,8 +475,8 @@ func showServerMessage() {
 
 	fmtc.NewLine()
 	fmtc.Println(coloredMessage)
-	fmtc.Printf(
-		"{s-}Assessments: %d/%d (CoolOff: %d)\n",
+	fmtc.Printfn(
+		"{s-}Assessments: %d/%d (CoolOff: %d)",
 		api.Info.CurrentAssessments+1,
 		api.Info.MaxAssessments,
 		api.Info.NewAssessmentCoolOff,
