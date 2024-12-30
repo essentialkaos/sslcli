@@ -2,10 +2,10 @@ github.com/essentialkaos/check v1.4.1 h1:SuxXzrbokPGTPWxGRnzy0hXvtb44mtVrdNxgPa1
 github.com/essentialkaos/check v1.4.1/go.mod h1:xQOYwFvnxfVZyt5Qvjoa1SxcRqu5VyP77pgALr3iu+M=
 github.com/essentialkaos/depsy v1.3.1 h1:00k9QcMsdPM4IzDaEFHsTHBD/zoM0oxtB5+dMUwbQa8=
 github.com/essentialkaos/depsy v1.3.1/go.mod h1:B5+7Jhv2a2RacOAxIKU2OeJp9QfZjwIpEEPI5X7auWM=
-github.com/essentialkaos/ek/v13 v13.15.3 h1:lDJ0qMs6wQRXWFuFRKnPvNX1SxvW2AowKgz6pRoMhAs=
-github.com/essentialkaos/ek/v13 v13.15.3/go.mod h1:ez9V1qvfXvjI6gqT24fZfkdVefHzYi6bm/c2NrD7B3s=
-github.com/essentialkaos/sslscan/v14 v14.1.0 h1:sihH3dnkyXqqwfY1ifZ0C7IzSHZ724w8iuqFvQPRJ68=
-github.com/essentialkaos/sslscan/v14 v14.1.0/go.mod h1:zowYYPo+TtgKn0TZz0dC1hfQokuQNl5cCVTcbinpcVo=
+github.com/essentialkaos/ek/v13 v13.15.4 h1:T5CSyGn9GN6TTcyTC22Y2W8j4vW05jglzr09vjRJuaQ=
+github.com/essentialkaos/ek/v13 v13.15.4/go.mod h1:ez9V1qvfXvjI6gqT24fZfkdVefHzYi6bm/c2NrD7B3s=
+github.com/essentialkaos/sslscan/v14 v14.1.1 h1:YbQKY7alBUsmD96Aj3w+LGjEs6LK9zw7jJ1Mnlq01AI=
+github.com/essentialkaos/sslscan/v14 v14.1.1/go.mod h1:6S/ruXHcjTFbMXFwkjMX7w62i9qJi9lh37wAm5Wi6pY=
 github.com/kr/pretty v0.3.1 h1:flRD4NNwYAUpkphVc1HcthR4KEIFJ65n8Mw5qdRn3LE=
 github.com/kr/pretty v0.3.1/go.mod h1:hoEshYVHaxMs3cyo3Yncou5ZscifuDolrwPKZanG3xk=
 github.com/kr/text v0.2.0 h1:5Nx0Ya0ZqY2ygV366QzturHI13Jq95ApcVaJBhpS+AY=
