@@ -3,7 +3,7 @@ module github.com/essentialkaos/sslcli/v3
 go 1.22.8
 
 require (
-	github.com/essentialkaos/ek/v13 v13.15.9
+	github.com/essentialkaos/ek/v13 v13.15.11
 	github.com/essentialkaos/sslscan/v14 v14.1.1
 )
 
