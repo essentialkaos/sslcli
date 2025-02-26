@@ -22,7 +22,7 @@ Source100:      checksum.sha512
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-BuildRequires:  golang >= 1.21
+BuildRequires:  golang >= 1.23
 
 Provides:       %{name} = %{version}-%{release}
 
