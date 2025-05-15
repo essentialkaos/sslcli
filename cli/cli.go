@@ -2,7 +2,7 @@ package cli
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                         Copyright (c) 2023 ESSENTIAL KAOS                          //
+//                         Copyright (c) 2025 ESSENTIAL KAOS                          //
 //      Apache License, Version 2.0 <http://www.apache.org/licenses/LICENSE-2.0>      //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -40,7 +40,7 @@ import (
 
 const (
 	APP  = "SSLScan Client"
-	VER  = "3.0.2"
+	VER  = "3.0.3"
 	DESC = "Command-line client for the SSL Labs API"
 )
 
@@ -159,7 +159,7 @@ func Run(gitRev string, gomod []byte) {
 
 	if !errs.IsEmpty() {
 		terminal.Error("Options parsing errors:")
-		terminal.Error(errs.String())
+		terminal.Error(errs.Error(" - "))
 		os.Exit(1)
 	}
 
@@ -272,7 +272,7 @@ func registerUser() (error, bool) {
 
 	if err != nil {
 		if !options.GetB(OPT_FORMAT) {
-			return fmt.Errorf("Error while sending request to SSL Labs API: %v", err), false
+			return fmt.Errorf("Error while sending request to SSL Labs API: %w", err), false
 		}
 
 		return nil, false
@@ -288,10 +288,10 @@ func registerUser() (error, bool) {
 	firstName, lastName, _ := strings.Cut(name, " ")
 
 	fmtc.NewLine()
-	fmtc.Printf("  {s}Email:{!}        %s\n", email)
-	fmtc.Printf("  {s}Organization:{!} %s\n", org)
-	fmtc.Printf("  {s}First Name:{!}   %s\n", firstName)
-	fmtc.Printf("  {s}Last Name:{!}    %s\n", lastName)
+	fmtc.Printfn("  {s}Email:{!}        %s", email)
+	fmtc.Printfn("  {s}Organization:{!} %s", org)
+	fmtc.Printfn("  {s}First Name:{!}   %s", firstName)
+	fmtc.Printfn("  {s}Last Name:{!}    %s", lastName)
 	fmtc.NewLine()
 
 	resp, err := api.Register(&sslscan.RegisterRequest{
@@ -302,10 +302,10 @@ func registerUser() (error, bool) {
 	})
 
 	if err != nil {
-		return fmt.Errorf("Can't register user: %v", err), false
+		return fmt.Errorf("Can't register user: %w", err), false
 	}
 
-	fmtc.Printf("{g}%s{!}\n\n", resp.Message)
+	fmtc.Printfn("{g}%s{!}\n", resp.Message)
 
 	return nil, true
 }
@@ -320,7 +320,7 @@ func runHostCheck(args options.Arguments) (error, bool) {
 
 	if err != nil {
 		if !options.GetB(OPT_FORMAT) {
-			return fmt.Errorf("Error while sending request to SSL Labs API: %v", err), false
+			return fmt.Errorf("Error while sending request to SSL Labs API: %w", err), false
 		}
 
 		return nil, false
@@ -475,8 +475,8 @@ func showServerMessage() {
 
 	fmtc.NewLine()
 	fmtc.Println(coloredMessage)
-	fmtc.Printf(
-		"{s-}Assessments: %d/%d (CoolOff: %d)\n",
+	fmtc.Printfn(
+		"{s-}Assessments: %d/%d (CoolOff: %d)",
 		api.Info.CurrentAssessments+1,
 		api.Info.MaxAssessments,
 		api.Info.NewAssessmentCoolOff,
@@ -704,7 +704,7 @@ func checkAPIAvailability() support.Check {
 	} else if resp.StatusCode != 200 {
 		return support.Check{
 			support.CHECK_ERROR, "SSLLabs API", fmt.Sprintf(
-				"API returned non-ok status code %s", resp.StatusCode,
+				"API returned non-ok status code %d", resp.StatusCode,
 			),
 		}
 	}
@@ -755,6 +755,8 @@ func genUsage() *usage.Info {
 	info.AddOption(OPT_NO_COLOR, "Disable colors in output")
 	info.AddOption(OPT_HELP, "Show this help message")
 	info.AddOption(OPT_VER, "Show version")
+
+	info.AddEnv("SSLLABS_EMAIL", "User account email {s-}(String){!}")
 
 	info.AddExample(
 		"--register --email john@domain.com --org 'Some Organization' --name 'John Doe'",

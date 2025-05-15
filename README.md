@@ -19,13 +19,13 @@
 
 ### Usage demo
 
-[![demo](https://gh.kaos.st/sslcli-275.gif)](#usage-demo)
+[![demo](https://github.com/user-attachments/assets/924631d8-5a53-4e86-9728-bf86569aee14)](#usage-demo)
 
 ### Installation
 
 #### From source
 
-To build the SSLScan Client from scratch, make sure you have a working Go 1.21+ workspace ([instructions](https://go.dev/doc/install)), then:
+To build the SSLScan Client from scratch, make sure you have a working Go [1.23+](https://github.com/essentialkaos/.github/blob/master/GO-VERSION-SUPPORT.md) workspace ([instructions](https://go.dev/doc/install)), then:
 
 ```
 go install github.com/essentialkaos/sslcli/v3@latest
@@ -78,7 +78,7 @@ docker run --rm -it ghcr.io/essentialkaos/sslcli:latest mydomain.com
 
 ### Contributing
 
-Before contributing to this project please read our [Contributing Guidelines](https://github.com/essentialkaos/contributing-guidelines#contributing-guidelines).
+Before contributing to this project please read our [Contributing Guidelines](https://github.com/essentialkaos/.github/blob/master/CONTRIBUTING.md).
 
 ### Terms of Use
 
@@ -93,4 +93,4 @@ Also you should:
 
 [Apache License, Version 2.0](https://www.apache.org/licenses/LICENSE-2.0)
 
-<p align="center"><a href="https://essentialkaos.com"><img src="https://gh.kaos.st/ekgh.svg"/></a></p>
+<p align="center"><a href="https://kaos.dev"><img src="https://raw.githubusercontent.com/essentialkaos/.github/refs/heads/master/images/ekgh.svg"/></a></p>

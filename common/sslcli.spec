@@ -10,7 +10,7 @@
 
 Summary:        Pretty awesome command-line client for public SSLLabs API
 Name:           sslcli
-Version:        3.0.2
+Version:        3.0.3
 Release:        0%{?dist}
 Group:          Applications/System
 License:        Apache License, Version 2.0
@@ -22,7 +22,7 @@ Source100:      checksum.sha512
 
 BuildRoot:      %{_tmppath}/%{name}-%{version}-%{release}-root-%(%{__id_u} -n)
 
-BuildRequires:  golang >= 1.21
+BuildRequires:  golang >= 1.23
 
 Provides:       %{name} = %{version}-%{release}
 
@@ -103,6 +103,10 @@ fi
 ################################################################################
 
 %changelog
+* Thu May 15 2025 Anton Novojilov <andy@essentialkaos.com> - 3.0.3-0
+- Code refactoring
+- Dependencies update
+
 * Tue Aug 06 2024 Anton Novojilov <andy@essentialkaos.com> - 3.0.2-0
 - Package ek updated to v13
 - Dependencies update
