@@ -9,6 +9,7 @@ package cli
 
 import (
 	"fmt"
+	"slices"
 	"strings"
 	"time"
 
@@ -16,7 +17,6 @@ import (
 	"github.com/essentialkaos/ek/v13/fmtutil"
 	"github.com/essentialkaos/ek/v13/httputil"
 	"github.com/essentialkaos/ek/v13/pluralize"
-	"github.com/essentialkaos/ek/v13/sliceutil"
 	"github.com/essentialkaos/ek/v13/strutil"
 	"github.com/essentialkaos/ek/v13/terminal"
 	"github.com/essentialkaos/ek/v13/timeutil"
@@ -603,11 +603,11 @@ func printProtocolSuiteInfo(suite *sslscan.Suite, chaCha20Preference bool) {
 	}
 
 	switch {
-	case insecure == true:
+	case insecure:
 		fmtc.Printf(" {r}%-52s{!} {s}|{!} {r}%d (INSECURE){!} ", suite.Name, suite.CipherStrength)
-	case weak == true:
+	case weak:
 		fmtc.Printf(" {y}%-52s{!} {s}|{!} {y}%d (WEAK){!} ", suite.Name, suite.CipherStrength)
-	case preferred == true:
+	case preferred:
 		fmtc.Printf(" {*}%-52s{!} {s}|{!} %d ", suite.Name, suite.CipherStrength)
 	default:
 		fmtc.Printf(" %-52s {s}|{!} %d ", suite.Name, suite.CipherStrength)
@@ -1458,12 +1458,12 @@ func getTrustInfo(certID string, endpoints []*sslscan.EndpointInfo) (map[string]
 	for _, endpoint := range endpoints {
 		for _, chain := range endpoint.Details.CertChains {
 			for _, path := range chain.TrustPaths {
-				if !sliceutil.Contains(path.CertIDs, certID) {
+				if !slices.Contains(path.CertIDs, certID) {
 					continue
 				}
 
 				for _, store := range path.Trust {
-					if store.IsTrusted && result[store.RootStore] == false {
+					if store.IsTrusted && !result[store.RootStore] {
 						result[store.RootStore] = true
 					}
 				}

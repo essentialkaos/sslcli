@@ -40,7 +40,7 @@ import (
 
 const (
 	APP  = "SSLScan Client"
-	VER  = "3.0.2"
+	VER  = "3.0.3"
 	DESC = "Command-line client for the SSL Labs API"
 )
 
@@ -159,7 +159,7 @@ func Run(gitRev string, gomod []byte) {
 
 	if !errs.IsEmpty() {
 		terminal.Error("Options parsing errors:")
-		terminal.Error(errs.Error("- "))
+		terminal.Error(errs.Error(" - "))
 		os.Exit(1)
 	}
 
@@ -272,7 +272,7 @@ func registerUser() (error, bool) {
 
 	if err != nil {
 		if !options.GetB(OPT_FORMAT) {
-			return fmt.Errorf("Error while sending request to SSL Labs API: %v", err), false
+			return fmt.Errorf("Error while sending request to SSL Labs API: %w", err), false
 		}
 
 		return nil, false
@@ -302,7 +302,7 @@ func registerUser() (error, bool) {
 	})
 
 	if err != nil {
-		return fmt.Errorf("Can't register user: %v", err), false
+		return fmt.Errorf("Can't register user: %w", err), false
 	}
 
 	fmtc.Printfn("{g}%s{!}\n", resp.Message)
@@ -320,7 +320,7 @@ func runHostCheck(args options.Arguments) (error, bool) {
 
 	if err != nil {
 		if !options.GetB(OPT_FORMAT) {
-			return fmt.Errorf("Error while sending request to SSL Labs API: %v", err), false
+			return fmt.Errorf("Error while sending request to SSL Labs API: %w", err), false
 		}
 
 		return nil, false
@@ -704,7 +704,7 @@ func checkAPIAvailability() support.Check {
 	} else if resp.StatusCode != 200 {
 		return support.Check{
 			support.CHECK_ERROR, "SSLLabs API", fmt.Sprintf(
-				"API returned non-ok status code %s", resp.StatusCode,
+				"API returned non-ok status code %d", resp.StatusCode,
 			),
 		}
 	}
@@ -755,6 +755,8 @@ func genUsage() *usage.Info {
 	info.AddOption(OPT_NO_COLOR, "Disable colors in output")
 	info.AddOption(OPT_HELP, "Show this help message")
 	info.AddOption(OPT_VER, "Show version")
+
+	info.AddEnv("SSLLABS_EMAIL", "User account email {s-}(String){!}")
 
 	info.AddExample(
 		"--register --email john@domain.com --org 'Some Organization' --name 'John Doe'",
