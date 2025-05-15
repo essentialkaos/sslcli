@@ -19,7 +19,7 @@
 
 ### Usage demo
 
-[![demo](https://gh.kaos.st/sslcli-275.gif)](#usage-demo)
+[![demo](https://github.com/user-attachments/assets/924631d8-5a53-4e86-9728-bf86569aee14)](#usage-demo)
 
 ### Installation
 
