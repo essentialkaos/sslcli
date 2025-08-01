@@ -1,9 +1,9 @@
 module github.com/essentialkaos/sslcli/v3
 
-go 1.23.6
+go 1.23.10
 
 require (
-	github.com/essentialkaos/ek/v13 v13.31.3
+	github.com/essentialkaos/ek/v13 v13.32.0
 	github.com/essentialkaos/sslscan/v14 v14.1.2
 )
 
