@@ -3,11 +3,11 @@ module github.com/essentialkaos/sslcli/v3
 go 1.24.0
 
 require (
-	github.com/essentialkaos/ek/v13 v13.36.2
+	github.com/essentialkaos/ek/v13 v13.37.5
 	github.com/essentialkaos/sslscan/v14 v14.1.3
 )
 
 require (
 	github.com/essentialkaos/depsy v1.3.1 // indirect
-	golang.org/x/sys v0.38.0 // indirect
+	golang.org/x/sys v0.39.0 // indirect
 )
