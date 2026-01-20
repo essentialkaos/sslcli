@@ -4,7 +4,7 @@ go 1.24.0
 
 require (
 	github.com/essentialkaos/ek/v13 v13.38.3
-	github.com/essentialkaos/sslscan/v14 v14.1.3
+	github.com/essentialkaos/sslscan/v14 v14.1.4
 )
 
 require (

@@ -25,6 +25,7 @@ import (
 	"github.com/essentialkaos/ek/v13/support"
 	"github.com/essentialkaos/ek/v13/support/deps"
 	"github.com/essentialkaos/ek/v13/terminal"
+	"github.com/essentialkaos/ek/v13/terminal/tty"
 	"github.com/essentialkaos/ek/v13/timeutil"
 	"github.com/essentialkaos/ek/v13/usage"
 	"github.com/essentialkaos/ek/v13/usage/completion/bash"
@@ -40,7 +41,7 @@ import (
 
 const (
 	APP  = "SSLScan Client"
-	VER  = "3.0.3"
+	VER  = "3.1.0"
 	DESC = "Command-line client for the SSL Labs API"
 )
 
@@ -64,6 +65,7 @@ const (
 	OPT_NAME     = "name"
 	OPT_ORG      = "org"
 
+	OPT_UPDATE       = "U:update"
 	OPT_VERB_VER     = "vv:verbose-version"
 	OPT_COMPLETION   = "completion"
 	OPT_GENERATE_MAN = "generate-man"
@@ -155,6 +157,9 @@ func Run(gitRev string, gomod []byte) {
 
 	runtime.GOMAXPROCS(2)
 
+	preConfigureUI()
+	preConfigureOptions()
+
 	args, errs := options.Parse(optMap)
 
 	if !errs.IsEmpty() {
@@ -181,6 +186,8 @@ func Run(gitRev string, gomod []byte) {
 			WithChecks(checkAPIAvailability()).
 			Print()
 		os.Exit(0)
+	case withSelfUpdate && options.GetB(OPT_UPDATE):
+		os.Exit(updateBinary())
 	case options.GetB(OPT_HELP) || (len(args) == 0 && !options.GetB(OPT_REGISTER)):
 		genUsage().Print()
 		os.Exit(0)
@@ -211,9 +218,9 @@ func Run(gitRev string, gomod []byte) {
 	}
 }
 
-// configureUI configures user interface
-func configureUI() {
-	if options.GetB(OPT_NO_COLOR) {
+// preConfigureUI preconfigures UI based on information about user terminal
+func preConfigureUI() {
+	if !tty.IsTTY() {
 		fmtc.DisableColors = true
 	}
 
@@ -227,6 +234,18 @@ func configureUI() {
 		colorTagApp, colorTagVer = "{*}{#39}", "{#39}"
 	default:
 		colorTagApp, colorTagVer = "{*}{c}", "{c}"
+	}
+}
+
+// preConfigureOptions preconfigures command-line options based on build tags
+func preConfigureOptions() {
+	optMap.SetIf(withSelfUpdate, OPT_UPDATE, &options.V{Type: options.MIXED})
+}
+
+// configureUI configures user interface
+func configureUI() {
+	if options.GetB(OPT_NO_COLOR) {
+		fmtc.DisableColors = true
 	}
 }
 
@@ -753,6 +772,11 @@ func genUsage() *usage.Info {
 	info.AddOption(OPT_QUIET, "Don't show any output")
 	info.AddOption(OPT_PAGER, "Use pager for long output")
 	info.AddOption(OPT_NO_COLOR, "Disable colors in output")
+
+	if withSelfUpdate {
+		info.AddOption(OPT_UPDATE, "Update application to the latest version")
+	}
+
 	info.AddOption(OPT_HELP, "Show this help message")
 	info.AddOption(OPT_VER, "Show version")
 
