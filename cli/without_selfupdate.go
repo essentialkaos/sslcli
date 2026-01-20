@@ -1,28 +1,21 @@
-package main
+//go:build !selfupdate
+
+package cli
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
 //                         Copyright (c) 2026 ESSENTIAL KAOS                          //
-//      Apache License, Version 2.0 <http://www.apache.org/licenses/LICENSE-2.0>      //
+//      Apache License, Version 2.0 <https://www.apache.org/licenses/LICENSE-2.0>     //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-import (
-	_ "embed"
-
-	CLI "github.com/essentialkaos/sslcli/v3/cli"
-)
+var withSelfUpdate = false
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 
-//go:embed go.mod
-var gomod []byte
-
-// gitrev is short hash of the latest git commit
-var gitrev string
-
-// ////////////////////////////////////////////////////////////////////////////////// //
-
-func main() {
-	CLI.Run(gitrev, gomod)
+// updateBinary updates current binary to the latest version
+func updateBinary() int {
+	return 1
 }
+
+// ////////////////////////////////////////////////////////////////////////////////// //

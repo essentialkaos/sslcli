@@ -2,7 +2,7 @@ package cli
 
 // ////////////////////////////////////////////////////////////////////////////////// //
 //                                                                                    //
-//                         Copyright (c) 2025 ESSENTIAL KAOS                          //
+//                         Copyright (c) 2026 ESSENTIAL KAOS                          //
 //      Apache License, Version 2.0 <http://www.apache.org/licenses/LICENSE-2.0>      //
 //                                                                                    //
 // ////////////////////////////////////////////////////////////////////////////////// //
@@ -1180,12 +1180,12 @@ func printTestInfo(info *sslscan.EndpointInfo) {
 	fmtc.Printfn(
 		" %-24s {s}|{!} %s {s-}(%s ago){!}", "Test date",
 		timeutil.Format(testDate, "%Y/%m/%d %H:%M:%S"),
-		timeutil.PrettyDuration(time.Since(testDate)),
+		timeutil.Pretty(time.Since(testDate)),
 	)
 
 	fmtc.Printfn(
 		" %-24s {s}|{!} %s", "Test duration",
-		timeutil.PrettyDuration(info.Duration/1000),
+		timeutil.Pretty(info.Duration/1000),
 	)
 
 	if details.HTTPStatusCode == 0 {

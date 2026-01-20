@@ -56,6 +56,23 @@ podman run --rm -it ghcr.io/essentialkaos/sslcli:latest mydomain.com
 docker run --rm -it ghcr.io/essentialkaos/sslcli:latest mydomain.com
 ```
 
+### Upgrading
+
+Since version `3.1.0` you can update `sslcli` to the latest release using [self-update feature](https://github.com/essentialkaos/.github/blob/master/APPS-UPDATE.md):
+
+```bash
+sslcli --update
+```
+
+This command will runs a self-update in interactive mode. If you want to run a quiet update (_no output_), use the following command:
+
+```bash
+sslcli --update=quiet
+```
+
+> [!NOTE]
+> Please note that the self-update feature only works with binaries that are downloaded from the [EK Apps Repository](https://apps.kaos.st/sslcli/latest). Binaries from packages do not have a self-update feature and must be upgraded via the package manager.
+
 ### Feature list
 
 * Superb UI
