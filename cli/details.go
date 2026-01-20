@@ -1180,12 +1180,12 @@ func printTestInfo(info *sslscan.EndpointInfo) {
 	fmtc.Printfn(
 		" %-24s {s}|{!} %s {s-}(%s ago){!}", "Test date",
 		timeutil.Format(testDate, "%Y/%m/%d %H:%M:%S"),
-		timeutil.PrettyDuration(time.Since(testDate)),
+		timeutil.Pretty(time.Since(testDate)),
 	)
 
 	fmtc.Printfn(
 		" %-24s {s}|{!} %s", "Test duration",
-		timeutil.PrettyDuration(info.Duration/1000),
+		timeutil.Pretty(info.Duration/1000),
 	)
 
 	if details.HTTPStatusCode == 0 {
