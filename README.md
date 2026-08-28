@@ -1,7 +1,6 @@
 <p align="center"><a href="#readme"><img src=".github/images/card.svg"/></a></p>
 
 <p align="center">
-  <a href="https://kaos.sh/r/sslcli"><img src="https://goreportcard.com/badge/github.com/essentialkaos/sslcli" alt="GoReportCard" /></a>
   <a href="https://kaos.sh/y/sslcli"><img src="https://app.codacy.com/project/badge/Grade/cb0c9951ae5c4ac89ea6192e9bfb170f" alt="Codacy badge" /></a>
   <a href="https://kaos.sh/w/sslcli/ci-push"><img src="https://github.com/essentialkaos/sslcli/actions/workflows/ci-push.yml/badge.svg" alt="GitHub Actions CI Status" /></a>
   <a href="https://kaos.sh/w/sslcli/codeql"><img src="https://github.com/essentialkaos/sslcli/actions/workflows/codeql.yml/badge.svg" alt="GitHub Actions CodeQL Status" /></a>
