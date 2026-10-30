@@ -9,17 +9,17 @@ package cli
 
 import (
 	"fmt"
+	"net/http"
 	"slices"
 	"strings"
 	"time"
 
-	"github.com/essentialkaos/ek/v13/fmtc"
-	"github.com/essentialkaos/ek/v13/fmtutil"
-	"github.com/essentialkaos/ek/v13/httputil"
-	"github.com/essentialkaos/ek/v13/pluralize"
-	"github.com/essentialkaos/ek/v13/strutil"
-	"github.com/essentialkaos/ek/v13/terminal"
-	"github.com/essentialkaos/ek/v13/timeutil"
+	"github.com/essentialkaos/ek/v14/fmtc"
+	"github.com/essentialkaos/ek/v14/fmtutil"
+	"github.com/essentialkaos/ek/v14/pluralize"
+	"github.com/essentialkaos/ek/v14/strutil"
+	"github.com/essentialkaos/ek/v14/terminal"
+	"github.com/essentialkaos/ek/v14/timeutil"
 
 	sslscan "github.com/essentialkaos/sslscan/v14"
 )
@@ -1194,7 +1194,7 @@ func printTestInfo(info *sslscan.EndpointInfo) {
 		fmtc.Printfn(
 			" %-24s {s}|{!} %d {s-}(%s){!}", "HTTP status code",
 			details.HTTPStatusCode,
-			httputil.GetDescByCode(details.HTTPStatusCode),
+			http.StatusText(details.HTTPStatusCode),
 		)
 	}
 }
