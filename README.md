@@ -1,10 +1,9 @@
 <p align="center"><a href="#readme"><img src=".github/images/card.svg"/></a></p>
 
 <p align="center">
-  <a href="https://kaos.sh/r/sslcli"><img src="https://kaos.sh/r/sslcli.svg" alt="GoReportCard" /></a>
-  <a href="https://kaos.sh/y/sslcli"><img src="https://kaos.sh/y/cb0c9951ae5c4ac89ea6192e9bfb170f.svg" alt="Codacy badge" /></a>
-  <a href="https://kaos.sh/w/sslcli/ci-push"><img src="https://kaos.sh/w/sslcli/ci-push.svg" alt="GitHub Actions CI Status" /></a>
-  <a href="https://kaos.sh/w/sslcli/codeql"><img src="https://kaos.sh/w/sslcli/codeql.svg" alt="GitHub Actions CodeQL Status" /></a>
+  <a href="https://kaos.sh/y/sslcli"><img src="https://app.codacy.com/project/badge/Grade/cb0c9951ae5c4ac89ea6192e9bfb170f" alt="Codacy badge" /></a>
+  <a href="https://kaos.sh/w/sslcli/ci-push"><img src="https://github.com/essentialkaos/sslcli/actions/workflows/ci-push.yml/badge.svg" alt="GitHub Actions CI Status" /></a>
+  <a href="https://kaos.sh/w/sslcli/codeql"><img src="https://github.com/essentialkaos/sslcli/actions/workflows/codeql.yml/badge.svg" alt="GitHub Actions CodeQL Status" /></a>
   <a href="#license"><img src=".github/images/license.svg"/></a>
 </p>
 
@@ -25,7 +24,7 @@
 
 #### From source
 
-To build the SSLScan Client from scratch, make sure you have a working Go [1.23+](https://github.com/essentialkaos/.github/blob/master/GO-VERSION-SUPPORT.md) workspace ([instructions](https://go.dev/doc/install)), then:
+To build the SSLScan Client from scratch, make sure you have a working Go [1.25+](https://github.com/essentialkaos/.github/blob/master/GO-VERSION-SUPPORT.md) workspace ([instructions](https://go.dev/doc/install)), then:
 
 ```
 go install github.com/essentialkaos/sslcli/v3@latest
@@ -90,8 +89,8 @@ sslcli --update=quiet
 
 | Branch | Status |
 |------------|--------|
-| `master` | [![CI](https://kaos.sh/w/sslcli/ci-push.svg?branch=master)](https://kaos.sh/w/sslcli/ci-push?query=branch:master) |
-| `develop` | [![CI](https://kaos.sh/w/sslcli/ci-push.svg?branch=develop)](https://kaos.sh/w/sslcli/ci-push?query=branch:develop) |
+| `master` | [![CI](https://github.com/essentialkaos/sslcli/actions/workflows/ci-push.yml/badge.svg?branch=master)](https://kaos.sh/w/sslcli/ci-push?query=branch:master) |
+| `develop` | [![CI](https://github.com/essentialkaos/sslcli/actions/workflows/ci-push.yml/badge.svg?branch=develop)](https://kaos.sh/w/sslcli/ci-push?query=branch:develop) |
 
 ### Contributing
 
